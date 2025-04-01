@@ -1,0 +1,10 @@
+<div>
+  <input type="text" name="task" [(ngModel)]="cardName" placeholder="Buscar carta por nombre" />
+  <button type="button" (click)="searchCard()">Buscar Carta</button>
+</div>
+
+@if (cardName != '') {
+<div>
+  <img style="width: 350px; height: auto;" [src]="cardImage" alt="Card Image" />
+</div>
+}
