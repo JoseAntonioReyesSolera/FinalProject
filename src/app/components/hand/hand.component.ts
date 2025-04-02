@@ -19,7 +19,7 @@ export class HandComponent {
   deckCards: Cart[] = [];  // Para almacenar las cartas obtenidas de Scryfall
   private readonly manaOrder = ['W', 'U', 'B', 'R', 'G'];
 
-  constructor(private scryfallService: ScryfallService, private sanitizer: DomSanitizer) {}
+  constructor(private readonly scryfallService: ScryfallService, private readonly sanitizer: DomSanitizer) {}
 
   processDeckInput() {
     // Dividir el texto en líneas y extraer solo los nombres de las cartas
@@ -39,8 +39,8 @@ export class HandComponent {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period || ''}</span>`;
     });
 
-    text = text.replace(/([A-Za-z\s]+):\s*(.*?)(\.)/g, (match, cost, effect) => {
-      return `<span class="text-info fw-bold">${cost}:</span> <span class="text-success">${effect}</span>`;
+    text = text.replace(/((?:<img [^>]+>|[A-Za-z\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
+      return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 
     keywords.forEach(keyword => {
