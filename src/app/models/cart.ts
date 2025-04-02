@@ -13,4 +13,7 @@ export interface Cart {
   toughness?: number;
   keywords?: Array<string>;
   produced_mana?: Array<string>;
+  sanitizedManaCost: any;
+  sanitizedProducedMana: any;
+  sanitizedOracleText: any;
 }
