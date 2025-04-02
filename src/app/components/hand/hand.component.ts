@@ -48,7 +48,7 @@ export class HandComponent {
       text = text?.replace(keywordRegex, `<span class="text-primary">${keyword}</span>`);
     });
 
-    return text.replace(/\{([^}]+)\}/g, (_, symbol) => {
+    return text.replace(/\{([^}]+)}/g, (_, symbol) => {
       return `<img src="https://svgs.scryfall.io/card-symbols/${symbol}.svg"
                  alt="${symbol}"
                  style="width: 20px; height: auto; vertical-align: middle;">`;
