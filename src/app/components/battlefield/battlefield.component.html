@@ -1,1 +1,50 @@
-<p>battlefield works!</p>
+<button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Import Deck
+</button>
+
+<!--modal-->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Task</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <app-deck-processor></app-deck-processor>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contenedor principal fuera del modal -->
+<div class="container mt-6">
+
+  <div class="row">
+    <div class="col mt-4">
+      <app-stack></app-stack>
+    </div>
+    <div class="col-12 col-md-9 mb-4">
+      <div class="ratio ratio-1x4" style=" height: 500px; background-color: #f4f4f4; border: 2px solid #ccc;">
+        <!-- Aquí puedes agregar el contenido del campo de batalla -->
+      </div>
+    </div>
+
+    <div class="col mt-4">
+
+      @if (totalDeckCards >= 100) {
+    <div class="col-12 col-md-3">
+      <app-commander></app-commander>
+    </div>
+      }
+
+      <div class="col-12 col-md-3">
+        <app-library></app-library>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <app-graveyard></app-graveyard>
+      </div>
+    </div>
+  </div>
+</div>

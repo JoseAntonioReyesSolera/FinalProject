@@ -16,7 +16,6 @@ import { StackComponent } from './components/stack/stack.component';
   template: `
     <app-battlefield></app-battlefield>
     <app-hand></app-hand>
-    <app-stack></app-stack>
   `,
   providers: [ScryfallService]
 })
