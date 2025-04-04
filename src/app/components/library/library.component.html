@@ -1,1 +1,29 @@
-<p>library works!</p>
+<div class="library-container">
+  <p>{{ totalDeckCards }}</p>
+  <img src="https://assets.moxfield.net/assets/images/missing-image.png"
+       alt="Library"
+       class="library-image"
+       (contextmenu)="onRightClick($event)">
+</div>
+
+<!-- Menú contextual -->
+@if (showContextMenu) {
+<ul class="context-menu"
+    [style.top.px]="contextMenuPosition.y"
+    [style.left.px]="contextMenuPosition.x">
+  <li (click)="showDrawCardsDialog()">Robar X cartas</li>
+  <li (click)="drawCards(1)">Robar 1 carta</li>
+  <li (click)="millCard()">Moler 1 carta</li>
+  <li (click)="searchCard()">Buscar carta</li>
+  <li (click)="exileCard()">Exiliar carta</li>
+</ul>
+}
+
+@if (isDrawingCards) {
+<div class="draw-cards-dialog">
+  <label for="cards-to-draw">¿Cuántas cartas quieres robar?</label>
+  <input type="number" id="cards-to-draw" [(ngModel)]="cardsToDraw" min="1" [max]=totalDeckCards />
+  <button (click)="drawCards(cardsToDraw)">Robar cartas</button>
+  <button (click)="closeDrawDialog()">Cancelar</button>
+</div>
+}

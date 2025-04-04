@@ -32,12 +32,12 @@
 
     <div class="col mt-4">
 
+      @if (totalDeckCards > 0) {
       @if (totalDeckCards >= 100) {
     <div class="col-12 col-md-3">
       <app-commander></app-commander>
     </div>
       }
-
       <div class="col-12 col-md-3">
         <app-library></app-library>
       </div>
@@ -45,6 +45,7 @@
       <div class="col-12 col-md-3">
         <app-graveyard></app-graveyard>
       </div>
+      }
     </div>
   </div>
 </div>

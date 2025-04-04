@@ -69,10 +69,10 @@ export class DeckProcessorComponent {
             this.toggleCardFace(cardData); // Esto establecerá la carta con la cara correcta
           }
 
-          this.deckService.setDeckCards(this.deckCards);
-
           return cardData;
+
         });
+        this.deckService.setDeckCards(this.deckCards);
       },
       error: (err) => console.error('Error al cargar el mazo:', err),
     });
