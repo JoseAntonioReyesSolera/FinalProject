@@ -20,11 +20,17 @@ import {DeckService} from '../../services/deck.service';
 })
 export class BattlefieldComponent implements OnInit {
   totalDeckCards: number = 0;
+  originalDeckCards: number = 0;
 
   constructor(private readonly deckService: DeckService) {}
+
   ngOnInit() {
     this.deckService.getDeckCards().subscribe(cards => {
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity || 1), 0);
+    });
+
+    this.deckService.getOriginalDeckCards().subscribe(cards => {
+      this.originalDeckCards = cards.reduce((sum, card) => sum + (card.quantity || 1), 0);
     });
   }
 }

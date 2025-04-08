@@ -1,29 +1,47 @@
 <div class="library-container">
-  <p>{{ totalDeckCards }}</p>
+  <p style="width: 120px">{{ totalDeckCards }}</p>
   <img src="https://assets.moxfield.net/assets/images/missing-image.png"
        alt="Library"
        class="library-image"
        (contextmenu)="onRightClick($event)">
 </div>
 
-<!-- Menú contextual -->
-@if (showContextMenu) {
-<ul class="context-menu"
-    [style.top.px]="contextMenuPosition.y"
-    [style.left.px]="contextMenuPosition.x">
-  <li (click)="showDrawCardsDialog()">Robar X cartas</li>
-  <li (click)="drawCards(1)">Robar 1 carta</li>
-  <li (click)="millCard()">Moler 1 carta</li>
-  <li (click)="searchCard()">Buscar carta</li>
-  <li (click)="exileCard()">Exiliar carta</li>
-</ul>
-}
+  <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cardListModalLabel">Selecciona las cartas que deseas mover</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="card-list row g-3">
+            @for (card of deckCards; track card.id) {
+              @defer (on viewport) {
+                <div class="col-md-4 mb-3">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h3 class="card-title">{{ card.quantity + " " + card.name }}</h3>
+                      <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
+                           style="max-width: 100%; height: auto;">
+                      <input type="checkbox" [checked]="selectedCards.includes(card)" (change)="selectCard(card)">
+                    </div>
+                  </div>
+                </div>
+              } @placeholder {
+                <p>Carta por cargar</p>
+              }
+            }
+          </div>
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-primary" (click)="performActionOnSelectedCards('draw')">Robar cartas</button>
+            <button class="btn btn-warning" (click)="performActionOnSelectedCards('exile')">Exiliar cartas</button>
+            <button class="btn btn-secondary" (click)="performActionOnSelectedCards('mill')">Moler cartas</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-danger" (click)="closeCardListModal()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-@if (isDrawingCards) {
-<div class="draw-cards-dialog">
-  <label for="cards-to-draw">¿Cuántas cartas quieres robar?</label>
-  <input type="number" id="cards-to-draw" [(ngModel)]="cardsToDraw" min="1" [max]=totalDeckCards />
-  <button (click)="drawCards(cardsToDraw)">Robar cartas</button>
-  <button (click)="closeDrawDialog()">Cancelar</button>
-</div>
-}

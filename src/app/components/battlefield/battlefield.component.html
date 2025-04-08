@@ -1,13 +1,13 @@
-<button type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">
+<button type="button" data-bs-toggle="modal" data-bs-target="#deckProcessorModal">
   Import Deck
 </button>
 
 <!--modal-->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false">
+<div class="modal fade" id="deckProcessorModal" tabindex="-1" aria-labelledby="deckProcessorModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Task</h1>
+        <h5 class="modal-title" id="deckProcessorModalLabel">Edit Task</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -33,7 +33,7 @@
     <div class="col mt-4">
 
       @if (totalDeckCards > 0) {
-      @if (totalDeckCards >= 100) {
+      @if (originalDeckCards >= 100) {
     <div class="col-12 col-md-3">
       <app-commander></app-commander>
     </div>

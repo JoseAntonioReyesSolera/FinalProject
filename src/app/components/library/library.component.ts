@@ -1,27 +1,25 @@
 import {Component, HostListener} from '@angular/core';
 import {DeckService} from '../../services/deck.service';
-import {FormsModule} from '@angular/forms';
+import {Cart} from '../../models/cart';
 
 @Component({
   selector: 'app-library',
-  imports: [
-    FormsModule
-  ],
+  imports: [],
   templateUrl: './library.component.html',
   styleUrl: './library.component.css'
 })
 export class LibraryComponent {
   public totalDeckCards: number = 0;
-  public decks: any[] = [];
+  public deckCards: Cart[] = [];
   public showContextMenu = false;
   public contextMenuPosition = { x: 0, y: 0 };
-  isDrawingCards: boolean = false;
-  cardsToDraw: number = 1;
+  selectedCards: any[] = [];  // Las cartas seleccionadas por el usuario
 
   constructor(private readonly deckService: DeckService) {}
 
   ngOnInit() {
     this.deckService.getDeckCards().subscribe(cards => {
+      this.deckCards = cards;
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity || 1), 0);
     });
   }
@@ -37,33 +35,24 @@ export class LibraryComponent {
     this.showContextMenu = false;
   }
 
-  drawCards(amount: number) {
-    console.log(`Robando ${amount} carta(s)`);
-    this.closeDrawDialog();
+  // Seleccionar una carta
+  selectCard(card: any) {
+    const index = this.selectedCards.indexOf(card);
+    if (index > -1) {
+      this.selectedCards.splice(index, 1);
+    } else {
+      this.selectedCards.push(card);
+    }
   }
 
-  showDrawCardsDialog() {
-    this.isDrawingCards = true;
-    this.closeContextMenu();
+  performActionOnSelectedCards(action: 'draw' | 'exile' | 'mill') {
+    const actionMap = {
+      draw: (card: any) => this.deckService.drawCard(card),
+      exile: (card: any) => this.deckService.exileCard(card),
+      mill: (card: any) => this.deckService.millCard(card)
+    };
 
-  }
-  closeDrawDialog() {
-    this.isDrawingCards = false;
-  }
-
-
-  millCard() {
-    console.log('Molando 1 carta');
-    this.closeContextMenu();
-  }
-
-  searchCard() {
-    console.log('Buscando una carta en la biblioteca');
-    this.closeContextMenu();
-  }
-
-  exileCard() {
-    console.log('Exiliando una carta de la biblioteca');
-    this.closeContextMenu();
+    this.selectedCards.forEach(card => actionMap[action]?.(card));
+    this.selectedCards = []; // Limpiar la selección después
   }
 }
