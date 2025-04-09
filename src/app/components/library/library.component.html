@@ -18,6 +18,7 @@
             @for (card of deckCards; track card.id) {
               @defer (on viewport) {
                 <div class="col-md-4 mb-3">
+                  <label class="ckeckbox-custom">
                   <div class="card">
                     <div class="card-body text-center">
                       <h3 class="card-title">{{ card.quantity + " " + card.name }}</h3>
@@ -26,6 +27,7 @@
                       <input type="checkbox" [checked]="selectedCards.includes(card)" (change)="selectCard(card)">
                     </div>
                   </div>
+                  </label>
                 </div>
               } @placeholder {
                 <p>Carta por cargar</p>
@@ -39,7 +41,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-danger">Cancelar</button>
+          <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
         </div>
       </div>
     </div>

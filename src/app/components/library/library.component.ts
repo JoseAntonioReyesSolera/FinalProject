@@ -1,6 +1,7 @@
-import {Component, HostListener} from '@angular/core';
+import {Component} from '@angular/core';
 import {DeckService} from '../../services/deck.service';
 import {Cart} from '../../models/cart';
+import * as bootstrap from 'bootstrap';
 
 @Component({
   selector: 'app-library',
@@ -28,11 +29,11 @@ export class LibraryComponent {
     event.preventDefault();
     this.contextMenuPosition = { x: event.clientX, y: event.clientY };
     this.showContextMenu = true;
-  }
-
-  @HostListener('document:click')
-  closeContextMenu() {
-    this.showContextMenu = false;
+    const modalElement = document.getElementById('cardListModal');
+    if (modalElement) {
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
   }
 
   // Seleccionar una carta

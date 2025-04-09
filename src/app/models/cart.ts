@@ -19,4 +19,9 @@ export interface Cart {
   card_faces: any;
   currentFaceIndex: number;
   quantity: number;
+
+  combinedName?: string;
+  combinedManaCost?: string;
+  combinedOracleText?: string;
+  combinedImageUris?: string;
 }

@@ -1,9 +1,9 @@
-import {Component, NgModule} from '@angular/core';
+import {Component} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ScryfallService } from './services/scryfall.service';
 import { BattlefieldComponent } from './components/battlefield/battlefield.component';
 import { HandComponent } from './components/hand/hand.component';
-import { StackComponent } from './components/stack/stack.component';
+// import { StackComponent } from './components/stack/stack.component';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +11,7 @@ import { StackComponent } from './components/stack/stack.component';
     FormsModule,
     HandComponent,
     BattlefieldComponent,
-    StackComponent
+    // StackComponent
   ],
   template: `
     <app-battlefield></app-battlefield>

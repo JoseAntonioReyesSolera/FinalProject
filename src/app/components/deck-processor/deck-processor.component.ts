@@ -63,7 +63,6 @@ export class DeckProcessorComponent {
             currentFaceIndex: initialFaceIndex, // Se inicia en la cara que definamos (0 o 1)
             quantity: this.deckList[index].quantity,
           };
-
           // Llamar a toggleCardFace para asegurarnos de que la carta de doble cara esté correctamente inicializada
           if (cardData.card_faces) {
             this.toggleCardFace(cardData); // Esto establecerá la carta con la cara correcta
@@ -91,6 +90,10 @@ export class DeckProcessorComponent {
       card.mana_cost = newFace.mana_cost;
       card.sanitizedManaCost = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.mana_cost));
       card.sanitizedOracleText = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.oracle_text, card.keywords));
+      /*card.combinedName = this.combineCardFacesProperty(card, 'name');
+      card.combinedManaCost = this.combineCardFacesProperty(card, 'mana_cost');
+      card.combinedOracleText = this.combineCardFacesProperty(card, 'oracle_text');
+      card.combinedImageUris = this.combineCardFacesProperty(card, 'image_uris');*/
     }
   }
 
@@ -131,4 +134,19 @@ export class DeckProcessorComponent {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
+  /*combineCardFacesProperty(card: Cart, property: string): string | { normal?: string; art_crop?: string } {
+    if (!card.card_faces || card.card_faces.length === 0) {
+      if (property === "image_uris") return card.image_uris;
+      return '';
+    }
+
+    if (property === "image_uris") {
+      return card.card_faces.find((face: { image_uris: any; }) => face.image_uris)?.image_uris || '';
+    }
+
+    return card.card_faces
+      .map((face: { [x: string]: any }) => face[property] || '')
+      .filter((val: string) => val.trim() !== '')
+      .join(' // ');
+  }*/
 }
