@@ -6,7 +6,7 @@
        (contextmenu)="onRightClick($event)">
 </div>
 
-  <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true">
+  <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true" style="display: none">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -21,9 +21,14 @@
                   <label class="ckeckbox-custom">
                   <div class="card">
                     <div class="card-body text-center">
-                      <h3 class="card-title">{{ card.quantity + " " + card.name }}</h3>
-                      <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
-                           style="max-width: 100%; height: auto;">
+                      <h3 class="card-title" style="min-height: 67px">{{ card.quantity + " " + card.name }}</h3>
+                      @if (card.card_faces && !card.isSingleImageDoubleFace) {
+                        <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
+                             style="max-width: 100%; height: auto;">
+                      } @else {
+                        <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
+                             style="max-width: 100%; height: auto;">
+                      }
                       <input type="checkbox" [checked]="selectedCards.includes(card)" (change)="selectCard(card)">
                     </div>
                   </div>

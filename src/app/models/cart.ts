@@ -24,4 +24,6 @@ export interface Cart {
   combinedManaCost?: string;
   combinedOracleText?: string;
   combinedImageUris?: string;
+
+  isSingleImageDoubleFace: boolean;
 }

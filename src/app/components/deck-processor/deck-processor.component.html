@@ -10,10 +10,16 @@
         <div class="col-md-6 mb-3">
           <div class="card">
             <div class="card-body text-center">
-              <h3 style="font-size: 20px">{{ card.quantity + " " + (card.combinedName || card.name)}}</h3>
-              <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
+              <h3 style="font-size: 20px; min-height: 48px;">{{ card.quantity + " " + card.name}}</h3>
+              @if (card.card_faces && !card.isSingleImageDoubleFace) {
+                <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
+                     style="max-width: 100%; height: auto;">
+              } @else {
+                <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
+                     style="max-width: 100%; height: auto;">
+              }
               <!-- Mostrar botón de Transformar solo si la carta tiene dos caras -->
-              @if (card.card_faces) {
+              @if (card.card_faces && !card.isSingleImageDoubleFace) {
                 <button (click)="toggleCardFace(card)">Transformar</button>
               }
             </div>

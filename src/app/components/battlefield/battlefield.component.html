@@ -3,9 +3,10 @@
 </button>
 
 <!--modal-->
-<div class="modal fade" id="deckProcessorModal" tabindex="-1" aria-labelledby="deckProcessorModalLabel" aria-hidden="true">
+<div class="modal fade" id="deckProcessorModal" tabindex="-1" aria-labelledby="deckProcessorModalLabel"
+     aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+    <div class="modal-content" style="z-index: 10">
       <div class="modal-header">
         <h5 class="modal-title" id="deckProcessorModalLabel">Import Deck</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -32,11 +33,10 @@
 
     <div class="col mt-4">
 
-      @if (totalDeckCards > 0) {
       @if (originalDeckCards >= 100) {
-    <div class="col-12 col-md-3">
-      <app-commander></app-commander>
-    </div>
+        <div class="col-12 col-md-3">
+          <app-commander></app-commander>
+        </div>
       }
       <div class="col-12 col-md-3">
         <app-library></app-library>
@@ -45,7 +45,6 @@
       <div class="col-12 col-md-3">
         <app-graveyard></app-graveyard>
       </div>
-      }
     </div>
   </div>
 </div>
