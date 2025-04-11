@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {DeckService} from '../../services/deck.service';
 
@@ -9,12 +9,15 @@ import {DeckService} from '../../services/deck.service';
   templateUrl: './hand.component.html',
   styleUrl: './hand.component.css'
 })
-export class HandComponent {
-  deckCards: Cart[] = [];
+export class HandComponent implements OnInit {
+  handCards: Cart[] = [];
 
-  constructor(private readonly deckService: DeckService) {
-    this.deckService.getDeckCards().subscribe(cards => {
-      this.deckCards = cards;
+  constructor(private readonly deckService: DeckService) {}
+
+  ngOnInit() {
+    // Suscripción para recibir cambios en la zona de la mano
+    this.deckService.getHandZone().subscribe(hand => {
+      this.handCards = hand;
     });
   }
 }

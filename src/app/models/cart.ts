@@ -26,4 +26,5 @@ export interface Cart {
   combinedImageUris?: string;
 
   isSingleImageDoubleFace: boolean;
+  isCommander: boolean;
 }

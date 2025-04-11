@@ -39,11 +39,44 @@ export class DeckProcessorComponent {
 
   loadDeck() {
     this.deckCards = [];
-    const cardRequests = this.deckList.map(card => this.scryfallService.getCardByName(card.name));
+
+    // Verificamos si hay SIDEBOARD:
+    const sideboardStartIndex = this.deckList.findIndex(card => card.name === 'SIDEBOARD:');
+
+    let sideboardCards: { name: string, quantity: number }[] = [];
+    let commanderCard: { name: string, quantity: number } | null = null;
+
+    if (sideboardStartIndex !== -1) {
+      // Si existe SIDEBOARD:, las cartas entre "SIDEBOARD:" y el comandante son del sideboard
+      sideboardCards = this.deckList.slice(sideboardStartIndex + 1, this.deckList.length - 1);  // Cartas del sideboard
+      commanderCard = this.deckList[this.deckList.length - 1];  // El comandante es la última carta
+    } else {
+      // Si no existe SIDEBOARD:, consideramos toda la lista y el comandante es la última carta
+      commanderCard = this.deckList[this.deckList.length - 1];
+    }
+
+    const rawDeckList = this.deckList.filter(card => card.name !== 'SIDEBOARD:');
+
+    // Unificar cartas con el mismo nombre sumando cantidades
+    const cardMap: { [name: string]: number } = {};
+    rawDeckList.forEach(card => {
+      const name = card.name.trim().toLowerCase();
+      if (cardMap[name]) {
+        cardMap[name] += card.quantity;
+      } else {
+        cardMap[name] = card.quantity;
+      }
+    });
+
+    const unifiedDeckList = Object.entries(cardMap).map(([name, quantity]) => ({ name, quantity }));
+
+    const cardRequests = unifiedDeckList.map(card => this.scryfallService.getCardByName(card.name));
     forkJoin(cardRequests).subscribe({
       next: (cards) => {
         this.deckCards = cards.map((card,index) => {
           const initialFaceIndex = card.card_faces ? 1 : 0;
+
+          const nameKey = card.name.trim().toLowerCase();
 
           const cardData: Cart = {
             id: card.id,
@@ -62,17 +95,16 @@ export class DeckProcessorComponent {
             sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
             card_faces: card.card_faces || null,
             currentFaceIndex: initialFaceIndex,
-            quantity: this.deckList[index].quantity,
+            quantity: unifiedDeckList[index].quantity,
             isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
+            isCommander: commanderCard && nameKey === commanderCard.name.trim().toLowerCase(),
           };
 
           if (cardData.card_faces && !cardData.isSingleImageDoubleFace) {
             this.toggleCardFace(cardData);
           }
-
           return cardData;
         });
-
         this.deckService.setDeckCards(this.deckCards);
       },
       error: (err) => console.error('Error al cargar el mazo:', err),
@@ -97,11 +129,11 @@ export class DeckProcessorComponent {
   private replaceManaSymbolsAndHighlightTriggers(text?: string, keywords: string[] = []): string {
     if (!text) return '';
 
-    text = text.replace(/(Whenever|At|When)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
+    text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period || ''}</span>`;
     });
 
-    text = text.replace(/((?:<img [^>]+>|[A-Za-z\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
+    text = text.replace(/((?:<img [^>]+>|[\−\+A-Za-z0-9\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
       return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 
@@ -111,7 +143,8 @@ export class DeckProcessorComponent {
     });
 
     return text.replace(/\{([^}]+)}/g, (_, symbol) => {
-      return `<img src="https://svgs.scryfall.io/card-symbols/${symbol}.svg"
+      const cleanSymbol = symbol.replace('/', '');
+      return `<img src="https://svgs.scryfall.io/card-symbols/${cleanSymbol}.svg"
                  alt="${symbol}"
                  style="width: 20px; height: auto; vertical-align: middle;">`;
     });

@@ -1,0 +1,5 @@
+.commander-image {
+  height: auto;
+  max-width: 100px;  /* Ajusta esto según el tamaño que desees para la imagen */
+  object-fit: contain;  /* Esto asegura que la imagen no se distorsione */
+}

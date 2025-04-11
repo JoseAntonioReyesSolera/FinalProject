@@ -14,8 +14,15 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
+          <div class="mb-3">
+            <span class="input-group-text">
+        <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Buscar por nombre..."
+                   [(ngModel)]="searchTerm">
+              </span>
+          </div>
           <div class="card-list row g-3">
-            @for (card of deckCards; track card.id) {
+            @for (card of filteredDeckCards; track card.id) {
               @defer (on viewport) {
                 <div class="col-md-4 mb-3">
                   <label class="ckeckbox-custom">
@@ -30,6 +37,14 @@
                              style="max-width: 100%; height: auto;">
                       }
                       <input type="checkbox" [checked]="selectedCards.includes(card)" (change)="selectCard(card)">
+                        <div class="mt-2">
+                        <input type="number"
+                               id="cardQuantity{{ card.id }}"
+                               class="form-control form-control-sm"
+                               [min]="1"
+                               [max]="card.quantity"
+                               [(ngModel)]="selectedQuantities[card.id]">
+                      </div>
                     </div>
                   </div>
                   </label>
@@ -43,6 +58,7 @@
             <button class="btn btn-primary" (click)="performActionOnSelectedCards('draw')">Robar cartas</button>
             <button class="btn btn-warning" (click)="performActionOnSelectedCards('exile')">Exiliar cartas</button>
             <button class="btn btn-secondary" (click)="performActionOnSelectedCards('mill')">Moler cartas</button>
+            <button class="btn btn-success" (click)="performActionOnSelectedCards('battlefield')">Al campo de Batalla</button>
           </div>
         </div>
         <div class="modal-footer">
