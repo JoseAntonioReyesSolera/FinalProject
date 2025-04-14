@@ -18,8 +18,7 @@ declare const bootstrap: any; // para que reconozca los modales de Bootstrap 5
 export class GraveyardComponent implements OnInit {
   graveyardCards: Cart[] = [];
   exileCards: Cart[] = [];
-  searchTerm: string = '';
-  selectedQuantities: { [cardId: string]: number } = {};
+  isExile: boolean = false;
 
   constructor(private readonly deckService: DeckService) {}
 
@@ -33,36 +32,16 @@ export class GraveyardComponent implements OnInit {
     });
   }
 
-  filteredGraveyardCards(): Cart[] {
-    return this.graveyardCards.filter(card =>
-      card.name.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
-  }
-
-  moveToZone(card: Cart, zone: 'hand' | 'library' | 'exile' | 'battlefield') {
-    const quantity = this.selectedQuantities[card.id] || 1;
-    this.deckService.moveCardToZone(card, zone, quantity);
-    delete this.selectedQuantities[card.id];
-  }
-
   openModal() {
     const modal = new bootstrap.Modal(document.getElementById('graveyardModal'));
     modal.show();
   }
 
-  get totalGraveyardCards(): number {
-    return this.graveyardCards.length;
+  showMainDeck() {
+    this.isExile = false;
   }
 
-  filteredExileCards(): Cart[] {
-    return this.exileCards.filter(card =>
-      card.name.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
-  }
-
-  getCardImage(card: Cart): string {
-    return card.card_faces && !card.isSingleImageDoubleFace
-      ? card.card_faces[card.currentFaceIndex]?.image_uris?.normal
-      : card.image_uris?.normal;
+  showSideboard() {
+    this.isExile = true;
   }
 }

@@ -18,64 +18,10 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
-          <!--<div class="mb-3">
-            <span class="input-group-text">
-        <i class="bi bi-search"></i>
-            <input type="text" class="form-control" placeholder="Buscar por nombre..."
-                   [(ngModel)]="searchTerm">
-              </span>
-          </div>
-          <div class="card-list row g-3">
-            @for (card of filteredDeckCards; track card.id) {
-              @defer (on viewport) {
-                <div class="col-md-4 mb-3">
-                  <label class="ckeckbox-custom">
-                  <div class="card">
-                    <div class="card-body text-center">
-                      <h3 class="card-title" style="min-height: 67px">{{ card.quantity + " " + card.name }}</h3>
-                      @if (card.card_faces && !card.isSingleImageDoubleFace) {
-                        <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
-                             style="max-width: 100%; height: auto;">
-                      } @else {
-                        <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
-                             style="max-width: 100%; height: auto;">
-                      }
-                      <input type="checkbox" [checked]="selectedCards.includes(card)" (change)="selectCard(card)">
-                        <div class="mt-2">
-                        <input type="number"
-                               id="cardQuantity{{ card.id }}"
-                               class="form-control form-control-sm"
-                               [min]="1"
-                               [max]="card.quantity"
-                               [(ngModel)]="selectedQuantities[card.id]">
-                          @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
-                            <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {
-                              Comandante ✅
-                            } @else {
-                              Marcar como comandante
-                            }</button>
-                          }
-                      </div>
-                    </div>
-                  </div>
-                  </label>
-                </div>
-              } @placeholder {
-                <p>Carta por cargar</p>
-              }
-            }
-          </div>
-          <div class="d-flex justify-content-between">
-            <button class="btn btn-primary" (click)="performActionOnSelectedCards('hand')">Robar cartas</button>
-            @if (!isSideboard) {
-            <button class="btn btn-warning" (click)="performActionOnSelectedCards('exile')">Exiliar cartas</button>
-            <button class="btn btn-secondary" (click)="performActionOnSelectedCards('graveyard')">Moler cartas</button>
-            }
-            <button class="btn btn-success" (click)="performActionOnSelectedCards('battlefield')">Al campo de Batalla</button>-->
           <app-zone-viewer
-            [zoneName]="'Biblioteca'"
-            [zoneType]="'library'"
-            [cards]="deckCards">
+            [zoneName]="isSideboard ? 'Sideboard' : 'Biblioteca'"
+            [zoneType]="isSideboard ? 'sideboard' : 'library'"
+            [cards]="isSideboard ? sideboardCards : deckCards">
           </app-zone-viewer>
         </div>
         <div class="modal-footer">

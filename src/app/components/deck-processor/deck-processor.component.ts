@@ -71,6 +71,7 @@ export class DeckProcessorComponent {
         const allCards: Cart[] = cards.map((card, index) => {
           const isSide = index >= unifiedMainList.length;
           const cardData: Cart = {
+            instanceId: card.id + '-' + self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2),
             id: card.id,
             name: card.name,
             image_uris: card.image_uris,

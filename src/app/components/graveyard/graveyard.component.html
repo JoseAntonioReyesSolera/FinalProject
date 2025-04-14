@@ -6,108 +6,27 @@
 </div>
 
 <!-- Modal para el cementerio y exilio -->
-<div class="modal fade" id="graveyardModal" tabindex="-1" aria-labelledby="graveyardModalLabel" aria-hidden="true">
+<div class="modal fade" id="graveyardModal" tabindex="-1" aria-labelledby="graveyardModalLabel" aria-hidden="true" style="display: none">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
+      <div class="tabs">
+        <button (click)="showMainDeck()">Cementerio</button>
+        <button (click)="showSideboard()">Exilio</button>
+      </div>
       <div class="modal-header">
-        <h5 class="modal-title" id="graveyardModalLabel">Cementerio / Exilio</h5>
+        <h5 class="modal-title" id="graveyardModalLabel">Selecciona las cartas que deseas mover</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mb-3" id="zoneTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="graveyard-tab" data-bs-toggle="tab" data-bs-target="#graveyard-zone" type="button" role="tab">Cementerio</button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="exile-tab" data-bs-toggle="tab" data-bs-target="#exile-zone" type="button" role="tab">Exilio</button>
-          </li>
-        </ul>
-
-        <!-- Zona de búsqueda -->
-        <div class="mb-3">
-          <span class="input-group-text">
-            <i class="bi bi-search"></i>
-            <input type="text" class="form-control" placeholder="Buscar por nombre..." [(ngModel)]="searchTerm">
-          </span>
-        </div>
-
-        <!-- Tab Content -->
-        <div class="tab-content">
-
-          <!-- Cementerio -->
-          <!--<div class="tab-pane fade show active" id="graveyard-zone" role="tabpanel">
-            <div class="card-list row g-3">
-              @for (card of filteredGraveyardCards(); track card.instanceId) {
-                @defer (on viewport) {
-                  <div class="col-md-4 mb-3">
-                    <div class="card">
-                      <div class="card-body text-center">
-                        <h3 class="card-title" style="min-height: 67px">{{ card.name }}</h3>
-                        <img [src]="getCardImage(card)" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
-                        <div class="mt-2">
-                          <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
-                          <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
-                          <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
-                          <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                } @placeholder {
-                  <p>Cargando carta...</p>
-                }
-              }
-            </div>
-          </div>
-
-          &lt;!&ndash; Exilio &ndash;&gt;
-          <div class="tab-pane fade" id="exile-zone" role="tabpanel">
-            <div class="card-list row g-3">
-              @for (card of filteredExileCards(); track card.instanceId) {
-                @defer (on viewport) {
-                  <div class="col-md-4 mb-3">
-                    <div class="card">
-                      <div class="card-body text-center">
-                        <h3 class="card-title" style="min-height: 67px">{{ card.name }}</h3>
-                        <img [src]="getCardImage(card)" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
-                        <div class="mt-2">
-                          <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
-                          <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
-                          <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                } @placeholder {
-                  <p>Cargando carta...</p>
-                }
-              }
-            </div>
-          </div>
-        </div>-->
-          <div class="tab-content">
-            <div class="tab-pane fade show active" id="graveyard-tab-content" role="tabpanel">
-              <app-zone-viewer
-                [zoneName]="'Cementerio'"
-                [zoneType]="'graveyard'"
-                [cards]="graveyardCards">
-              </app-zone-viewer>
-            </div>
-            <div class="tab-pane fade" id="exile-tab-content" role="tabpanel">
-              <app-zone-viewer
-                [zoneName]="'Exilio'"
-                [zoneType]="'exile'"
-                [cards]="exileCards">
-              </app-zone-viewer>
-            </div>
-          </div>
-        </div>
+        <app-zone-viewer
+          [zoneName]="isExile ? 'Exilo' : 'Cementerio'"
+          [zoneType]="isExile ? 'exile' : 'graveyard'"
+          [cards]="isExile ? exileCards : graveyardCards">
+        </app-zone-viewer>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </div>
   </div>
-</div>
+  </div>

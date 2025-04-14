@@ -94,7 +94,6 @@ export class DeckService {
         zoneArray.push({
           ...card,
           quantity: 1,
-          instanceId: card.id + '-' + self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2)
         });
       }
       subject.next([...zoneArray]);

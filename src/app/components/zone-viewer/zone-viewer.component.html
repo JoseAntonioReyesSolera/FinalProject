@@ -1,0 +1,67 @@
+<div class="zone-viewer">
+  <h5>{{ zoneName }}</h5>
+
+  <div class="mb-3">
+    <span class="input-group-text">
+      <i class="bi bi-search"></i>
+      <input type="text" class="form-control" placeholder="Buscar por nombre..." [(ngModel)]="searchTerm">
+    </span>
+  </div>
+
+  <div class="card-list row g-3">
+    @for (card of filteredCards(); track card.id) {
+      @defer (on viewport) {
+        <div class="col-md-4 mb-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <h3 class="card-title" style="min-height: 67px">{{ card.quantity + " " + card.name }}</h3>
+              <img [src]="getCardImage(card)" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
+              <div class="mt-2">
+                <input type="number"
+                       class="form-control form-control-sm"
+                       [min]="1"
+                       [max]="card.quantity"
+                       [(ngModel)]="selectedQuantities[card.id]">
+              </div>
+              @if (isLibrary()) {
+                @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
+                  <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {
+                    Comandante ✅
+                  } @else {
+                    Marcar como comandante
+                  }</button>
+                }
+              }
+              <div class="mt-2">
+
+                <!-- Botones para zona Graveyard -->
+                @if (isGraveyard()) {
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
+                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                }
+
+                <!-- Botones para zona Exile -->
+                @if (isExile()) {
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                }
+
+                <!-- Botones para zona Library -->
+                @if (isLibrary()) {
+                  <button class="btn btn-primary btn-sm" (click)="moveToZone(card, 'hand')">Robar</button>
+                  <button class="btn btn-danger btn-sm" (click)="moveToZone(card, 'graveyard')">Moler</button>
+                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      } @placeholder {
+        <p>Cargando carta...</p>
+      }
+    }
+  </div>
+</div>
