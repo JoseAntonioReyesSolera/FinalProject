@@ -8,45 +8,38 @@ import { Cart } from '../models/cart';
 export class DeckService {
   private readonly deckCardsSubject = new BehaviorSubject<Cart[]>([]);
   private readonly originalDeckSubject = new BehaviorSubject<Cart[]>([]);
-  private handZone: Cart[] = [];
-  private exileZone: Cart[] = [];
-  private graveyardZone: Cart[] = [];
-  private handZoneSubject = new BehaviorSubject<Cart[]>(this.handZone);
+  private readonly handZone: Cart[] = [];
+  private readonly exileZone: Cart[] = [];
+  private readonly graveyardZone: Cart[] = [];
+  private readonly handZoneSubject = new BehaviorSubject<Cart[]>(this.handZone);
+  private readonly exileZoneSubject = new BehaviorSubject<Cart[]>(this.exileZone);
+  private readonly graveyardZoneSubject = new BehaviorSubject<Cart[]>(this.graveyardZone);
 
-  private sideboard: Cart[] = [];
   private readonly sideboardSubject = new BehaviorSubject<Cart[]>([]);
 
-  private commander: Cart | null = null;
+  private commander: Cart[] = [];
 
-  setDeckCards(deckCards: Cart[]) {
-    const [mainDeck, sideboard] = this.splitDeckAndSideboard(deckCards);
-    this.deckCardsSubject.next(deckCards);
-    this.originalDeckSubject.next(deckCards.map(card => ({ ...card }))); // guarda copia original
+  setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
+    this.deckCardsSubject.next([...mainDeck]);
+    this.originalDeckSubject.next(mainDeck.map(card => ({...card})));
 
-    this.sideboard = sideboard;
     this.sideboardSubject.next([...sideboard]);
 
-    if (mainDeck.length >= 100) {
-      this.setCommander(mainDeck); // Si hay 100 o más cartas, asignar el comandante
-    }
-
-    console.log('Sideboard:', sideboard); // Ver las cartas del sideboard si las necesitas
   }
 
-  private splitDeckAndSideboard(deckCards: Cart[]): [Cart[], Cart[]] {
-    const sideboardIndex = deckCards.findIndex(card => card.name === 'SIDEBOARD:');
-    const mainDeck = sideboardIndex === -1 ? deckCards : deckCards.slice(0, sideboardIndex);
-    const sideboard = sideboardIndex === -1 ? [] : deckCards.slice(sideboardIndex + 1);
+  setCommander(card: Cart) {
+    const existingCommander = this.commander.find(commander => commander.id === card.id);
 
-    return [mainDeck, sideboard];
-  }
-
-  private setCommander(mainDeck: Cart[]) {
-    this.commander = mainDeck[mainDeck.length - 1];
-    if (this.commander) {
-      this.commander.isCommander = true; // Activar isCommander
+    if (existingCommander) {
+      // Si ya es comandante, la eliminamos
+      this.commander = this.commander.filter(commander => commander.id !== card.id);
+      console.log('Comandante eliminado:', card.name);
+    } else {
+      // Si no es comandante, la agregamos
+      this.commander.push(card);
+      console.log('Comandante agregado:', card.name);
     }
-    console.log('Comandante asignado:', this.commander);
+    console.log(this.commander)
   }
 
 
@@ -72,42 +65,40 @@ export class DeckService {
 
     this.deckCardsSubject.next(newDeck);
 
-    if (zone === 'draw') {
-      this.addCardToZone(this.handZone, card, quantity);
-    } else if (zone === 'exile') {
-      this.addCardToZone(this.exileZone, card, quantity);
-    } else if (zone === 'graveyard') {
-      this.addCardToZone(this.graveyardZone, card, quantity);
+    switch (zone) {
+      case 'hand':
+        this.addCardToZone(this.handZone, this.handZoneSubject, card, quantity);
+        break;
+      case 'exile':
+        this.addCardToZone(this.exileZone, this.exileZoneSubject, card, quantity);
+        break;
+      case 'graveyard':
+        this.addCardToZone(this.graveyardZone, this.graveyardZoneSubject, card, quantity);
+        break;
+      case 'library': {
+        const currentDeck = this.deckCardsSubject.getValue();
+        for (let i = 0; i < quantity; i++) {
+          currentDeck.push({...card, quantity: 1});
+        }
+        this.deckCardsSubject.next([...currentDeck]);
+        break;
+      }
     }
 
     // Aquí se puede agregar la carta a la zona correspondiente
     console.log(`Carta movida a la zona ${zone}: ${quantity} ${card.name}`);
   }
 
-  private addCardToZone(zone: Cart[], card: Cart, quantity: number): void {
-    const existingCard = zone.find(c => c.name === card.name);
-    if (existingCard) {
-      existingCard.quantity += quantity; // Sumar la cantidad si ya está en la zona
-    } else {
-      zone.push({ ...card, quantity }); // Si no, agregar la carta
+  private addCardToZone(zoneArray: Cart[], subject: BehaviorSubject<Cart[]>, card: Cart, quantity: number): void {
+      for (let i = 0; i < quantity; i++) {
+        zoneArray.push({
+          ...card,
+          quantity: 1,
+          instanceId: card.id + '-' + self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2)
+        });
+      }
+      subject.next([...zoneArray]);
     }
-
-    this.updateZoneSubject(zone);
-  }
-
-  private updateZoneSubject(zone: Cart[]): void {
-    if (zone === this.handZone) {
-      this.handZoneSubject.next([...zone]); // Actualizar la zona de la mano
-    }
-
-    if (zone === this.exileZone) {
-      this.deckCardsSubject.next([...this.exileZone]); // Actualizar la zona del exilio
-    }
-
-    if (zone === this.graveyardZone) {
-      this.deckCardsSubject.next([...this.graveyardZone]); // Actualizar la zona del cementerio
-    }
-  }
 
   // Puedes crear getters para acceder a cada zona
   getHandZone() {
@@ -115,19 +106,27 @@ export class DeckService {
   }
 
   getExileZone() {
-    return new BehaviorSubject<Cart[]>(this.exileZone).asObservable();
+    return this.exileZoneSubject.asObservable();
   }
 
   getGraveyardZone() {
-    return new BehaviorSubject<Cart[]>(this.graveyardZone).asObservable();
+    return this.graveyardZoneSubject.asObservable();
   }
 
   // Getter para obtener el comandante
-  getCommander(): Cart | null {
+  getCommander(): Cart[] {
     return this.commander;
   }
 
   getSideboardCards() {
     return this.sideboardSubject.asObservable();
+  }
+
+  getDeckCardsMain() {
+    return this.deckCardsSubject.getValue(); // Devuelve las cartas del mazo principal
+  }
+
+  getDeckCardsSideboard() {
+    return this.sideboardSubject.getValue(); // Devuelve las cartas del sideboard
   }
 }

@@ -8,12 +8,11 @@ import {DeckService} from '../../services/deck.service';
   templateUrl: './commander.component.html',
   styleUrl: './commander.component.css'
 })
-export class CommanderComponent implements OnInit{
-  commander: Cart | null = null;
+export class CommanderComponent{
 
   constructor(private readonly deckService: DeckService) {}
 
-  ngOnInit(): void {
-    this.commander = this.deckService.getCommander(); // Obtener el comandante desde el servicio
+  getCommanderCards(): Cart[] {
+   return this.deckService.getCommander();
   }
 }

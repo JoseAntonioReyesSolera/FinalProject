@@ -20,4 +20,5 @@ export class HandComponent implements OnInit {
       this.handCards = hand;
     });
   }
+
 }

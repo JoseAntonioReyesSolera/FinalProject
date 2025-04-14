@@ -1,5 +1,7 @@
 <div class="card" style="height: 100%; display: flex; flex-direction: column;">
   <div class="card-body text-center" style="flex-grow: 1;">
+    @for (commander of getCommanderCards(); track commander.instanceId) {
     <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="img-fluid commander-image">
+    }
   </div>
 </div>

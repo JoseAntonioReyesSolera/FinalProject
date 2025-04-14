@@ -9,12 +9,16 @@
   <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true" style="display: none">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
+        <div class="tabs">
+          <button (click)="showMainDeck()">Mazo Principal</button>
+          <button (click)="showSideboard()">Sideboard</button>
+        </div>
         <div class="modal-header">
           <h5 class="modal-title" id="cardListModalLabel">Selecciona las cartas que deseas mover</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
+          <!--<div class="mb-3">
             <span class="input-group-text">
         <i class="bi bi-search"></i>
             <input type="text" class="form-control" placeholder="Buscar por nombre..."
@@ -44,6 +48,13 @@
                                [min]="1"
                                [max]="card.quantity"
                                [(ngModel)]="selectedQuantities[card.id]">
+                          @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
+                            <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {
+                              Comandante ✅
+                            } @else {
+                              Marcar como comandante
+                            }</button>
+                          }
                       </div>
                     </div>
                   </div>
@@ -55,16 +66,22 @@
             }
           </div>
           <div class="d-flex justify-content-between">
-            <button class="btn btn-primary" (click)="performActionOnSelectedCards('draw')">Robar cartas</button>
+            <button class="btn btn-primary" (click)="performActionOnSelectedCards('hand')">Robar cartas</button>
+            @if (!isSideboard) {
             <button class="btn btn-warning" (click)="performActionOnSelectedCards('exile')">Exiliar cartas</button>
-            <button class="btn btn-secondary" (click)="performActionOnSelectedCards('mill')">Moler cartas</button>
-            <button class="btn btn-success" (click)="performActionOnSelectedCards('battlefield')">Al campo de Batalla</button>
-          </div>
+            <button class="btn btn-secondary" (click)="performActionOnSelectedCards('graveyard')">Moler cartas</button>
+            }
+            <button class="btn btn-success" (click)="performActionOnSelectedCards('battlefield')">Al campo de Batalla</button>-->
+          <app-zone-viewer
+            [zoneName]="'Biblioteca'"
+            [zoneType]="'library'"
+            [cards]="deckCards">
+          </app-zone-viewer>
         </div>
         <div class="modal-footer">
           <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
         </div>
       </div>
-    </div>
+        </div>
   </div>
 

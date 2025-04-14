@@ -1,4 +1,5 @@
 export interface Cart {
+  instanceId?: string;
   id: string;
   name: string;
   image_uris?: {

@@ -3,11 +3,13 @@ import {DeckService} from '../../services/deck.service';
 import {Cart} from '../../models/cart';
 import * as bootstrap from 'bootstrap';
 import {FormsModule} from '@angular/forms';
+import {ZoneViewerComponent} from '../zone-viewer/zone-viewer.component';
 
 @Component({
   selector: 'app-library',
   imports: [
-    FormsModule
+    FormsModule,
+    ZoneViewerComponent
   ],
   templateUrl: './library.component.html',
   styleUrl: './library.component.css'
@@ -20,6 +22,7 @@ export class LibraryComponent {
   selectedCards: any[] = [];  // Las cartas seleccionadas por el usuario
   searchTerm: string = '';
   selectedQuantities: { [cardId: string]: number } = {};
+  isSideboard: boolean = false;
 
   constructor(private readonly deckService: DeckService) {}
 
@@ -54,7 +57,7 @@ export class LibraryComponent {
     }
   }
 
-  performActionOnSelectedCards(action: 'draw' | 'exile' | 'mill' | 'battlefield') {
+  performActionOnSelectedCards(action: 'hand' | 'exile' | 'graveyard' | 'battlefield') {
     this.selectedCards.forEach(card => {
       const quantity = this.selectedQuantities[card.id] || 1;
       this.deckService.moveCardToZone(card, action, quantity);
@@ -72,5 +75,30 @@ export class LibraryComponent {
     return this.deckCards.filter(card =>
       card.name.toLowerCase().includes(this.searchTerm.toLowerCase())
     );
+  }
+
+  setAsCommander(card: any) {
+    if (card.isCommander) {
+      // Si es comandante, quitarla como comandante
+      card.isCommander = false;
+      console.log('Carta retirada de comandante:', card.name);
+    } else {
+      // Si no es comandante, marcarla como comandante
+      card.isCommander = true;
+      console.log('Carta marcada como comandante:', card.name);
+    }
+
+    // Actualizar el comandante en el servicio
+    this.deckService.setCommander(card);
+  }
+
+  showMainDeck() {
+    this.deckCards = this.deckService.getDeckCardsMain(); // Acceder a las cartas del mazo principal
+    this.isSideboard = false;
+  }
+
+  showSideboard() {
+    this.deckCards = this.deckService.getDeckCardsSideboard(); // Acceder a las cartas del sideboard
+    this.isSideboard = true;
   }
 }

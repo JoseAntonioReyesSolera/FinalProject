@@ -14,7 +14,8 @@ import {FormsModule} from '@angular/forms';
 })
 export class DeckProcessorComponent {
   deckInput: string = '';
-  deckList: { name: string, quantity: number }[] = [];
+  deckMainList: { name: string, quantity: number }[] = [];
+  deckSideboardList: { name: string, quantity: number }[] = [];
   deckCards: Cart[] = [];
   private readonly manaOrder = ['W', 'U', 'B', 'R', 'G'];
 
@@ -25,59 +26,50 @@ export class DeckProcessorComponent {
     ) {}
 
   processDeckInput() {
-    this.deckList = this.deckInput
+    const [mainPart, sidePart] = this.deckInput.split(/^\s*SIDEBOARD:\s*$/m);
+
+    // Procesar el mazo principal
+    this.deckMainList = mainPart
       .split('\n')
       .map(line => line.trim())
       .filter(line => line.length > 0)
       .map(line => {
-        const match = RegExp(/^(\d+)\s+(.+)$/).exec(line);
+        const match = /^(\d+)\s+(.+)$/.exec(line);
         return match ? { quantity: parseInt(match[1], 10), name: match[2] } : { quantity: 1, name: line };
       });
 
+    // Si hay banquillo, lo añadimos también a deckList con una marca para luego separarlo
+    if (sidePart) {
+      this.deckSideboardList = sidePart
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(line => {
+          const match = /^(\d+)\s+(.+)$/.exec(line);
+          return match ? { quantity: parseInt(match[1], 10), name: match[2] } : { quantity: 1, name: line };
+        });
+    } else {
+      this.deckSideboardList = [];
+    }
     this.loadDeck();
   }
 
   loadDeck() {
-    this.deckCards = [];
-
-    // Verificamos si hay SIDEBOARD:
-    const sideboardStartIndex = this.deckList.findIndex(card => card.name === 'SIDEBOARD:');
-
-    let sideboardCards: { name: string, quantity: number }[] = [];
-    let commanderCard: { name: string, quantity: number } | null = null;
-
-    if (sideboardStartIndex !== -1) {
-      // Si existe SIDEBOARD:, las cartas entre "SIDEBOARD:" y el comandante son del sideboard
-      sideboardCards = this.deckList.slice(sideboardStartIndex + 1, this.deckList.length - 1);  // Cartas del sideboard
-      commanderCard = this.deckList[this.deckList.length - 1];  // El comandante es la última carta
-    } else {
-      // Si no existe SIDEBOARD:, consideramos toda la lista y el comandante es la última carta
-      commanderCard = this.deckList[this.deckList.length - 1];
-    }
-
-    const rawDeckList = this.deckList.filter(card => card.name !== 'SIDEBOARD:');
-
-    // Unificar cartas con el mismo nombre sumando cantidades
-    const cardMap: { [name: string]: number } = {};
-    rawDeckList.forEach(card => {
+    const cardMapMain: { [name: string]: number } = {};
+    this.deckMainList.forEach(card => {
       const name = card.name.trim().toLowerCase();
-      if (cardMap[name]) {
-        cardMap[name] += card.quantity;
-      } else {
-        cardMap[name] = card.quantity;
-      }
+      cardMapMain[name] = (cardMapMain[name] || 0) + card.quantity;
     });
 
-    const unifiedDeckList = Object.entries(cardMap).map(([name, quantity]) => ({ name, quantity }));
+    const unifiedMainList = Object.entries(cardMapMain).map(([name, quantity]) => ({ name, quantity }));
+    const mainRequests = unifiedMainList.map(card => this.scryfallService.getCardByName(card.name));
 
-    const cardRequests = unifiedDeckList.map(card => this.scryfallService.getCardByName(card.name));
-    forkJoin(cardRequests).subscribe({
+    const sideRequests = this.deckSideboardList.map(card => this.scryfallService.getCardByName(card.name));
+
+    forkJoin([...mainRequests, ...sideRequests]).subscribe({
       next: (cards) => {
-        this.deckCards = cards.map((card,index) => {
-          const initialFaceIndex = card.card_faces ? 1 : 0;
-
-          const nameKey = card.name.trim().toLowerCase();
-
+        const allCards: Cart[] = cards.map((card, index) => {
+          const isSide = index >= unifiedMainList.length;
           const cardData: Cart = {
             id: card.id,
             name: card.name,
@@ -94,22 +86,29 @@ export class DeckProcessorComponent {
             sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.oracle_text, card.keywords)),
             sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
             card_faces: card.card_faces || null,
-            currentFaceIndex: initialFaceIndex,
-            quantity: unifiedDeckList[index].quantity,
+            currentFaceIndex: card.card_faces ? 1 : 0,
+            quantity: isSide ? this.deckSideboardList[index - unifiedMainList.length].quantity : unifiedMainList[index].quantity,
             isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
-            isCommander: commanderCard && nameKey === commanderCard.name.trim().toLowerCase(),
+            isCommander: false,
           };
 
           if (cardData.card_faces && !cardData.isSingleImageDoubleFace) {
             this.toggleCardFace(cardData);
           }
+
           return cardData;
         });
-        this.deckService.setDeckCards(this.deckCards);
+
+        const mainDeck = allCards.slice(0, unifiedMainList.length);
+        const sideboard = allCards.slice(unifiedMainList.length);
+
+        this.deckCards = mainDeck;
+        this.deckService.setDeckCards(mainDeck, sideboard);
       },
       error: (err) => console.error('Error al cargar el mazo:', err),
     });
   }
+
 
   toggleCardFace(card: Cart) {
     if (card.card_faces) {
