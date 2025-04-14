@@ -91,6 +91,7 @@ export class DeckProcessorComponent {
             quantity: isSide ? this.deckSideboardList[index - unifiedMainList.length].quantity : unifiedMainList[index].quantity,
             isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
             isCommander: false,
+            zone: 'library',
           };
 
           if (cardData.card_faces && !cardData.isSingleImageDoubleFace) {

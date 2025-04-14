@@ -28,4 +28,6 @@ export interface Cart {
 
   isSingleImageDoubleFace: boolean;
   isCommander: boolean;
+
+  zone: string;
 }
