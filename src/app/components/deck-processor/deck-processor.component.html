@@ -22,7 +22,14 @@
               @if (card.card_faces && !card.isSingleImageDoubleFace) {
                 <button (click)="toggleCardFace(card)">Transformar</button>
               }
-              <p><span [innerHTML]="card.sanitizedOracleText"></span></p>
+             <!-- <p><span [innerHTML]="card.sanitizedManaCost"></span></p>
+              <p><span [innerHTML]="card.sanitizedProducedMana"></span></p>
+              <p><span [innerHTML]="card.type_line"></span></p>
+              <p><span [innerHTML]="card.cmc"></span></p>
+              <p><span [innerHTML]="card.color_identity"></span></p>
+              <p><span [innerHTML]="card.power"></span> / <span [innerHTML]="card.toughness"></span></p>
+              <p><span [innerHTML]="card.keywords"></span></p>
+              <p><span [innerHTML]="card.sanitizedOracleText"></span></p>-->
             </div>
           </div>
         </div>

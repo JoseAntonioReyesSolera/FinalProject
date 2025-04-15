@@ -20,6 +20,7 @@ export interface Cart {
   card_faces: any;
   currentFaceIndex: number;
   quantity: number;
+  color_identity?: string;
 
   combinedName?: string;
   combinedManaCost?: string;

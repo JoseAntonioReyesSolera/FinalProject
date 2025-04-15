@@ -23,7 +23,7 @@
                        [max]="card.quantity"
                        [(ngModel)]="selectedQuantities[card.id]">
               </div>
-              @if (isLibrary()) {
+              @if (!isExile() && !isGraveyard() || isLibrary()) {
                 @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
                   <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {
                     Comandante ✅
@@ -50,7 +50,7 @@
                 }
 
                 <!-- Botones para zona Library -->
-                @if (isLibrary()) {
+                @if (!isExile() && !isGraveyard() || isLibrary()) {
                   <button class="btn btn-primary btn-sm" (click)="moveToZone(card, 'hand')">Robar</button>
                   <button class="btn btn-danger btn-sm" (click)="moveToZone(card, 'graveyard')">Moler</button>
                   <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>

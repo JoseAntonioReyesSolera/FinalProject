@@ -3,7 +3,7 @@ import {Cart} from '../../models/cart';
 import {ScryfallService} from '../../services/scryfall.service';
 import { DeckService } from '../../services/deck.service';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {forkJoin} from 'rxjs';
+import {forkJoin, isEmpty} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 
 @Component({
@@ -83,6 +83,7 @@ export class DeckProcessorComponent {
             toughness: card.toughness,
             keywords: card.keywords,
             produced_mana: card.produced_mana,
+            color_identity: card.color_identity,
             sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
             sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.oracle_text, card.keywords)),
             sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
