@@ -3,7 +3,7 @@ import {Cart} from '../../models/cart';
 import {ScryfallService} from '../../services/scryfall.service';
 import { DeckService } from '../../services/deck.service';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {forkJoin, isEmpty} from 'rxjs';
+import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 
 @Component({
@@ -87,7 +87,7 @@ export class DeckProcessorComponent {
             sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
             sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.oracle_text, card.keywords)),
             sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
-            card_faces: card.card_faces || null,
+            card_faces: card.card_faces ?? null,
             currentFaceIndex: card.card_faces ? 1 : 0,
             quantity: isSide ? this.deckSideboardList[index - unifiedMainList.length].quantity : unifiedMainList[index].quantity,
             isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
@@ -132,10 +132,10 @@ export class DeckProcessorComponent {
     if (!text) return '';
 
     text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
-      return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period || ''}</span>`;
+      return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
     });
 
-    text = text.replace(/((?:<img [^>]+>|[\−\+A-Za-z0-9\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
+    text = text.replace(/((?:<img [^>]+>|[−+A-Za-z0-9\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
       return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 

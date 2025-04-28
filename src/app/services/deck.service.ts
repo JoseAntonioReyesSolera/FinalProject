@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Cart } from '../models/cart';
+import {BattlefieldService} from './battlefield.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,8 @@ export class DeckService {
   private readonly sideboardSubject = new BehaviorSubject<Cart[]>([]);
 
   private commander: Cart[] = [];
+
+  constructor(private readonly bf: BattlefieldService) {}
 
   setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
     this.deckCardsSubject.next([...mainDeck]);
@@ -60,8 +63,12 @@ export class DeckService {
     // Añadir a la zona destino
     this.addCardToZoneFor(toZone, card, quantity);
     // Actualizamos la propiedad si se desea
+
+    if (toZone === 'battlefield') {
+      this.bf.addPermanent(card, quantity);
+    }
+
     console.log(`Carta movida de ${fromZone} a ${toZone}: ${quantity} ${card.name}`);
-    card.zone = toZone;
   }
 
   private addCardToZoneFor(zone: string, card: Cart, quantity: number): void {
@@ -94,10 +101,13 @@ export class DeckService {
     card: Cart,
     quantity: number
   ): void {
+    let zoneName = this.getZoneName(subject);
+
     for (let i = 0; i < quantity; i++) {
       list.push({
         ...card,
         quantity: 1,
+        zone: zoneName,
       });
     }
 
@@ -117,25 +127,46 @@ export class DeckService {
     card: Cart,
     quantity: number
   ): void {
-    let removed = 0;
-    const newList = [];
+    const newList: Cart[] = [];
+
     for (const c of list) {
-      if (removed < quantity && c.id === card.id) {
-        removed++;
-        continue;
+      if (c.id === card.id && quantity > 0) {
+        if (c.quantity > quantity) {
+          // Hay más de una copia, reducimos la cantidad
+          newList.push({
+            ...c,
+            quantity: c.quantity - quantity,
+          });
+          quantity = 0; // Ya hemos eliminado la cantidad necesaria
+        } else if (c.quantity === quantity) {
+          // Eliminamos la carta completa (no la agregamos a newList)
+          quantity = 0;
+        } else {
+          // Se elimina esta carta completa, pero aún falta eliminar más
+          quantity -= c.quantity;
+          // No se agrega nada
+        }
+      } else {
+        newList.push(c);
       }
-      newList.push(c);
     }
 
     subject.next([...newList]);
 
-    // Actualiza también la lista interna según el subject
+    // Actualiza también la lista interna
     if (subject === this.handZoneSubject) this.handZone.splice(0, this.handZone.length, ...newList);
     else if (subject === this.exileZoneSubject) this.exileZone.splice(0, this.exileZone.length, ...newList);
     else if (subject === this.graveyardZoneSubject) this.graveyardZone.splice(0, this.graveyardZone.length, ...newList);
-    else if (subject === this.deckCardsSubject) this.deckCards.splice(0, this.deckCards.length, ...newList); // si mantienes una copia local del mazo
+    else if (subject === this.deckCardsSubject) this.deckCards.splice(0, this.deckCards.length, ...newList);
   }
 
+  private getZoneName(subject: BehaviorSubject<Cart[]>): string {
+    if (subject === this.handZoneSubject) return 'hand';
+    if (subject === this.exileZoneSubject) return 'exile';
+    if (subject === this.graveyardZoneSubject) return 'graveyard';
+    if (subject === this.deckCardsSubject) return 'library';
+    return '';
+  }
 
   // Puedes crear getters para acceder a cada zona
   getHandZone() {

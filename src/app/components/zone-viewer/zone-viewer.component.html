@@ -16,13 +16,7 @@
             <div class="card-body text-center">
               <h3 class="card-title" style="min-height: 67px">{{ card.quantity + " " + card.name }}</h3>
               <img [src]="getCardImage(card)" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
-              <div class="mt-2">
-                <input type="number"
-                       class="form-control form-control-sm"
-                       [min]="1"
-                       [max]="card.quantity"
-                       [(ngModel)]="selectedQuantities[card.id]">
-              </div>
+
               @if (!isExile() && !isGraveyard() || isLibrary()) {
                 @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
                   <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {

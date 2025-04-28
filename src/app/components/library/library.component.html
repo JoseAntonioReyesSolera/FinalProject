@@ -1,9 +1,9 @@
 <div class="library-container">
   <p style="width: 120px">{{ totalDeckCards }}</p>
-  <img src="../public/missing-image.png"
+  <img src="images/backcard.png"
        alt="Library"
        class="library-image"
-       (contextmenu)="onRightClick($event)">
+       (click)="onRightClick($event)">
 </div>
 
   <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true" style="display: none">

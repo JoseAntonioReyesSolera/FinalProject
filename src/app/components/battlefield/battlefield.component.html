@@ -27,7 +27,21 @@
     </div>
     <div class="col-12 col-md-9 mb-4">
       <div class="ratio ratio-1x4" style=" height: 500px; background-color: #f4f4f4; border: 2px solid #ccc;">
-        <!-- Aquí puedes agregar el contenido del campo de batalla -->
+        <div class="d-flex">
+
+          <div class="d-flex flex-row battlefield-area">
+            @for (perm of permanents | async; track trackByInstance) {
+              <app-permanent-card
+                [card]="perm"
+                (tappedChange)="tapPermanent($event)"
+                (remove)="destroyPermanent($event)">
+              </app-permanent-card>
+            }
+          </div>
+
+
+        </div>
+
       </div>
     </div>
 

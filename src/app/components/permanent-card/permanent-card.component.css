@@ -1,0 +1,43 @@
+.permanent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  margin: 5px;
+  padding: 5px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.card-art-container {
+  position: relative;
+  width: 100%;
+}
+
+.card-art {
+  width: 100%;
+  border-radius: 5px;
+}
+
+.card-info {
+  margin-top: 5px;
+  text-align: center;
+}
+
+.card-name {
+  font-weight: bold;
+  color: black;
+  font-size: 10px;
+}
+
+.card-stats {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  color: black;
+  background: lightgray;
+  border-radius: 5px;
+  border: 1px solid black;
+}

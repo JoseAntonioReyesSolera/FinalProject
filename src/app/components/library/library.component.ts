@@ -28,20 +28,19 @@ export class LibraryComponent implements OnInit{
     this.deckService.getDeckCards().subscribe(cards => {
       this.deckCards = cards;
       if (!this.isSideboard) {
-        this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity || 1), 0);
+        this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
       }
     });
 
     this.deckService.getSideboardCards().subscribe(sideboard => {
       this.sideboardCards = sideboard;
       if (this.isSideboard) {
-        this.totalDeckCards = sideboard.reduce((sum, card) => sum + (card.quantity || 1), 0);
+        this.totalDeckCards = sideboard.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
       }
     });
   }
 
   onRightClick(event: MouseEvent) {
-    event.preventDefault();
     this.contextMenuPosition = { x: event.clientX, y: event.clientY };
     this.showContextMenu = true;
     const modalElement = document.getElementById('cardListModal');

@@ -1,0 +1,11 @@
+<div class="permanent-card" (click)="onTap()">
+    <div class="card-name">{{ card.name }}</div>
+    <div class="card-art-container">
+        <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
+        <div class="card-info text-center">
+            @if (isCreature()) {
+                <div class="card-stats">{{ card.power }}/{{ card.toughness }}</div>
+            }
+        </div>
+    </div>
+</div>
