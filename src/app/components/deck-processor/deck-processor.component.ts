@@ -18,6 +18,7 @@ export class DeckProcessorComponent {
   deckSideboardList: { name: string, quantity: number }[] = [];
   deckCards: Cart[] = [];
   private readonly manaOrder = ['W', 'U', 'B', 'R', 'G'];
+  loadError: string | null = null;
 
   constructor(
               private readonly scryfallService: ScryfallService,
@@ -55,6 +56,7 @@ export class DeckProcessorComponent {
   }
 
   loadDeck() {
+    this.loadError = null;
     const cardMapMain: { [name: string]: number } = {};
     this.deckMainList.forEach(card => {
       const name = card.name.trim().toLowerCase();
@@ -62,9 +64,9 @@ export class DeckProcessorComponent {
     });
 
     const unifiedMainList = Object.entries(cardMapMain).map(([name, quantity]) => ({ name, quantity }));
-    const mainRequests = unifiedMainList.map(card => this.scryfallService.getCardByName(card.name));
+    const mainRequests = unifiedMainList.map(card => this.scryfallService.getCardByName(card.name.replace(/\s*\(.*$/, '').trim()));
 
-    const sideRequests = this.deckSideboardList.map(card => this.scryfallService.getCardByName(card.name));
+    const sideRequests = this.deckSideboardList.map(card => this.scryfallService.getCardByName(card.name.replace(/\s*\(.*$/, '').trim()));
 
     forkJoin([...mainRequests, ...sideRequests]).subscribe({
       next: (cards) => {
@@ -108,7 +110,10 @@ export class DeckProcessorComponent {
         this.deckCards = mainDeck;
         this.deckService.setDeckCards(mainDeck, sideboard);
       },
-      error: (err) => console.error('Error al cargar el mazo:', err),
+      error: (err) => {
+        console.error('Error al cargar el mazo:', err);
+        this.loadError = 'Hubo un problema al cargar una o más cartas. Verifica que los nombres estén correctos. ' + err.error.details;
+      }
     });
   }
 

@@ -2,6 +2,11 @@
   <textarea type="text" name="task" rows="3" [(ngModel)]="deckInput" placeholder="Pega tu mazo aquí... (Formato MTGO)"></textarea>
   <button type="button" (click)="processDeckInput()">Cargar Mazo</button>
 </div>
+@if (loadError) {
+<div class="error-message">
+  {{ loadError }}
+</div>
+}
 
 @if (deckCards.length > 0) {
   <div class="row">
@@ -22,7 +27,6 @@
               @if (card.card_faces && !card.isSingleImageDoubleFace) {
                 <button (click)="toggleCardFace(card)">Transformar</button>
               }
-              <p><span [innerHTML]="card.sanitizedOracleText"></span></p>
             </div>
           </div>
         </div>

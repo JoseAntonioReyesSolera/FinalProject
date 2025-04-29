@@ -18,8 +18,9 @@
               <img [src]="getCardImage(card)" alt="{{ card.name }}" class="img-fluid" style="max-width: 100%; height: auto;">
 
               @if (!isExile() && !isGraveyard() || isLibrary()) {
-                @if (card.type_line.includes('Legendary Creature') || card.oracle_text.includes('can be your commander')) {
-                  <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">@if (card.isCommander) {
+                @if (card.type_line?.includes('Legendary Creature') || card.oracle_text?.includes('can be your commander')) {
+                  <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">
+                    @if (card.isCommander) {
                     Comandante ✅
                   } @else {
                     Marcar como comandante

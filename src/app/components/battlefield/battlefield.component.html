@@ -26,17 +26,41 @@
       <app-stack></app-stack>
     </div>
     <div class="col-12 col-md-9 mb-4">
-      <div class="ratio ratio-1x4" style=" height: 500px; background-color: #f4f4f4; border: 2px solid #ccc;">
+      <div class="ratio ratio-1x4" style=" height: 600px; background-color: #f4f4f4; border: 2px solid #ccc;">
         <div class="d-flex">
 
-          <div class="d-flex flex-row battlefield-area">
-            @for (perm of permanents | async; track trackByInstance) {
+          <div class="battlefield-container">
+            <!-- Fila 1: Criaturas y Batallas -->
+          <div class="battlefield-row">
+            @for (perm of creaturesRow | async; track trackByInstance) {
               <app-permanent-card
                 [card]="perm"
                 (tappedChange)="tapPermanent($event)"
                 (remove)="destroyPermanent($event)">
               </app-permanent-card>
             }
+          </div>
+            <!-- Fila 2: Artefactos, Encantamientos, Planeswalkers -->
+            <div class="battlefield-row">
+              @for (perm of allRow | async; track trackByInstance) {
+                 <app-permanent-card
+                    [card]="perm"
+                    (tappedChange)="tapPermanent($event)"
+                    (remove)="destroyPermanent($event)">
+                  </app-permanent-card>
+              }
+            </div>
+            <!-- Fila 3: Tierras -->
+            <div class="battlefield-row">
+              @for (perm of landsRow | async; track trackByInstance) {
+                  <app-permanent-card
+                    [card]="perm"
+                    (tappedChange)="tapPermanent($event)"
+                    (remove)="destroyPermanent($event)">
+                  </app-permanent-card>
+              }
+            </div>
+
           </div>
 
 

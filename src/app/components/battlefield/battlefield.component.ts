@@ -6,7 +6,7 @@ import {GraveyardComponent} from '../graveyard/graveyard.component';
 import {CommanderComponent} from '../commander/commander.component';
 import {DeckService} from '../../services/deck.service';
 import {BattlefieldService} from '../../services/battlefield.service';
-import {Observable} from 'rxjs';
+import {BehaviorSubject } from 'rxjs';
 import {Permanent} from '../../models/permanent';
 import {AsyncPipe} from '@angular/common';
 import {PermanentCardComponent} from '../permanent-card/permanent-card.component';
@@ -29,7 +29,10 @@ export class BattlefieldComponent implements OnInit {
   totalDeckCards: number = 0;
   originalDeckCards: number = 0;
 
-  permanents: Observable<Permanent[]> | undefined;
+  creaturesRow = new BehaviorSubject<Permanent[]>([]);
+  allRow = new BehaviorSubject<Permanent[]>([]);
+  landsRow = new BehaviorSubject<Permanent[]>([]);
+
 
   constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService) {}
 
@@ -37,11 +40,39 @@ export class BattlefieldComponent implements OnInit {
     this.deckService.getDeckCards().subscribe(cards => {
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
+
     this.deckService.getOriginalDeckCards().subscribe(cards => {
       this.originalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
-    this.permanents = this.bf.permanents$;
+    this.bf.permanents$.subscribe(perms => {
+      const usedIds = new Set<string>();
+      const creatures: Permanent[] = [];
+      const all: Permanent[] = [];
+      const lands: Permanent[] = [];
+
+      for (const p of perms) {
+        if ((p.type.includes('Creature') || p.type.includes('Battle')) && !usedIds.has(p.instanceId)) {
+          creatures.push(p);
+          usedIds.add(p.instanceId);
+          continue;
+        }
+
+        if ((p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) && !usedIds.has(p.instanceId)) {
+          all.push(p);
+          usedIds.add(p.instanceId);
+          continue;
+        }
+
+        if (p.type.includes('Land') && !usedIds.has(p.instanceId)) {
+         lands.push(p);
+          usedIds.add(p.instanceId);
+        }
+      }
+      this.creaturesRow.next(creatures);
+      this.allRow.next(all);
+      this.landsRow.next(lands);
+    });
   }
 
   trackByInstance(index: number, perm: Permanent) {

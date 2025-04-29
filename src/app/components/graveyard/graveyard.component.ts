@@ -19,7 +19,7 @@ export class GraveyardComponent implements OnInit {
   graveyardCards: Cart[] = [];
   exileCards: Cart[] = [];
   isExile: boolean = false;
-  lastGraveImage: string = 'images/backcard.png';
+  lastGraveImage: string = 'images/exile.png';
 
   constructor(private readonly deckService: DeckService) {}
 
@@ -28,15 +28,15 @@ export class GraveyardComponent implements OnInit {
       this.graveyardCards = graveyard;
       if (graveyard.length === 0) {
         // Si el cementerio está vacío, la imagen vuelve a la por defecto
-        this.lastGraveImage = 'images/backcard.png';
+        this.lastGraveImage = 'images/exile.png';
       } else {
         const lastCard = graveyard[graveyard.length - 1];
         if (lastCard.card_faces && !lastCard.isSingleImageDoubleFace) {
           // Si la carta tiene doble cara, selecciona la cara correspondiente
-          this.lastGraveImage = lastCard.card_faces[lastCard.currentFaceIndex]?.image_uris?.normal ?? 'images/backcard.png';
+          this.lastGraveImage = lastCard.card_faces[lastCard.currentFaceIndex]?.image_uris?.normal ?? 'images/exile.png';
         } else {
           // Si es una carta normal, se asigna la imagen
-          this.lastGraveImage = lastCard.image_uris?.normal ?? 'images/backcard.png';
+          this.lastGraveImage = lastCard.image_uris?.normal ?? 'images/exile.png';
         }
       }
     });
