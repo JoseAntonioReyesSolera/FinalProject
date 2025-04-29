@@ -1,11 +1,29 @@
-<div class="permanent-card" (click)="onTap()">
+<div class="permanent-card" (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
     <div class="card-art-container">
         <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
         <div class="card-info text-center">
-            @if (isCreature()) {
+            @if (card.type.includes("Creature")) {
                 <div class="card-stats">{{ card.power }}/{{ card.toughness }}</div>
             }
+          @if (card.type.includes("Planeswalker")) {
+            <div class="card-stats">{{ card.loyalty }}</div>
+          }
         </div>
     </div>
 </div>
+
+<!-- Menú contextual -->
+@if (contextMenuVisible) {
+  <div
+    class="context-menu"
+    [style.top.px]="contextMenuPosition.y"
+    [style.left.px]="contextMenuPosition.x"
+    (click)="contextMenuVisible = false">
+    <ul>
+      <li (click)="castSpell(selectedCard!)">Lanzar hechizo</li>
+      <li (click)="viewDetails(selectedCard!)">Ver detalles</li>
+      <li (click)="moveToExile(selectedCard!)">Exiliar</li>
+    </ul>
+  </div>
+}

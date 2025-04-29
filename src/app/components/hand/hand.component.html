@@ -1,6 +1,6 @@
 <div class="hand-container row" style="display: flex; flex-wrap: wrap; justify-content: flex-start;">
   @for (card of handCards; track card.instanceId) {
-  <div class="col-2 col-md-1 card-item">
+  <div class="col-2 col-md-1 card-item" (click)="onCardClick($event, card)">
     <p><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
     @if (card.card_faces && !card.isSingleImageDoubleFace) {
       <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
@@ -12,3 +12,18 @@
   </div>
   }
 </div>
+
+<!-- Menú contextual -->
+@if (contextMenuVisible) {
+<div
+     class="context-menu"
+     [style.top.px]="contextMenuPosition.y"
+     [style.left.px]="contextMenuPosition.x"
+     (click)="contextMenuVisible = false">
+  <ul>
+    <li (click)="castSpell(selectedCard)">Lanzar hechizo</li>
+    <li (click)="viewDetails(selectedCard)">Ver detalles</li>
+    <li (click)="moveToExile(selectedCard)">Exiliar</li>
+  </ul>
+</div>
+}

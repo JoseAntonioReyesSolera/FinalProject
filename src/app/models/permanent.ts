@@ -5,6 +5,7 @@ export interface Permanent {
   image: string;
   power?: number;
   toughness?: number;
+  loyalty?:number;
   tapped: boolean;
   counters: { [type: string]: number };
   oracle_text: any;

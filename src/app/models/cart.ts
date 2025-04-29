@@ -10,6 +10,7 @@ export interface Cart {
   type_line: string;
   mana_cost: string;
   cmc: number;
+  loyalty?: number;
   power?: number;
   toughness?: number;
   keywords?: Array<string>;

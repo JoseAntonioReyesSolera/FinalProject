@@ -18,6 +18,10 @@
   </div>
 </div>
 
+<div>
+  <!--apartado para poner la linea temporal del turno-->
+</div>
+
 <!-- Contenedor principal fuera del modal -->
 <div class="container mt-6">
 
@@ -35,8 +39,7 @@
             @for (perm of creaturesRow | async; track trackByInstance) {
               <app-permanent-card
                 [card]="perm"
-                (tappedChange)="tapPermanent($event)"
-                (remove)="destroyPermanent($event)">
+                (cardAction)="handleCardAction($event)">
               </app-permanent-card>
             }
           </div>
@@ -44,9 +47,8 @@
             <div class="battlefield-row">
               @for (perm of allRow | async; track trackByInstance) {
                  <app-permanent-card
-                    [card]="perm"
-                    (tappedChange)="tapPermanent($event)"
-                    (remove)="destroyPermanent($event)">
+                   [card]="perm"
+                   (cardAction)="handleCardAction($event)">
                   </app-permanent-card>
               }
             </div>
@@ -55,14 +57,11 @@
               @for (perm of landsRow | async; track trackByInstance) {
                   <app-permanent-card
                     [card]="perm"
-                    (tappedChange)="tapPermanent($event)"
-                    (remove)="destroyPermanent($event)">
+                    (cardAction)="handleCardAction($event)">
                   </app-permanent-card>
               }
             </div>
-
           </div>
-
 
         </div>
 

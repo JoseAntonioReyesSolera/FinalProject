@@ -20,6 +20,7 @@ export class BattlefieldService {
         image: card.image_uris?.art_crop ?? card.image_uris?.normal ?? '',
         power: card.power,
         toughness: card.toughness,
+        loyalty: card.loyalty,
         tapped: false,
         counters: {},
         oracle_text: card.sanitizedOracleText,

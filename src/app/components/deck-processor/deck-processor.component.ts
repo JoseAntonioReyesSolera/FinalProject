@@ -83,6 +83,7 @@ export class DeckProcessorComponent {
             cmc: card.cmc,
             power: card.power,
             toughness: card.toughness,
+            loyalty: card.loyalty,
             keywords: card.keywords,
             produced_mana: card.produced_mana,
             color_identity: card.color_identity,

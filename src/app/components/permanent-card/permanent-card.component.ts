@@ -8,19 +8,32 @@ import {Permanent} from '../../models/permanent';
 })
 export class PermanentCardComponent {
   @Input() card!: Permanent;
-  @Output() tappedChange = new EventEmitter<{ instanceId: string; tapped: boolean }>();
-  @Output() remove     = new EventEmitter<string>();
+  @Output() contextMenu = new EventEmitter<{ event: MouseEvent; card: Permanent }>();
+  @Output() cardAction = new EventEmitter<{ action: string; card: Permanent }>();
 
-  isCreature(): boolean {
-    return this.card.power !== undefined && this.card.toughness !== undefined;
+  contextMenuVisible = false;
+  contextMenuPosition = { x: 0, y: 0 };
+  selectedCard: Permanent | null = null;
+
+  onClick(event: MouseEvent) {
+    event.preventDefault();
+    this.contextMenuVisible = true;
+    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    this.selectedCard = this.card;
   }
 
-  onTap() {
-    this.card.tapped = !this.card.tapped;
-    this.tappedChange.emit({ instanceId: this.card.instanceId, tapped: this.card.tapped });
+  castSpell(card: Permanent) {
+    this.cardAction.emit({ action: 'cast', card });
+    this.contextMenuVisible = false;
   }
 
-  onRemove() {
-    this.remove.emit(this.card.instanceId);
+  viewDetails(card: Permanent) {
+    this.cardAction.emit({ action: 'details', card });
+    this.contextMenuVisible = false;
+  }
+
+  moveToExile(card: Permanent) {
+    this.cardAction.emit({ action: 'exile', card });
+    this.contextMenuVisible = false;
   }
 }

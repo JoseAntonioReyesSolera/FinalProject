@@ -52,6 +52,12 @@ export class BattlefieldComponent implements OnInit {
       const lands: Permanent[] = [];
 
       for (const p of perms) {
+        if (p.type.includes('Land') && !usedIds.has(p.instanceId)) {
+          lands.push(p);
+          usedIds.add(p.instanceId);
+          continue;
+        }
+
         if ((p.type.includes('Creature') || p.type.includes('Battle')) && !usedIds.has(p.instanceId)) {
           creatures.push(p);
           usedIds.add(p.instanceId);
@@ -60,12 +66,6 @@ export class BattlefieldComponent implements OnInit {
 
         if ((p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) && !usedIds.has(p.instanceId)) {
           all.push(p);
-          usedIds.add(p.instanceId);
-          continue;
-        }
-
-        if (p.type.includes('Land') && !usedIds.has(p.instanceId)) {
-         lands.push(p);
           usedIds.add(p.instanceId);
         }
       }
@@ -79,11 +79,19 @@ export class BattlefieldComponent implements OnInit {
     return perm.instanceId;
   }
 
-  tapPermanent(event: { instanceId: string; tapped: boolean }) {
-    // ... tu lógica para tap/untap
-  }
-
-  destroyPermanent(instanceId: string) {
-    this.bf.removePermanent(instanceId);
+  handleCardAction(event: { action: string; card: Permanent }) {
+    switch (event.action) {
+      case 'cast':
+        // Agregar a la pila
+        console.log('Lanzar hechizo:', event.card.name);
+        break;
+      case 'details':
+        // Mostrar modal o detalles
+        console.log('Detalles de carta:', event.card);
+        break;
+      case 'exile':
+        console.log('Carta Exiliada:', event.card);
+        break;
+    }
   }
 }
