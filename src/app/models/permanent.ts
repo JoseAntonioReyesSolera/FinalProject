@@ -1,3 +1,5 @@
+import {Cart} from './cart';
+
 export interface Permanent {
   instanceId: string;
   cardId: string;
@@ -10,4 +12,5 @@ export interface Permanent {
   counters: { [type: string]: number };
   oracle_text: any;
   type: string;
+  originalCard: Cart;
 }

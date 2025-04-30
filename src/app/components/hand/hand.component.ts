@@ -1,10 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {DeckService} from '../../services/deck.service';
+import {CardDetailComponent} from '../card-detail/card-detail.component';
 
 @Component({
   selector: 'app-hand',
   imports: [
+    CardDetailComponent
   ],
   templateUrl: './hand.component.html',
   styleUrl: './hand.component.css'
@@ -14,6 +16,8 @@ export class HandComponent implements OnInit {
   contextMenuVisible = false;
   contextMenuPosition = { x: 0, y: 0 };
   selectedCard: any = null;
+  selectedCardForDetails: Cart | null = null;
+  modalVisible = false;
 
   constructor(private readonly deckService: DeckService) {}
 
@@ -39,11 +43,26 @@ export class HandComponent implements OnInit {
 
   viewDetails(card: any) {
     this.contextMenuVisible = false;
-    alert(`Detalles de ${card.name}`);
+    this.contextMenuVisible = false;
+    this.selectedCardForDetails = card;
+    this.modalVisible = true;
+  }
+
+  moveToLibrary(card: any) {
+    this.contextMenuVisible = false;
+    console.log('Carta biblioteca carta:', card.name);
+    this.deckService.moveCardToZone(card, 'hand', 'library', 1);
+  }
+
+  moveToGraveyard(card: any) {
+    this.contextMenuVisible = false;
+    console.log('Descartando carta:', card.name);
+    this.deckService.moveCardToZone(card, 'hand', 'graveyard', 1);
   }
 
   moveToExile(card: any) {
     this.contextMenuVisible = false;
     console.log('Exiliando carta:', card.name);
+    this.deckService.moveCardToZone(card, 'hand', 'exile', 1);
   }
 }

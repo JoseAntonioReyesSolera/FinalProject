@@ -68,6 +68,14 @@
       </div>
     </div>
 
+    @if (selectedCardForDetails && modalVisible) {
+      <app-card-detail
+        [card]="selectedCardForDetails"
+        [visible]="modalVisible"
+        (closed)="modalVisible = false">
+      </app-card-detail>
+    }
+
     <div class="col mt-4">
 
       @if (originalDeckCards >= 99) {

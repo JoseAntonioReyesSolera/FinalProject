@@ -1,0 +1,14 @@
+@if (visible) {
+  <div class="modal-backdrop" (click)="close()"></div>
+  <div class="modal-content">
+    <button class="close-btn" (click)="close()">×</button>
+    <div class="card-info">
+      <img [src]="card?.image_uris?.normal" alt="{{ card?.name }}" class="img-fluid mb-3" />
+      <h3>{{ card.name }}</h3>
+      <p><strong>Tipo:</strong> {{ card.type_line }}</p>
+      <p><strong>Texto:</strong><span [innerHTML]="card.sanitizedOracleText"></span></p>
+      <p><strong>Coste de maná:</strong><span [innerHTML]="card.sanitizedManaCost"></span></p>
+      <!-- Agrega más campos si quieres -->
+    </div>
+  </div>
+}

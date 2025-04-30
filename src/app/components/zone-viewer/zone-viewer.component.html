@@ -45,10 +45,14 @@
                 }
 
                 <!-- Botones para zona Library -->
-                @if (!isExile() && !isGraveyard() || isLibrary()) {
-                  <button class="btn btn-primary btn-sm" (click)="moveToZone(card, 'hand')">Robar</button>
-                  <button class="btn btn-danger btn-sm" (click)="moveToZone(card, 'graveyard')">Moler</button>
+                @if (isLibrary()) {
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Robar</button>
+                  <button class="btn btn-danger btn-sm"  (click)="moveToZone(card, 'graveyard')">Moler</button>
                   <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                } @else if (card.zone === 'sideboard') {
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Mover a Mano</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Mover al Mazo</button>
                 }
               </div>
             </div>

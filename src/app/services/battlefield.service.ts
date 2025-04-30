@@ -25,6 +25,7 @@ export class BattlefieldService {
         counters: {},
         oracle_text: card.sanitizedOracleText,
         type: card.type_line,
+        originalCard: card,
       });
     }
     this.permanentsSubject.next([...current, ...newOnes]);

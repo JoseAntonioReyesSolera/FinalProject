@@ -1,7 +1,32 @@
 <div class="card" style="height: 100%; display: flex; flex-direction: column;">
   <div class="card-body text-center" style="flex-grow: 1;">
-    @for (commander of getCommanderCards(); track commander.instanceId) {
-    <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="img-fluid commander-image">
+    @for (commander of getCommanderCards() | async; track commander.instanceId) {
+    <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="img-fluid commander-image"
+         (click)="onCardClick($event, commander)">
     }
   </div>
 </div>
+
+@if (selectedCardForDetails) {
+  <app-card-detail
+    [card]="selectedCardForDetails"
+    [visible]="modalVisible"
+    (closed)="modalVisible = false">
+  </app-card-detail>
+}
+
+@if (contextMenuVisible) {
+  <div
+    class="context-menu"
+    [style.top.px]="contextMenuPosition.y"
+    [style.left.px]="contextMenuPosition.x"
+    (click)="contextMenuVisible = false"
+  >
+    <ul>
+      <li (click)="castSpell(selectedCard!)">Lanzar hechizo</li>
+      <li (click)="viewDetails(selectedCard)">Ver detalles</li>
+      <li (click)="moveToHand(selectedCard!)">Mover a la mano</li>
+      <li (click)="unassignCommander(selectedCard!)">Desmarcar como comandante</li>
+    </ul>
+  </div>
+}

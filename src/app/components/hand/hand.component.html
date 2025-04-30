@@ -13,6 +13,13 @@
   }
 </div>
 
+@if (selectedCardForDetails) {
+<app-card-detail
+  [card]="selectedCardForDetails"
+  [visible]="modalVisible"
+  (closed)="modalVisible = false">
+</app-card-detail>
+}
 <!-- Menú contextual -->
 @if (contextMenuVisible) {
 <div
@@ -23,6 +30,8 @@
   <ul>
     <li (click)="castSpell(selectedCard)">Lanzar hechizo</li>
     <li (click)="viewDetails(selectedCard)">Ver detalles</li>
+    <li (click)="moveToLibrary(selectedCard)">Mover a la biblioteca</li>
+    <li (click)="moveToGraveyard(selectedCard)">Descartar</li>
     <li (click)="moveToExile(selectedCard)">Exiliar</li>
   </ul>
 </div>

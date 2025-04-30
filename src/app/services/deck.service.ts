@@ -13,13 +13,14 @@ export class DeckService {
   private readonly handZone: Cart[] = [];
   private readonly exileZone: Cart[] = [];
   private readonly graveyardZone: Cart[] = [];
+  private readonly commanderZone: Cart[] = [];
+  private readonly sideboardZone: Cart[] = [];
+  private readonly commanderZoneSubject = new BehaviorSubject<Cart[]>(this.commanderZone);
   private readonly handZoneSubject = new BehaviorSubject<Cart[]>(this.handZone);
   private readonly exileZoneSubject = new BehaviorSubject<Cart[]>(this.exileZone);
   private readonly graveyardZoneSubject = new BehaviorSubject<Cart[]>(this.graveyardZone);
+  private readonly sideboardSubject = new BehaviorSubject<Cart[]>(this.sideboardZone);
 
-  private readonly sideboardSubject = new BehaviorSubject<Cart[]>([]);
-
-  private commander: Cart[] = [];
 
   constructor(private readonly bf: BattlefieldService) {}
 
@@ -27,23 +28,22 @@ export class DeckService {
     this.deckCardsSubject.next([...mainDeck]);
     this.originalDeckSubject.next(mainDeck.map(card => ({...card})));
 
+    this.sideboardZone.splice(0, this.sideboardZone.length, ...sideboard);
     this.sideboardSubject.next([...sideboard]);
 
   }
 
   setCommander(card: Cart) {
-    const existingCommander = this.commander.find(commander => commander.id === card.id);
+    const isCommander = this.commanderZone.find(c => c.id === card.id);
 
-    if (existingCommander) {
-      // Si ya es comandante, la eliminamos
-      this.commander = this.commander.filter(commander => commander.id !== card.id);
+    if (isCommander) {
+      card.isCommander = false;
+      this.moveCardToZone(card, 'command', 'library', 1);
       console.log('Comandante eliminado:', card.name);
     } else {
-      // Si no es comandante, la agregamos
-      this.commander.push(card);
+      this.moveCardToZone(card, card.zone, 'command', 1);
       console.log('Comandante agregado:', card.name);
     }
-    console.log(this.commander)
   }
 
 
@@ -80,6 +80,8 @@ export class DeckService {
       this.addCardToList(this.graveyardZone, this.graveyardZoneSubject, card, quantity);
     } else if (zone === 'library') {
       this.addCardToList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
+    } else if (zone === 'command') {
+       this.addCardToList(this.commanderZone, this.commanderZoneSubject, card, quantity);
     }
   }
 
@@ -92,6 +94,10 @@ export class DeckService {
       this.removeCardFromList(this.graveyardZone, this.graveyardZoneSubject, card, quantity);
     } else if (zone === 'library') {
       this.removeCardFromList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
+    } else if (zone === 'command') {
+      this.removeCardFromList(this.commanderZone, this.commanderZoneSubject, card, quantity);
+    } else if (zone === 'sideboard') {
+      this.removeCardFromList(this.sideboardZone, this.sideboardSubject, card, quantity);
     }
   }
 
@@ -117,7 +123,8 @@ export class DeckService {
     if (subject === this.handZoneSubject) this.handZone.splice(0, this.handZone.length, ...list);
     else if (subject === this.exileZoneSubject) this.exileZone.splice(0, this.exileZone.length, ...list);
     else if (subject === this.graveyardZoneSubject) this.graveyardZone.splice(0, this.graveyardZone.length, ...list);
-    else if (subject === this.deckCardsSubject) this.deckCards.splice(0, this.deckCards.length, ...list); // si usas una copia interna
+    else if (subject === this.deckCardsSubject) this.deckCards.splice(0, this.deckCards.length, ...list);
+    else if (subject === this.commanderZoneSubject) this.commanderZone.splice(0, this.commanderZone.length, ...list);
   }
 
 
@@ -127,37 +134,45 @@ export class DeckService {
     card: Cart,
     quantity: number
   ): void {
+    const newList = this.buildUpdatedList(list, card, quantity);
+    subject.next([...newList]);
+    this.updateInternalList(subject, newList);
+  }
+
+  private buildUpdatedList(list: Cart[], card: Cart, quantity: number): Cart[] {
     const newList: Cart[] = [];
+    let remaining = quantity;
 
     for (const c of list) {
-      if (c.id === card.id && quantity > 0) {
-        if (c.quantity > quantity) {
-          // Hay más de una copia, reducimos la cantidad
-          newList.push({
-            ...c,
-            quantity: c.quantity - quantity,
-          });
-          quantity = 0; // Ya hemos eliminado la cantidad necesaria
-        } else if (c.quantity === quantity) {
-          // Eliminamos la carta completa (no la agregamos a newList)
-          quantity = 0;
+      if (c.id === card.id && remaining > 0) {
+        if (c.quantity > remaining) {
+          newList.push({ ...c, quantity: c.quantity - remaining });
+          remaining = 0;
         } else {
-          // Se elimina esta carta completa, pero aún falta eliminar más
-          quantity -= c.quantity;
-          // No se agrega nada
+          remaining -= c.quantity; // Se elimina toda esta carta
         }
       } else {
         newList.push(c);
       }
     }
 
-    subject.next([...newList]);
+    return newList;
+  }
 
-    // Actualiza también la lista interna
-    if (subject === this.handZoneSubject) this.handZone.splice(0, this.handZone.length, ...newList);
-    else if (subject === this.exileZoneSubject) this.exileZone.splice(0, this.exileZone.length, ...newList);
-    else if (subject === this.graveyardZoneSubject) this.graveyardZone.splice(0, this.graveyardZone.length, ...newList);
-    else if (subject === this.deckCardsSubject) this.deckCards.splice(0, this.deckCards.length, ...newList);
+  private updateInternalList(subject: BehaviorSubject<Cart[]>, newList: Cart[]): void {
+    if (subject === this.handZoneSubject) {
+      this.handZone.splice(0, this.handZone.length, ...newList);
+    } else if (subject === this.exileZoneSubject) {
+      this.exileZone.splice(0, this.exileZone.length, ...newList);
+    } else if (subject === this.graveyardZoneSubject) {
+      this.graveyardZone.splice(0, this.graveyardZone.length, ...newList);
+    } else if (subject === this.deckCardsSubject) {
+      this.deckCards.splice(0, this.deckCards.length, ...newList);
+    } else if (subject === this.commanderZoneSubject) {
+      this.commanderZone.splice(0, this.commanderZone.length, ...newList);
+    } else if (subject === this.sideboardSubject) {
+      this.sideboardZone.splice(0, this.sideboardZone.length, ...newList);
+    }
   }
 
   private getZoneName(subject: BehaviorSubject<Cart[]>): string {
@@ -182,8 +197,8 @@ export class DeckService {
   }
 
   // Getter para obtener el comandante
-  getCommander(): Cart[] {
-    return this.commander;
+  getCommanderZone() {
+    return this.commanderZoneSubject.asObservable();
   }
 
   getSideboardCards() {

@@ -1,9 +1,13 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Permanent} from '../../models/permanent';
+import {CardDetailComponent} from '../card-detail/card-detail.component';
+import {Cart} from '../../models/cart';
 
 @Component({
   selector: 'app-permanent-card',
   templateUrl: './permanent-card.component.html',
+  imports: [
+  ],
   styleUrls: ['./permanent-card.component.css']
 })
 export class PermanentCardComponent {
@@ -32,8 +36,13 @@ export class PermanentCardComponent {
     this.contextMenuVisible = false;
   }
 
-  moveToExile(card: Permanent) {
-    this.cardAction.emit({ action: 'exile', card });
+  moveToGraveyard(card: Permanent) {
+    this.cardAction.emit({ action: 'destroy', card });
+    this.contextMenuVisible = false;
+  }
+
+  moveToHand(card: Permanent) {
+    this.cardAction.emit({ action: 'backToHand', card });
     this.contextMenuVisible = false;
   }
 }

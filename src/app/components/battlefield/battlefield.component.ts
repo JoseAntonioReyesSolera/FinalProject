@@ -10,6 +10,8 @@ import {BehaviorSubject } from 'rxjs';
 import {Permanent} from '../../models/permanent';
 import {AsyncPipe} from '@angular/common';
 import {PermanentCardComponent} from '../permanent-card/permanent-card.component';
+import {CardDetailComponent} from '../card-detail/card-detail.component';
+import {Cart} from '../../models/cart';
 
 @Component({
   selector: 'app-battlefield',
@@ -20,7 +22,8 @@ import {PermanentCardComponent} from '../permanent-card/permanent-card.component
     GraveyardComponent,
     CommanderComponent,
     AsyncPipe,
-    PermanentCardComponent
+    PermanentCardComponent,
+    CardDetailComponent,
   ],
   templateUrl: './battlefield.component.html',
   styleUrl: './battlefield.component.css'
@@ -33,11 +36,16 @@ export class BattlefieldComponent implements OnInit {
   allRow = new BehaviorSubject<Permanent[]>([]);
   landsRow = new BehaviorSubject<Permanent[]>([]);
 
+  contextMenuVisible = false;
+  selectedCardForDetails: Cart | null = null;
+  modalVisible = false;
+  allCards: Cart[] = [];
 
   constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService) {}
 
   ngOnInit() {
     this.deckService.getDeckCards().subscribe(cards => {
+      this.allCards = cards;
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
@@ -52,22 +60,13 @@ export class BattlefieldComponent implements OnInit {
       const lands: Permanent[] = [];
 
       for (const p of perms) {
-        if (p.type.includes('Land') && !usedIds.has(p.instanceId)) {
-          lands.push(p);
-          usedIds.add(p.instanceId);
-          continue;
-        }
+        if (usedIds.has(p.instanceId)) continue;
 
-        if ((p.type.includes('Creature') || p.type.includes('Battle')) && !usedIds.has(p.instanceId)) {
-          creatures.push(p);
-          usedIds.add(p.instanceId);
-          continue;
-        }
+        usedIds.add(p.instanceId);
 
-        if ((p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) && !usedIds.has(p.instanceId)) {
-          all.push(p);
-          usedIds.add(p.instanceId);
-        }
+        if (p.type.includes('Land')) lands.push(p);
+        else if (p.type.includes('Creature') || p.type.includes('Battle')) creatures.push(p);
+        else if (p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) all.push(p);
       }
       this.creaturesRow.next(creatures);
       this.allRow.next(all);
@@ -85,12 +84,22 @@ export class BattlefieldComponent implements OnInit {
         // Agregar a la pila
         console.log('Lanzar hechizo:', event.card.name);
         break;
-      case 'details':
-        // Mostrar modal o detalles
-        console.log('Detalles de carta:', event.card);
+      case 'details': {
+        this.contextMenuVisible = false;
+        const foundCard = event.card.originalCard;
+        if (foundCard) {
+          this.selectedCardForDetails = foundCard;
+          this.modalVisible = true;
+        }
         break;
-      case 'exile':
-        console.log('Carta Exiliada:', event.card);
+      }
+      case 'destroy':
+        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'graveyard', 1);
+        this.bf.removePermanent(event.card.instanceId);
+        break;
+      case 'backToHand':
+        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'hand', 1);
+        this.bf.removePermanent(event.card.instanceId);
         break;
     }
   }
