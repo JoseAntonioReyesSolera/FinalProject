@@ -88,7 +88,7 @@ export class DeckProcessorComponent {
             produced_mana: card.produced_mana,
             color_identity: card.color_identity,
             sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
-            sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.oracle_text, card.keywords)),
+            sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.getOracleText(card), card.keywords)),
             sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
             card_faces: card.card_faces ?? null,
             currentFaceIndex: card.card_faces ? 1 : 0,
@@ -170,5 +170,14 @@ export class DeckProcessorComponent {
 
   private isSingleImageDoubleFace(card: any): boolean {
     return (card.card_faces && !card.card_faces.some((face: any) => face.image_uris?.normal));
+  }
+
+  private getOracleText(card: any): string | undefined {
+    if (card.oracle_text) return card.oracle_text;
+    if (card.card_faces && card.card_faces.length > 0) {
+      const currentFace = card.card_faces[card.currentFaceIndex ?? 0];
+      return currentFace?.oracle_text;
+    }
+    return undefined;
   }
 }

@@ -20,6 +20,8 @@
 
 .library-image {
   width: 100px;
+  position: relative;
+  z-index: 10;
   cursor: pointer;
 }
 
@@ -51,4 +53,10 @@
 
 .card-item:hover {
   background-color: #f9f9f9;
+}
+
+.card-stack {
+  position: absolute;
+  width: 100px;
+  z-index: 0;
 }

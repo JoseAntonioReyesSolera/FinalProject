@@ -1,4 +1,15 @@
 <div class="library-container">
+  @if (totalDeckCards > 20) {
+    @for (n of [1,2,3,4,5,6,7]; track $index) {
+    <img
+         src="images/backcard.png"
+         alt="Library"
+         class="card-stack"
+         [style.bottom.px]="($index + -8) * 2"
+         [style.left.px]="($index + -8) * 2"
+         [style.z-index]="$index"/>
+    }
+  }
   <p style="width: 120px">{{ totalDeckCards }}</p>
   <img src="images/backcard.png"
        alt="Library"
