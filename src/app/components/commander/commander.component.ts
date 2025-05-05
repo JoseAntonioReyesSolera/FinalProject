@@ -38,7 +38,7 @@ export class CommanderComponent{
   castSpell(card: Cart) {
     this.contextMenuVisible = false;
     console.log('Lanzando hechizo desde comandante:', card.name);
-    // Aquí puedes agregar lógica para mover al stack
+    this.deckService.moveCardToZone(card, 'command', 'stack', 1);
   }
 
   viewDetails(card: any) {

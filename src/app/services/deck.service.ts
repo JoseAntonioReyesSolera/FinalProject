@@ -14,7 +14,9 @@ export class DeckService {
   private readonly exileZone: Cart[] = [];
   private readonly graveyardZone: Cart[] = [];
   private readonly commanderZone: Cart[] = [];
-  private readonly sideboardZone: Cart[] = [];
+  private readonly sideboardZone: Cart[] = []
+  private readonly stackZone: Cart[] = [];
+  private readonly stackZoneSubject = new BehaviorSubject<Cart[]>(this.stackZone);
   private readonly commanderZoneSubject = new BehaviorSubject<Cart[]>(this.commanderZone);
   private readonly handZoneSubject = new BehaviorSubject<Cart[]>(this.handZone);
   private readonly exileZoneSubject = new BehaviorSubject<Cart[]>(this.exileZone);
@@ -82,7 +84,10 @@ export class DeckService {
       this.addCardToList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
     } else if (zone === 'command') {
        this.addCardToList(this.commanderZone, this.commanderZoneSubject, card, quantity);
+    } else if (zone === 'stack') {
+      this.addCardToList(this.stackZone, this.stackZoneSubject, card, quantity);
     }
+
   }
 
   private removeCardFromZoneFor(zone: string, card: Cart, quantity: number): void {
@@ -98,7 +103,10 @@ export class DeckService {
       this.removeCardFromList(this.commanderZone, this.commanderZoneSubject, card, quantity);
     } else if (zone === 'sideboard') {
       this.removeCardFromList(this.sideboardZone, this.sideboardSubject, card, quantity);
+    } else if (zone === 'stack') {
+      this.removeCardFromList(this.stackZone, this.stackZoneSubject, card, quantity);
     }
+
   }
 
   private addCardToList(
@@ -203,6 +211,10 @@ export class DeckService {
 
   getSideboardCards() {
     return this.sideboardSubject.asObservable();
+  }
+
+  getStackZone() {
+    return this.stackZoneSubject.asObservable();
   }
 
   getDeckCardsMain() {

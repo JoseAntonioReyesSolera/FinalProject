@@ -30,7 +30,7 @@ export class ZoneViewerComponent {
     );
   }
 
-  moveToZone(card: Cart, zone: 'hand' | 'library' | 'exile' | 'battlefield' | 'graveyard') {
+  moveToZone(card: Cart, zone: 'hand' | 'library' | 'exile' | 'battlefield' | 'graveyard' | 'stack') {
     const quantity = this.selectedQuantities[card.id] || 1;
     this.deckService.moveCardToZone(card, card.zone, zone, quantity);
     delete this.selectedQuantities[card.id];

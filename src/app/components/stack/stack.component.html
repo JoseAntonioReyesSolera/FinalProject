@@ -1,1 +1,26 @@
-<p>stack works!</p>
+
+  @if (stackCards.length > 0) {
+    <div class="card-in-stack p-4 border rounded shadow bg-gray-100">
+      <p class="text-lg font-semibold">
+        {{ stackCards[stackCards.length - 1].name }}
+      </p>
+      <p class="text-lg font-semibold">
+        {{ stackCards[stackCards.length - 1].type_line }}
+      </p>
+      @if (stackCards[stackCards.length - 1].type_line.includes("Sorcery") || stackCards[stackCards.length - 1].type_line.includes("Instant")) {
+      <div
+        class="text-sm text-gray-700 whitespace-pre-line"
+        [innerHTML]="stackCards[stackCards.length - 1].sanitizedOracleText"
+      ></div>
+      }
+    </div>
+  } @else {
+    <p class="text-gray-500">No hay hechizos en la pila.</p>
+  }
+
+  <button
+    class="mt-3 btn btn-primary"
+    (click)="moveTopStackCardToBattlefield()"
+  >
+    Resolver y mover al campo de batalla
+  </button>
