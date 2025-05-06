@@ -101,6 +101,10 @@ export class BattlefieldComponent implements OnInit {
         this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'hand', 1);
         this.bf.removePermanent(event.card.instanceId);
         break;
+      case 'commander':
+        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'command', 1);
+        this.bf.removePermanent(event.card.instanceId);
+        break;
     }
   }
 }

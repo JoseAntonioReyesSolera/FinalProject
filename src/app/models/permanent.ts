@@ -1,4 +1,5 @@
 import {Cart} from './cart';
+import {TriggeredAbility} from './triggered-ability';
 
 export interface Permanent {
   instanceId: string;
@@ -13,4 +14,5 @@ export interface Permanent {
   oracle_text: any;
   type: string;
   originalCard: Cart;
+  triggeredAbilities: TriggeredAbility[];
 }

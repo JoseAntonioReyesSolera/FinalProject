@@ -25,6 +25,9 @@
       <li (click)="viewDetails(selectedCard!)">Ver detalles</li>
       <li (click)="moveToHand(selectedCard!)">Devolver a la Mano</li>
       <li (click)="moveToGraveyard(selectedCard!)">Destruir</li>
+      @if (card.originalCard.isCommander) {
+        <li (click)="moveToCommand(selectedCard!)">Zona de Comandante</li>
+      }
     </ul>
   </div>
 }

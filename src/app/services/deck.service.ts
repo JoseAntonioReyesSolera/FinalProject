@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Cart } from '../models/cart';
 import {BattlefieldService} from './battlefield.service';
+import {StackService} from './stack.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +15,7 @@ export class DeckService {
   private readonly exileZone: Cart[] = [];
   private readonly graveyardZone: Cart[] = [];
   private readonly commanderZone: Cart[] = [];
-  private readonly sideboardZone: Cart[] = []
-  private readonly stackZone: Cart[] = [];
-  private readonly stackZoneSubject = new BehaviorSubject<Cart[]>(this.stackZone);
+  private readonly sideboardZone: Cart[] = [];
   private readonly commanderZoneSubject = new BehaviorSubject<Cart[]>(this.commanderZone);
   private readonly handZoneSubject = new BehaviorSubject<Cart[]>(this.handZone);
   private readonly exileZoneSubject = new BehaviorSubject<Cart[]>(this.exileZone);
@@ -24,7 +23,7 @@ export class DeckService {
   private readonly sideboardSubject = new BehaviorSubject<Cart[]>(this.sideboardZone);
 
 
-  constructor(private readonly bf: BattlefieldService) {}
+  constructor(private readonly bf: BattlefieldService, private readonly stack: StackService) {}
 
   setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
     this.deckCardsSubject.next([...mainDeck]);
@@ -66,7 +65,9 @@ export class DeckService {
     this.addCardToZoneFor(toZone, card, quantity);
     // Actualizamos la propiedad si se desea
 
-    if (toZone === 'battlefield') {
+    if (toZone === 'stack') {
+      this.stack.pushToStack(card);
+    } else if (toZone === 'battlefield') {
       this.bf.addPermanent(card, quantity);
     }
 
@@ -84,8 +85,6 @@ export class DeckService {
       this.addCardToList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
     } else if (zone === 'command') {
        this.addCardToList(this.commanderZone, this.commanderZoneSubject, card, quantity);
-    } else if (zone === 'stack') {
-      this.addCardToList(this.stackZone, this.stackZoneSubject, card, quantity);
     }
 
   }
@@ -103,8 +102,6 @@ export class DeckService {
       this.removeCardFromList(this.commanderZone, this.commanderZoneSubject, card, quantity);
     } else if (zone === 'sideboard') {
       this.removeCardFromList(this.sideboardZone, this.sideboardSubject, card, quantity);
-    } else if (zone === 'stack') {
-      this.removeCardFromList(this.stackZone, this.stackZoneSubject, card, quantity);
     }
 
   }
@@ -183,6 +180,16 @@ export class DeckService {
     }
   }
 
+  resolveTopStackCard(): void {
+    const topCard = this.stack.resolveTopStackCard(); // <- Usamos StackService
+    if (!topCard) return;
+
+    const destination = (topCard.type_line.includes('Sorcery') || topCard.type_line.includes('Instant'))
+      ? 'graveyard' : 'battlefield';
+
+    this.moveCardToZone(topCard, 'stack', destination, 1);
+  }
+
   private getZoneName(subject: BehaviorSubject<Cart[]>): string {
     if (subject === this.handZoneSubject) return 'hand';
     if (subject === this.exileZoneSubject) return 'exile';
@@ -211,10 +218,6 @@ export class DeckService {
 
   getSideboardCards() {
     return this.sideboardSubject.asObservable();
-  }
-
-  getStackZone() {
-    return this.stackZoneSubject.asObservable();
   }
 
   getDeckCardsMain() {

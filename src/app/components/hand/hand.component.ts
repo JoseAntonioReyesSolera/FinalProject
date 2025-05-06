@@ -38,7 +38,11 @@ export class HandComponent implements OnInit {
   castSpell(card: any) {
     this.contextMenuVisible = false;
     console.log('Lanzando hechizo:', card.name);
-    this.deckService.moveCardToZone(card, 'hand', 'stack', 1);
+    if(card.type_line.includes("Land")) {
+      this.deckService.moveCardToZone(card, 'hand', 'battlefield', 1);
+    } else {
+      this.deckService.moveCardToZone(card, 'hand', 'stack', 1);
+    }
   }
 
   viewDetails(card: any) {

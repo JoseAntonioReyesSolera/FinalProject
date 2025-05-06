@@ -45,4 +45,9 @@ export class PermanentCardComponent {
     this.cardAction.emit({ action: 'backToHand', card });
     this.contextMenuVisible = false;
   }
+
+  moveToCommand(card: Permanent) {
+    this.cardAction.emit({ action: 'commander', card });
+    this.contextMenuVisible = false;
+  }
 }
