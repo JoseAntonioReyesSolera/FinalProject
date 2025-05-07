@@ -40,10 +40,8 @@ export class DeckService {
     if (isCommander) {
       card.isCommander = false;
       this.moveCardToZone(card, 'command', 'library', 1);
-      console.log('Comandante eliminado:', card.name);
     } else {
       this.moveCardToZone(card, card.zone, 'command', 1);
-      console.log('Comandante agregado:', card.name);
     }
   }
 
@@ -66,12 +64,15 @@ export class DeckService {
     // Actualizamos la propiedad si se desea
 
     if (toZone === 'stack') {
-      this.stack.pushToStack(card);
+      this.stack.pushToStack({
+        type: 'Spell',
+        source: card,
+        description: `${card.name} is being cast.`,
+      });
     } else if (toZone === 'battlefield') {
       this.bf.addPermanent(card, quantity);
     }
 
-    console.log(`Carta movida de ${fromZone} a ${toZone}: ${quantity} ${card.name}`);
   }
 
   private addCardToZoneFor(zone: string, card: Cart, quantity: number): void {
@@ -180,14 +181,19 @@ export class DeckService {
     }
   }
 
-  resolveTopStackCard(): void {
-    const topCard = this.stack.resolveTopStackCard(); // <- Usamos StackService
-    if (!topCard) return;
+  resolveTopStackCard(resolved:boolean): void {
+    const topItem = this.stack.resolveTopStackCard();
+    if (!topItem) return;
 
-    const destination = (topCard.type_line.includes('Sorcery') || topCard.type_line.includes('Instant'))
-      ? 'graveyard' : 'battlefield';
-
-    this.moveCardToZone(topCard, 'stack', destination, 1);
+    let destination = 'graveyard';
+    const card = topItem.source;
+    if ('type_line' in card) {
+      if (resolved) {
+        destination = (card.type_line.includes('Sorcery') || card.type_line.includes('Instant'))
+          ? destination : 'battlefield';
+      }
+      this.moveCardToZone(card, 'stack', destination, 1);
+    }
   }
 
   private getZoneName(subject: BehaviorSubject<Cart[]>): string {

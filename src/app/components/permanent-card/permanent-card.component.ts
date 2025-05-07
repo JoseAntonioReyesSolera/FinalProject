@@ -1,7 +1,9 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {Permanent} from '../../models/permanent';
 import {CardDetailComponent} from '../card-detail/card-detail.component';
 import {Cart} from '../../models/cart';
+import {TriggerService} from '../../services/trigger.service';
+import {StackItem} from '../../models/stack-item';
 
 @Component({
   selector: 'app-permanent-card',
@@ -16,38 +18,99 @@ export class PermanentCardComponent {
   @Output() cardAction = new EventEmitter<{ action: string; card: Permanent }>();
 
   contextMenuVisible = false;
+  subMenuVisible = false;
   contextMenuPosition = { x: 0, y: 0 };
+
   selectedCard: Permanent | null = null;
+  pendingAction: 'destroy' | 'backToHand' | 'exile' | null = null;
+
+  constructor(
+    private readonly triggerService: TriggerService
+  ) {}
 
   onClick(event: MouseEvent) {
     event.preventDefault();
     this.contextMenuVisible = true;
-    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    this.subMenuVisible = false;
+    this.contextMenuPosition = { x: event.clientX-450, y: event.clientY-75 };
     this.selectedCard = this.card;
   }
 
-  castSpell(card: Permanent) {
-    this.cardAction.emit({ action: 'cast', card });
-    this.contextMenuVisible = false;
+  executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate', cost?: string) {
+    if (!this.selectedCard) return;
+
+    if (['destroy', 'backToHand', 'exile'].includes(action) && this.selectedCard.originalCard?.isCommander) {
+      this.pendingAction = action as 'destroy' | 'backToHand' | 'exile';
+      this.contextMenuVisible = false;
+      this.subMenuVisible = true;
+      return;
+    }
+
+    if (action === 'activate') {
+      if (!cost) return; // Asegura que se pase el coste de la habilidad
+      const item: StackItem = {
+        type: 'ActivatedAbility',
+        source: this.selectedCard,
+        description: `${this.selectedCard.name} activa una habilidad con coste ${cost}`,
+        cost: cost,
+      };
+
+      this.triggerService.addStackItem(item);
+      this.contextMenuVisible = false;
+      this.subMenuVisible = false;
+      return;
+    }
+
+    this.emitAction(action, this.selectedCard);
   }
 
-  viewDetails(card: Permanent) {
-    this.cardAction.emit({ action: 'details', card });
+  emitAction(action: string, card: Permanent) {
+    this.cardAction.emit({ action, card });
     this.contextMenuVisible = false;
+    this.subMenuVisible = false;
+    this.pendingAction = null;
   }
 
-  moveToGraveyard(card: Permanent) {
-    this.cardAction.emit({ action: 'destroy', card });
-    this.contextMenuVisible = false;
+  resolveCommanderZone(choice: 'normal' | 'commander') {
+    if (!this.selectedCard || !this.pendingAction) return;
+
+    if (choice === 'commander') {
+      this.emitAction('commander', this.selectedCard);
+    } else {
+      this.emitAction(this.pendingAction, this.selectedCard);
+    }
   }
 
-  moveToHand(card: Permanent) {
-    this.cardAction.emit({ action: 'backToHand', card });
-    this.contextMenuVisible = false;
+  getActivatedAbilities(card: Permanent): string[] {
+    const abilities: string[] = [];
+    const oracleText = card.originalCard?.oracle_text || '';
+    const lines = oracleText.split('\n');
+
+    for (const line of lines) {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        const cost = line.substring(0, colonIndex).trim();
+        const effect = line.substring(colonIndex + 1).trim();
+
+        // Verificar si la habilidad es de maná
+        const isManaAbility = effect.includes('add');
+
+        if (!isManaAbility) {
+          abilities.push(cost);
+        }
+      }
+    }
+
+    return abilities;
   }
 
-  moveToCommand(card: Permanent) {
-    this.cardAction.emit({ action: 'commander', card });
-    this.contextMenuVisible = false;
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.context-menu') && !target.closest('.permanent-card')) {
+      this.contextMenuVisible = false;
+      this.subMenuVisible = false;
+    }
   }
 }

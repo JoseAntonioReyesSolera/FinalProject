@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, HostListener, OnInit} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {DeckService} from '../../services/deck.service';
 import {CardDetailComponent} from '../card-detail/card-detail.component';
@@ -37,7 +37,6 @@ export class HandComponent implements OnInit {
 
   castSpell(card: any) {
     this.contextMenuVisible = false;
-    console.log('Lanzando hechizo:', card.name);
     if(card.type_line.includes("Land")) {
       this.deckService.moveCardToZone(card, 'hand', 'battlefield', 1);
     } else {
@@ -54,19 +53,24 @@ export class HandComponent implements OnInit {
 
   moveToLibrary(card: any) {
     this.contextMenuVisible = false;
-    console.log('Carta biblioteca carta:', card.name);
     this.deckService.moveCardToZone(card, 'hand', 'library', 1);
   }
 
   moveToGraveyard(card: any) {
     this.contextMenuVisible = false;
-    console.log('Descartando carta:', card.name);
     this.deckService.moveCardToZone(card, 'hand', 'graveyard', 1);
   }
 
   moveToExile(card: any) {
     this.contextMenuVisible = false;
-    console.log('Exiliando carta:', card.name);
     this.deckService.moveCardToZone(card, 'hand', 'exile', 1);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.context-menu') && !target.closest('.card-item')) {
+      this.contextMenuVisible = false;
+    }
   }
 }

@@ -21,13 +21,29 @@
     [style.left.px]="contextMenuPosition.x"
     (click)="contextMenuVisible = false">
     <ul>
-      <li (click)="castSpell(selectedCard!)">A</li>
-      <li (click)="viewDetails(selectedCard!)">Ver detalles</li>
-      <li (click)="moveToHand(selectedCard!)">Devolver a la Mano</li>
-      <li (click)="moveToGraveyard(selectedCard!)">Destruir</li>
-      @if (card.originalCard.isCommander) {
-        <li (click)="moveToCommand(selectedCard!)">Zona de Comandante</li>
+      @for (cost of getActivatedAbilities(card); track cost) {
+      <li (click)="executeAction('activate', cost)">
+        Activar ({{ cost }})
+      </li>
       }
+      <li (click)="executeAction('details')">Ver detalles</li>
+      <li (click)="executeAction('backToHand')">Devolver a la Mano</li>
+      <li (click)="executeAction('destroy')">Destruir</li>
+      <li (click)="executeAction('exile')">Exiliar</li>
+    </ul>
+  </div>
+}
+
+@if (subMenuVisible) {
+  <div
+    class="context-menu"
+    [style.top.px]="contextMenuPosition.y+75"
+    [style.left.px]="contextMenuPosition.x+75"
+    (click)="subMenuVisible = false">
+
+    <ul>
+      <li (click)="resolveCommanderZone('normal')">Zona normal</li>
+      <li (click)="resolveCommanderZone('commander')">Zona de comandante</li>
     </ul>
   </div>
 }

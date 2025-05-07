@@ -1,33 +1,33 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Cart } from '../models/cart';
+import {StackItem} from '../models/stack-item';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StackService {
-  private readonly stackZone: Cart[] = [];
-  private readonly stackSubject = new BehaviorSubject<Cart[]>([]);
+
+  private readonly stackZone: StackItem[] = [];
+  private readonly stackSubject = new BehaviorSubject<StackItem[]>([]);
 
   getStackObservable() {
     return this.stackSubject.asObservable();
   }
 
-  getStack(): Cart[] {
+  getStack(): StackItem[] {
     return [...this.stackZone];
   }
 
-  pushToStack(card: Cart) {
-    this.stackZone.push(card);
+  pushToStack(item: StackItem) {
+    this.stackZone.push(item);
     this.stackSubject.next([...this.stackZone]);
-    console.log('Añadido a la pila:', card.name);
   }
 
-  resolveTopStackCard(): Cart | undefined {
-    const topCard = this.stackZone.pop();
+  resolveTopStackCard(): StackItem | undefined {
+    const topItem = this.stackZone.pop();
     this.stackSubject.next([...this.stackZone]);
-    if (topCard) console.log('Resuelto de la pila:', topCard.name);
-    return topCard;
+    return topItem;
   }
+
 
 }

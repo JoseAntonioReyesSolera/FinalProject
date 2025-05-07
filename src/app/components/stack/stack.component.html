@@ -1,26 +1,33 @@
 <p>{{ stackCards.length }}</p>
   @if (stackCards.length > 0) {
+    @let top = stackCards[stackCards.length - 1];
     <div class="card-in-stack p-4 border rounded shadow bg-gray-100">
-      <p class="text-lg font-semibold">
-        {{ stackCards[stackCards.length - 1].name }}
-      </p>
-      <p class="text-lg font-semibold">
-        {{ stackCards[stackCards.length - 1].type_line }}
-      </p>
-      @if (stackCards[stackCards.length - 1].type_line.includes("Sorcery") || stackCards[stackCards.length - 1].type_line.includes("Instant")) {
-      <div
-        class="text-sm text-gray-700 whitespace-pre-line"
-        [innerHTML]="stackCards[stackCards.length - 1].sanitizedOracleText"
-      ></div>
+      <p class="text-lg font-semibold">{{ top.source.name }}</p>
+
+      <!-- Si es una carta de hechizo -->
+      @if (isCart(top.source)) {
+        <p class="text-lg font-semibold">{{ top.source.type_line }}</p>
+        @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
+          <div
+            class="text-sm text-gray-700 whitespace-pre-line"
+            [innerHTML]="top.source.sanitizedOracleText"
+          ></div>
+        }
+      }
+
+      <!-- Si es una habilidad activada de un permanente -->
+      @if (isPermanent(top.source)) {
+        <p class="text-sm italic">Habilidad activada</p>
+        <p class="text-sm text-gray-700">{{ top.description }}</p>
       }
     </div>
 
-  <button
-    class="mt-3 btn btn-primary"
-    (click)="moveTopStackCardToBattlefield()"
-  >
-    Resolver
-  </button>
+    <button class="mt-3 btn btn-primary" (click)="moveTopStackCardToBattlefield()">
+      Resolver
+    </button>
+    <button class="mt-3 btn btn-primary" (click)="moveTopStackCardToGraveyard()">
+      No Resuelto
+    </button>
   } @else {
     <p class="text-gray-500">No hay hechizos en la pila.</p>
   }

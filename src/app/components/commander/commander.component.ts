@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, HostListener} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {DeckService} from '../../services/deck.service';
 import {Observable} from 'rxjs';
@@ -37,7 +37,6 @@ export class CommanderComponent{
 
   castSpell(card: Cart) {
     this.contextMenuVisible = false;
-    console.log('Lanzando hechizo desde comandante:', card.name);
     this.deckService.moveCardToZone(card, 'command', 'stack', 1);
   }
 
@@ -49,13 +48,19 @@ export class CommanderComponent{
 
   moveToHand(card: Cart) {
     this.contextMenuVisible = false;
-    console.log('Moviendo a la mano:', card.name);
     this.deckService.moveCardToZone(card, 'command', 'hand', 1);
   }
 
   unassignCommander(card: Cart) {
     this.contextMenuVisible = false;
-    console.log('Desmarcar como comandante:', card.name);
     this.deckService.setCommander(card);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.context-menu') && !target.closest('.card')) {
+      this.contextMenuVisible = false;
+    }
   }
 }

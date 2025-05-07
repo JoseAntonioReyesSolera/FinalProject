@@ -58,11 +58,9 @@ export class ZoneViewerComponent {
     if (card.isCommander) {
       // Si es comandante, quitarla como comandante
       card.isCommander = false;
-      console.log('Carta retirada de comandante:', card.name);
     } else {
       // Si no es comandante, marcarla como comandante
       card.isCommander = true;
-      console.log('Carta marcada como comandante:', card.name);
     }
 
     // Actualizar el comandante en el servicio
