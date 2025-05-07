@@ -2,7 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {StackService} from '../../services/stack.service';
 import {DeckService} from '../../services/deck.service';
 import {StackItem} from '../../models/stack-item';
-import {TriggerService} from '../../services/trigger.service';
 import {Cart} from '../../models/cart';
 import {Permanent} from '../../models/permanent';
 
@@ -15,15 +14,11 @@ import {Permanent} from '../../models/permanent';
 export class StackComponent implements OnInit{
   stackCards: StackItem[] = [];
 
-  constructor(private readonly stackService: StackService, private readonly deckService: DeckService, private readonly triggerService: TriggerService) {}
+  constructor(private readonly stackService: StackService, private readonly deckService: DeckService) {}
 
   ngOnInit() {
     this.stackService.getStackObservable().subscribe(cards => {
       this.stackCards = cards;
-    });
-
-    this.triggerService.getStackObservable().subscribe(stack => {
-      this.stackCards = stack;
     });
   }
 

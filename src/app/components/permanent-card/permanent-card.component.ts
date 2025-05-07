@@ -1,9 +1,7 @@
 import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {Permanent} from '../../models/permanent';
-import {CardDetailComponent} from '../card-detail/card-detail.component';
-import {Cart} from '../../models/cart';
-import {TriggerService} from '../../services/trigger.service';
 import {StackItem} from '../../models/stack-item';
+import {StackService} from '../../services/stack.service';
 
 @Component({
   selector: 'app-permanent-card',
@@ -25,7 +23,7 @@ export class PermanentCardComponent {
   pendingAction: 'destroy' | 'backToHand' | 'exile' | null = null;
 
   constructor(
-    private readonly triggerService: TriggerService
+    private readonly stackService: StackService
   ) {}
 
   onClick(event: MouseEvent) {
@@ -55,7 +53,7 @@ export class PermanentCardComponent {
         cost: cost,
       };
 
-      this.triggerService.addStackItem(item);
+      this.stackService.pushToStack(item);
       this.contextMenuVisible = false;
       this.subMenuVisible = false;
       return;
