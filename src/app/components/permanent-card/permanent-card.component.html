@@ -1,4 +1,5 @@
-<div class="permanent-card" (click)="onClick($event)">
+<button class="permanent-card"
+     (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
     <div class="card-art-container">
         <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
@@ -11,39 +12,52 @@
           }
         </div>
     </div>
-</div>
+</button>
 
 <!-- Menú contextual -->
 @if (contextMenuVisible) {
-  <div
+  <button
     class="context-menu"
     [style.top.px]="contextMenuPosition.y"
     [style.left.px]="contextMenuPosition.x"
     (click)="contextMenuVisible = false">
     <ul>
       @for (cost of getActivatedAbilities(card); track cost) {
-      <li (click)="executeAction('activate', cost)">
-        Activar ({{ cost }})
-      </li>
+        <li>
+          <button (click)="executeAction('activate', cost)">
+            Activar ({{ cost }})
+          </button>
+        </li>
       }
-      <li (click)="executeAction('details')">Ver detalles</li>
-      <li (click)="executeAction('backToHand')">Devolver a la Mano</li>
-      <li (click)="executeAction('destroy')">Destruir</li>
-      <li (click)="executeAction('exile')">Exiliar</li>
+      <li>
+        <button (click)="executeAction('details')">Ver detalles</button>
+      </li>
+      <li>
+        <button (click)="executeAction('backToHand')">Devolver a la Mano</button>
+      </li>
+      <li>
+        <button (click)="executeAction('destroy')">Destruir</button>
+      </li>
+      <li>
+        <button (click)="executeAction('exile')">Exiliar</button>
+      </li>
     </ul>
-  </div>
+  </button>
 }
 
 @if (subMenuVisible) {
-  <div
+  <button
     class="context-menu"
     [style.top.px]="contextMenuPosition.y+75"
     [style.left.px]="contextMenuPosition.x+75"
     (click)="subMenuVisible = false">
-
     <ul>
-      <li (click)="resolveCommanderZone('normal')">Zona normal</li>
-      <li (click)="resolveCommanderZone('commander')">Zona de comandante</li>
+      <li>
+        <button (click)="resolveCommanderZone('normal')">Zona normal</button>
+      </li>
+      <li>
+        <button (click)="resolveCommanderZone('commander')">Zona de comandante</button>
+      </li>
     </ul>
-  </div>
+  </button>
 }
