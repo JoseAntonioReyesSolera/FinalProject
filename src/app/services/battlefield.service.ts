@@ -42,4 +42,8 @@ export class BattlefieldService {
     return this.permanentsSubject.getValue();
   }
 
+  getPermanentsSnapshot(): Permanent[] {
+    return this.permanentsSubject.getValue();
+  }
+
 }

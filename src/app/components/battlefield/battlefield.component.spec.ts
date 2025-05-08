@@ -41,7 +41,6 @@ describe('BattlefieldComponent', () => {
       oracle_text: '',
       type: 'Land',
       originalCard: { ...exampleCart, name: 'Forest', type_line: 'Basic Land — Forest' },
-      triggeredAbilities: []
     },
     {
       instanceId: '2',
@@ -55,7 +54,6 @@ describe('BattlefieldComponent', () => {
       oracle_text: '',
       type: 'Creature',
       originalCard: exampleCart,
-      triggeredAbilities: []
     },
     {
       instanceId: '3',
@@ -67,7 +65,6 @@ describe('BattlefieldComponent', () => {
       oracle_text: '',
       type: 'Artifact',
       originalCard: { ...exampleCart, name: 'Mind Stone', type_line: 'Artifact' },
-      triggeredAbilities: []
     },
   ];
 

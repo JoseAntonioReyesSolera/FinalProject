@@ -226,6 +226,22 @@ export class DeckService {
     return this.sideboardSubject.asObservable();
   }
 
+  getHandZoneSnapshot(): Cart[] {
+    return [...this.handZone];
+  }
+
+  getGraveyardZoneSnapshot(): Cart[] {
+    return [...this.graveyardZone];
+  }
+
+  getExileZoneSnapshot(): Cart[] {
+    return [...this.exileZone];
+  }
+
+  getCommanderZoneSnapshot(): Cart[] {
+    return [...this.commanderZone];
+  }
+
   getDeckCardsMain() {
     return this.deckCardsSubject.getValue(); // Devuelve las cartas del mazo principal
   }

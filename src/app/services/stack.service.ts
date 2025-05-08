@@ -14,7 +14,7 @@ export class StackService {
     return this.stackSubject.asObservable();
   }
 
-  getStack(): StackItem[] {
+  getCurrentStackSnapshot(): StackItem[] {
     return [...this.stackZone];
   }
 

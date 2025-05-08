@@ -12,6 +12,12 @@ import {AsyncPipe} from '@angular/common';
 import {PermanentCardComponent} from '../permanent-card/permanent-card.component';
 import {CardDetailComponent} from '../card-detail/card-detail.component';
 import {Cart} from '../../models/cart';
+import {v4 as uuidv4} from 'uuid';
+import {LogService} from '../../services/log.service';
+import {GameState} from '../../models/game-state';
+import {GameStorageService} from '../../services/game-storage.service';
+import {StackService} from '../../services/stack.service';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-battlefield',
@@ -24,6 +30,7 @@ import {Cart} from '../../models/cart';
     AsyncPipe,
     PermanentCardComponent,
     CardDetailComponent,
+    FormsModule,
   ],
   templateUrl: './battlefield.component.html',
   styleUrl: './battlefield.component.css'
@@ -40,8 +47,9 @@ export class BattlefieldComponent implements OnInit {
   selectedCardForDetails: Cart | null = null;
   modalVisible = false;
   allCards: Cart[] = [];
+  saveName: string = "";
 
-  constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService) {}
+  constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly log: LogService, private readonly game: GameStorageService) {}
 
   ngOnInit() {
     this.deckService.getDeckCards().subscribe(cards => {
@@ -110,5 +118,27 @@ export class BattlefieldComponent implements OnInit {
         this.bf.removePermanent(event.card.instanceId);
         break;
     }
+  }
+
+  saveGame() {
+    const gameState = {
+      id: this.saveName?.trim() || uuidv4(),
+      date: new Date().toISOString(),
+      deckMain: this.deckService.getDeckCardsMain(),
+      sideboard: this.deckService.getDeckCardsSideboard(),
+      zones: {
+        hand: this.deckService.getHandZoneSnapshot(),
+        graveyard: this.deckService.getGraveyardZoneSnapshot(),
+        exile: this.deckService.getExileZoneSnapshot(),
+        command: this.deckService.getCommanderZoneSnapshot(),
+        library: this.deckService.getDeckCardsMain(),
+      },
+      battlefield: this.bf.getPermanentsSnapshot(),
+      stack: this.stack.getCurrentStackSnapshot(),
+      log: this.log.getCurrentLogSnapshot(),
+    };
+
+    this.game.saveGame(gameState);
+    this.saveName = '';
   }
 }
