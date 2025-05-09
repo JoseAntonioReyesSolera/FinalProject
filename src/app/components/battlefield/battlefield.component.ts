@@ -49,6 +49,9 @@ export class BattlefieldComponent implements OnInit {
   allCards: Cart[] = [];
   saveName: string = "";
 
+  savedGames: { id: string; date: string }[] = [];
+  selectedSaveId: string | null = null;
+
   constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly log: LogService, private readonly game: GameStorageService) {}
 
   ngOnInit() {
@@ -60,6 +63,8 @@ export class BattlefieldComponent implements OnInit {
     this.deckService.getOriginalDeckCards().subscribe(cards => {
       this.originalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
+
+    this.refreshSavedGames();
 
     this.bf.permanents$.subscribe(perms => {
       const usedIds = new Set<string>();
@@ -120,6 +125,11 @@ export class BattlefieldComponent implements OnInit {
     }
   }
 
+  selectSavedGame(game: { id: string; date: string }) {
+    this.selectedSaveId = game.id;
+    this.saveName = game.id;
+  }
+
   saveGame() {
     const gameState = {
       id: this.saveName?.trim() || uuidv4(),
@@ -140,5 +150,33 @@ export class BattlefieldComponent implements OnInit {
 
     this.game.saveGame(gameState);
     this.saveName = '';
+    this.selectedSaveId = null;
+    this.refreshSavedGames();
+  }
+
+  loadSelectedGame() {
+    if (!this.selectedSaveId) return;
+
+    const loaded = this.game.loadGame(this.selectedSaveId);
+    if (!loaded) return;
+
+    this.deckService.setFullGameState({
+      deck: loaded.deckMain,
+      hand: loaded.zones.hand,
+      graveyard: loaded.zones.graveyard,
+      exile: loaded.zones.exile,
+      commander: loaded.zones.command,
+      sideboard: loaded.sideboard
+    });
+    this.bf.setPermanentsFromSnapshot(loaded.battlefield);
+    this.stack.setStackFromSnapshot(loaded.stack);
+    this.log.setLogSnapshot(loaded.log);
+
+    this.selectedSaveId = null;
+    this.saveName = '';
+  }
+
+  refreshSavedGames() {
+    this.savedGames = this.game.listGameSummaries();
   }
 }

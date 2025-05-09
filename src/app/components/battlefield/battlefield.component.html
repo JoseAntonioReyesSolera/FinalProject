@@ -107,16 +107,33 @@
   <div class="modal-dialog">
     <div class="modal-content" style="z-index: 10">
       <div class="modal-header">
-        <h5 class="modal-title" id="saveGameModalLabel">Save Current Game</h5>
+        <h5 class="modal-title" id="saveGameModalLabel">Save or Load Game</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <label for="saveNameInput" class="form-label">Save Name</label>
         <input id="saveNameInput" [(ngModel)]="saveName" class="form-control" placeholder="e.g., Turn 5 vs Rakdos" />
 
-        <div class="mt-3 text-end">
-          <button class="btn btn-primary" data-bs-dismiss="modal" (click)="saveGame()">
-            Save Game
+        <div class="mt-3">
+          <strong>Saved Games</strong>
+          <ul class="list-group mt-2">
+            @for (game of savedGames; track $index) {
+            <li
+                (click)="selectSavedGame(game)"
+                class="list-group-item list-group-item-action"
+                [class.active]="selectedSaveId === game.id">
+              {{ game.id }} <small class="text-muted">({{ game.date }})</small>
+            </li>
+            }
+          </ul>
+        </div>
+
+        <div class="mt-3 d-flex justify-content-between">
+          <button class="btn btn-success" [disabled]="!selectedSaveId" (click)="loadSelectedGame()" data-bs-dismiss="modal">
+            Load Game
+          </button>
+          <button class="btn btn-primary" (click)="saveGame()" data-bs-dismiss="modal">
+            {{ selectedSaveId === saveName ? 'Overwrite Save' : 'Save as New' }}
           </button>
         </div>
       </div>

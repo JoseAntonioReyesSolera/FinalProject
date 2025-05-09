@@ -22,4 +22,8 @@ export class LogService {
   getCurrentLogSnapshot(): string[] {
     return this.logSubject.getValue();
   }
+
+  setLogSnapshot(logs: string[]): void {
+    this.logSubject.next([...logs]);
+  }
 }

@@ -38,12 +38,12 @@ export class BattlefieldService {
     this.permanentsSubject.next(filtered);
   }
 
-  getCurrentPermanents(): Permanent[] {
+  getPermanentsSnapshot(): Permanent[] {
     return this.permanentsSubject.getValue();
   }
 
-  getPermanentsSnapshot(): Permanent[] {
-    return this.permanentsSubject.getValue();
+  setPermanentsFromSnapshot(permanents: Permanent[]): void {
+    this.permanentsSubject.next([...permanents]);
   }
 
 }

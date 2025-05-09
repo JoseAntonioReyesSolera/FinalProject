@@ -29,5 +29,9 @@ export class StackService {
     return topItem;
   }
 
+  setStackFromSnapshot(stack: StackItem[]): void {
+    this.stackZone.splice(0, this.stackZone.length, ...stack);
+    this.stackSubject.next([...stack]);
+  }
 
 }

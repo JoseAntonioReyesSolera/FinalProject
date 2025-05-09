@@ -22,6 +22,15 @@ export class DeckService {
   private readonly graveyardZoneSubject = new BehaviorSubject<Cart[]>(this.graveyardZone);
   private readonly sideboardSubject = new BehaviorSubject<Cart[]>(this.sideboardZone);
 
+  private readonly zoneMap = new Map<string, { list: Cart[]; subject: BehaviorSubject<Cart[]> }>([
+    ['hand', { list: this.handZone, subject: this.handZoneSubject }],
+    ['exile', { list: this.exileZone, subject: this.exileZoneSubject }],
+    ['graveyard', { list: this.graveyardZone, subject: this.graveyardZoneSubject }],
+    ['library', { list: this.deckCards, subject: this.deckCardsSubject }],
+    ['command', { list: this.commanderZone, subject: this.commanderZoneSubject }],
+    ['sideboard', { list: this.sideboardZone, subject: this.sideboardSubject }],
+  ]);
+
 
   constructor(private readonly bf: BattlefieldService, private readonly stack: StackService) {}
 
@@ -76,37 +85,19 @@ export class DeckService {
   }
 
   private addCardToZoneFor(zone: string, card: Cart, quantity: number): void {
-    if (zone === 'hand') {
-      this.addCardToList(this.handZone, this.handZoneSubject, card, quantity);
-    } else if (zone === 'exile') {
-      this.addCardToList(this.exileZone, this.exileZoneSubject, card, quantity);
-    } else if (zone === 'graveyard') {
-      this.addCardToList(this.graveyardZone, this.graveyardZoneSubject, card, quantity);
-    } else if (zone === 'library') {
-      this.addCardToList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
-    } else if (zone === 'command') {
-       this.addCardToList(this.commanderZone, this.commanderZoneSubject, card, quantity);
-    }
+    const target = this.zoneMap.get(zone);
+    if (!target) return;
 
+    this.addCardToList(target.list, target.subject, card, quantity);
   }
 
   private removeCardFromZoneFor(zone: string, card: Cart, quantity: number): void {
-    if (zone === 'hand') {
-      this.removeCardFromList(this.handZone, this.handZoneSubject, card, quantity);
-    } else if (zone === 'exile') {
-      this.removeCardFromList(this.exileZone, this.exileZoneSubject, card, quantity);
-    } else if (zone === 'graveyard') {
-      this.removeCardFromList(this.graveyardZone, this.graveyardZoneSubject, card, quantity);
-    } else if (zone === 'library') {
-      this.removeCardFromList(this.deckCardsSubject.getValue(), this.deckCardsSubject, card, quantity);
-    } else if (zone === 'command') {
-      this.removeCardFromList(this.commanderZone, this.commanderZoneSubject, card, quantity);
-    } else if (zone === 'sideboard') {
-      this.removeCardFromList(this.sideboardZone, this.sideboardSubject, card, quantity);
-    }
+    const target = this.zoneMap.get(zone);
+    if (!target) return;
+
+    this.removeCardFromList(target.list, target.subject, card, quantity);
 
   }
-
   private addCardToList(
     list: Cart[],
     subject: BehaviorSubject<Cart[]>,
@@ -201,7 +192,32 @@ export class DeckService {
     if (subject === this.exileZoneSubject) return 'exile';
     if (subject === this.graveyardZoneSubject) return 'graveyard';
     if (subject === this.deckCardsSubject) return 'library';
+    if (subject === this.commanderZoneSubject) return 'command';
+    if (subject === this.sideboardSubject) return 'sideboard';
     return '';
+  }
+
+  setFullGameState(state: {
+    deck: Cart[],
+    hand: Cart[],
+    graveyard: Cart[],
+    exile: Cart[],
+    commander: Cart[],
+    sideboard: Cart[]
+  }) {
+    this.deckCards.splice(0, this.deckCards.length, ...state.deck);
+    this.handZone.splice(0, this.handZone.length, ...state.hand);
+    this.graveyardZone.splice(0, this.graveyardZone.length, ...state.graveyard);
+    this.exileZone.splice(0, this.exileZone.length, ...state.exile);
+    this.commanderZone.splice(0, this.commanderZone.length, ...state.commander);
+    this.sideboardZone.splice(0, this.sideboardZone.length, ...state.sideboard);
+
+    this.deckCardsSubject.next([...state.deck]);
+    this.handZoneSubject.next([...state.hand]);
+    this.graveyardZoneSubject.next([...state.graveyard]);
+    this.exileZoneSubject.next([...state.exile]);
+    this.commanderZoneSubject.next([...state.commander]);
+    this.sideboardSubject.next([...state.sideboard]);
   }
 
   // Puedes crear getters para acceder a cada zona
@@ -242,11 +258,11 @@ export class DeckService {
     return [...this.commanderZone];
   }
 
-  getDeckCardsMain() {
-    return this.deckCardsSubject.getValue(); // Devuelve las cartas del mazo principal
+  getDeckCardsMain(): Cart[] {
+    return [...this.deckCards];
   }
 
-  getDeckCardsSideboard() {
-    return this.sideboardSubject.getValue(); // Devuelve las cartas del sideboard
+  getDeckCardsSideboard(): Cart[] {
+    return [...this.sideboardZone];
   }
 }
