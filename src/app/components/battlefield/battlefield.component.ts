@@ -60,7 +60,7 @@ export class BattlefieldComponent implements OnInit {
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
-    this.deckService.getOriginalDeckCards().subscribe(cards => {
+    this.deckService.getOriginalDeck().subscribe(cards => {
       this.originalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
@@ -107,19 +107,19 @@ export class BattlefieldComponent implements OnInit {
         break;
       }
       case 'destroy':
-        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'graveyard', 1);
+        this.deckService.moveCardToZone(event.card.originalCard, 'graveyard', 1);
         this.bf.removePermanent(event.card.instanceId);
         break;
       case 'backToHand':
-        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'hand', 1);
+        this.deckService.moveCardToZone(event.card.originalCard, 'hand', 1);
         this.bf.removePermanent(event.card.instanceId);
         break;
       case 'commander':
-        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'command', 1);
+        this.deckService.moveCardToZone(event.card.originalCard, 'command', 1);
         this.bf.removePermanent(event.card.instanceId);
         break;
       case 'exile':
-        this.deckService.moveCardToZone(event.card.originalCard, 'battlefield', 'exile', 1);
+        this.deckService.moveCardToZone(event.card.originalCard, 'exile', 1);
         this.bf.removePermanent(event.card.instanceId);
         break;
     }

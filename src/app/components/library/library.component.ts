@@ -32,7 +32,7 @@ export class LibraryComponent implements OnInit{
       }
     });
 
-    this.deckService.getSideboardCards().subscribe(sideboard => {
+    this.deckService.getSideboardZone().subscribe(sideboard => {
       this.sideboardCards = sideboard;
       if (this.isSideboard) {
         this.totalDeckCards = sideboard.reduce((sum, card) => sum + (card.quantity ?? 1), 0);

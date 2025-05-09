@@ -37,7 +37,7 @@ export class CommanderComponent{
 
   castSpell(card: Cart) {
     this.contextMenuVisible = false;
-    this.deckService.moveCardToZone(card, 'command', 'stack', 1);
+    this.deckService.moveCardToZone(card, 'stack', 1);
   }
 
   viewDetails(card: any) {
@@ -48,12 +48,13 @@ export class CommanderComponent{
 
   moveToHand(card: Cart) {
     this.contextMenuVisible = false;
-    this.deckService.moveCardToZone(card, 'command', 'hand', 1);
+    this.deckService.moveCardToZone(card, 'hand', 1);
   }
 
   unassignCommander(card: Cart) {
     this.contextMenuVisible = false;
-    this.deckService.setCommander(card);
+    card.isCommander = false;
+    this.deckService.moveCardToZone(card, 'library', 1);
   }
 
   @HostListener('document:click', ['$event'])

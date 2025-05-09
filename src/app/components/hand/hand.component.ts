@@ -38,9 +38,9 @@ export class HandComponent implements OnInit {
   castSpell(card: any) {
     this.contextMenuVisible = false;
     if(card.type_line.includes("Land")) {
-      this.deckService.moveCardToZone(card, 'hand', 'battlefield', 1);
+      this.deckService.moveCardToZone(card, 'battlefield', 1);
     } else {
-      this.deckService.moveCardToZone(card, 'hand', 'stack', 1);
+      this.deckService.moveCardToZone(card, 'stack', 1);
     }
   }
 
@@ -53,17 +53,17 @@ export class HandComponent implements OnInit {
 
   moveToLibrary(card: any) {
     this.contextMenuVisible = false;
-    this.deckService.moveCardToZone(card, 'hand', 'library', 1);
+    this.deckService.moveCardToZone(card, 'library', 1);
   }
 
   moveToGraveyard(card: any) {
     this.contextMenuVisible = false;
-    this.deckService.moveCardToZone(card, 'hand', 'graveyard', 1);
+    this.deckService.moveCardToZone(card, 'graveyard', 1);
   }
 
   moveToExile(card: any) {
     this.contextMenuVisible = false;
-    this.deckService.moveCardToZone(card, 'hand', 'exile', 1);
+    this.deckService.moveCardToZone(card, 'exile', 1);
   }
 
   @HostListener('document:click', ['$event'])

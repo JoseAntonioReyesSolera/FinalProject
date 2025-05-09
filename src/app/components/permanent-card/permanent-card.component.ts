@@ -38,7 +38,7 @@ export class PermanentCardComponent {
 
   executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate', cost?: string) {
     if (!this.selectedCard) return;
-
+      console.log(this.selectedCard);
     if (['destroy', 'backToHand', 'exile'].includes(action) && this.selectedCard.originalCard?.isCommander) {
       this.pendingAction = action as 'destroy' | 'backToHand' | 'exile';
       this.contextMenuVisible = false;

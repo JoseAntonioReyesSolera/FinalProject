@@ -30,10 +30,11 @@ export class ZoneViewerComponent {
     );
   }
 
-  moveToZone(card: Cart, zone: 'hand' | 'library' | 'exile' | 'battlefield' | 'graveyard' | 'stack') {
-    const quantity = this.selectedQuantities[card.id] || 1;
-    this.deckService.moveCardToZone(card, card.zone, zone, quantity);
+  moveToZone(card: Cart, zone: 'hand' | 'library' | 'exile' | 'battlefield' | 'graveyard' | 'stack' | 'command') {
+    const qty = this.selectedQuantities[card.id] || 1;
+    this.deckService.moveCardToZone(card, zone, qty);
     delete this.selectedQuantities[card.id];
+    this.action.emit({ card, zone, quantity: qty });
   }
 
   getCardImage(card: Cart): string {
@@ -62,8 +63,5 @@ export class ZoneViewerComponent {
       // Si no es comandante, marcarla como comandante
       card.isCommander = true;
     }
-
-    // Actualizar el comandante en el servicio
-    this.deckService.setCommander(card);
   }
 }

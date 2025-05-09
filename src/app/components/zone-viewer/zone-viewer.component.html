@@ -19,12 +19,9 @@
 
               @if (!isExile() && !isGraveyard() || isLibrary()) {
                 @if (card.type_line?.includes('Legendary Creature') || card.oracle_text?.includes('can be your commander')) {
-                  <button class="btn btn-outline-dark btn-sm mt-2" (click)="setAsCommander(card)">
-                    @if (card.isCommander) {
-                    Comandante ✅
-                  } @else {
+                  <button class="btn btn-outline-dark btn-sm mt-2" (click)="moveToZone(card, 'command')">
                     Marcar como comandante
-                  }</button>
+                  </button>
                 }
               }
               <div class="mt-2">
