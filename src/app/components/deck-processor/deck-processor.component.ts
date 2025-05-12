@@ -100,8 +100,4 @@ export class DeckProcessorComponent {
       }
     });
   }
-
-  toggleCardFace(card: Cart): void {
-    this.gameService.toggleCardFace(card);
-  }
 }

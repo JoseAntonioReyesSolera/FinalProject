@@ -46,16 +46,25 @@ export class GameStorageService {
   // ——— Métodos de enrich ———
 
   enrichCard(card: Cart): Cart {
+    const enrichFace = (face: any): any => ({
+      ...face,
+      sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(face.mana_cost)),
+      sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(face.oracle_text, card.keywords)),
+      cmc: face.cmc ?? card.cmc,
+      type_line: face.type_line ?? card.type_line,
+    });
+
     const enriched: Cart = {
       ...card,
-      currentFaceIndex: card.card_faces ? 1 : 0,
+      currentFaceIndex: card.card_faces ? 0 : 1,  // Comienza en la cara frontal si existe
       isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
       sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
       sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.getOracleText(card), card.keywords)),
       sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
+      card_faces: card.card_faces?.map(enrichFace),  // Enriquecemos todas las caras si existen
     };
 
-    // Si es doble cara (normal) cambia a la cara trasera si corresponde
+    // Si es una carta de doble cara y no usa una imagen única para ambas caras
     if (enriched.card_faces && !enriched.isSingleImageDoubleFace) {
       this.toggleCardFace(enriched);
     }
@@ -65,7 +74,7 @@ export class GameStorageService {
 
   toggleCardFace(card: Cart): void {
     if (!card.card_faces) return;
-    card.currentFaceIndex = card.currentFaceIndex === 0 ? 1 : 0;
+    card.currentFaceIndex = card.currentFaceIndex ? 1 : 0;
     const newFace = card.card_faces[card.currentFaceIndex];
 
     card.name = newFace.name;
@@ -73,6 +82,8 @@ export class GameStorageService {
     card.oracle_text = newFace.oracle_text;
     card.type_line = newFace.type_line;
     card.mana_cost = newFace.mana_cost;
+    card.power = newFace.power;
+    card.toughness = newFace.toughness;
 
     card.sanitizedManaCost = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.mana_cost));
     card.sanitizedOracleText = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.oracle_text, card.keywords));

@@ -23,10 +23,6 @@
                 <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
                      style="max-width: 100%; height: auto;">
               }
-              <!-- Mostrar botón de Transformar solo si la carta tiene dos caras -->
-              @if (card.card_faces && !card.isSingleImageDoubleFace) {
-                <button (click)="toggleCardFace(card)">Transformar</button>
-              }
             </div>
           </div>
         </div>
