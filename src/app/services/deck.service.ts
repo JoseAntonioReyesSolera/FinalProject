@@ -120,7 +120,7 @@ export class DeckService {
     }
   }
 
-  private updateZoneList(zone: string, mutator: (list: Cart[]) => Cart[]) {
+  private updateZoneList(zone: 'hand'|'exile'|'graveyard'|'library'|'command'|'sideboard', mutator: (list: Cart[]) => Cart[]) {
     const subject = this.getSubject(zone);
     const before = subject.getValue();
     const after  = mutator(before);

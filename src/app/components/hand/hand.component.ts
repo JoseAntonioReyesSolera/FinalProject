@@ -66,6 +66,11 @@ export class HandComponent implements OnInit {
     this.deckService.moveCardToZone(card, 'exile', 1);
   }
 
+  getCopies(quantity: number): number[] {
+    return Array.from({ length: quantity }, (_, i) => i);
+  }
+
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
