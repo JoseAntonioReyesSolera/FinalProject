@@ -37,7 +37,7 @@ import {FormsModule} from '@angular/forms';
 })
 export class BattlefieldComponent implements OnInit {
   totalDeckCards: number = 0;
-  originalDeckCards: number = 0;
+  hasCommander: boolean = false;
 
   creaturesRow = new BehaviorSubject<Permanent[]>([]);
   allRow = new BehaviorSubject<Permanent[]>([]);
@@ -60,8 +60,8 @@ export class BattlefieldComponent implements OnInit {
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
-    this.deckService.getOriginalDeck().subscribe(cards => {
-      this.originalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
+    this.deckService.getCommanderZone().subscribe(cards => {
+      this.hasCommander = cards.some(card => card.isCommander);
     });
 
     this.refreshSavedGames();
@@ -131,18 +131,19 @@ export class BattlefieldComponent implements OnInit {
   }
 
   saveGame() {
-    const gameState = {
+    const allCards = [
+      ...this.deckService.getDeckCardsMain(),
+      ...this.deckService.getDeckCardsSideboard(),
+      ...this.deckService.getHandZoneSnapshot(),
+      ...this.deckService.getExileZoneSnapshot(),
+      ...this.deckService.getGraveyardZoneSnapshot(),
+      ...this.deckService.getCommanderZoneSnapshot(),
+    ];
+
+    const gameState: GameState = {
       id: this.saveName?.trim() || uuidv4(),
       date: new Date().toISOString(),
-      deckMain: this.deckService.getDeckCardsMain(),
-      sideboard: this.deckService.getDeckCardsSideboard(),
-      zones: {
-        hand: this.deckService.getHandZoneSnapshot(),
-        graveyard: this.deckService.getGraveyardZoneSnapshot(),
-        exile: this.deckService.getExileZoneSnapshot(),
-        command: this.deckService.getCommanderZoneSnapshot(),
-        library: this.deckService.getDeckCardsMain(),
-      },
+      cards: allCards,
       battlefield: this.bf.getPermanentsSnapshot(),
       stack: this.stack.getCurrentStackSnapshot(),
       log: this.log.getCurrentLogSnapshot(),
@@ -160,14 +161,42 @@ export class BattlefieldComponent implements OnInit {
     const loaded = this.game.loadGame(this.selectedSaveId);
     if (!loaded) return;
 
+    const grouped = {
+      hand: [] as Cart[],
+      sideboard: [] as Cart[],
+      graveyard: [] as Cart[],
+      exile: [] as Cart[],
+      command: [] as Cart[],
+      library: [] as Cart[],
+    };
+
+    for (const card of loaded.cards) {
+      if (grouped[card.zone as keyof typeof grouped]) {
+        grouped[card.zone as keyof typeof grouped].push(card);
+      }
+    }
+
+    const enrich = (arr: Cart[]) => arr.map(c => this.game.enrichCard(c));
+
+    const enrichedState = {
+      deck: enrich(grouped.library),
+      hand: enrich(grouped.hand),
+      graveyard: enrich(grouped.graveyard),
+      exile: enrich(grouped.exile),
+      commander: enrich(grouped.command),
+      sideboard: enrich(grouped.sideboard),
+    };
+
+
     this.deckService.setFullGameState({
-      deck: loaded.deckMain,
-      hand: loaded.zones.hand,
-      graveyard: loaded.zones.graveyard,
-      exile: loaded.zones.exile,
-      commander: loaded.zones.command,
-      sideboard: loaded.sideboard
+      deck: enrichedState.deck,
+      hand: enrichedState.hand,
+      graveyard: enrichedState.graveyard,
+      exile: enrichedState.exile,
+      commander: enrichedState.commander,
+      sideboard: enrichedState.sideboard,
     });
+
     this.bf.setPermanentsFromSnapshot(loaded.battlefield);
     this.stack.setStackFromSnapshot(loaded.stack);
     this.log.setLogSnapshot(loaded.log);
@@ -176,7 +205,13 @@ export class BattlefieldComponent implements OnInit {
     this.saveName = '';
   }
 
+  deleteGame(id: string) {
+    this.game.deleteGame(id);
+    this.refreshSavedGames();
+  }
+
   refreshSavedGames() {
     this.savedGames = this.game.listGameSummaries();
   }
+
 }

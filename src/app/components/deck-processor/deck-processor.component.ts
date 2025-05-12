@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {ScryfallService} from '../../services/scryfall.service';
-import { DeckService } from '../../services/deck.service';
-import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {DeckService} from '../../services/deck.service';
+import {DomSanitizer} from '@angular/platform-browser';
 import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
+import {GameStorageService} from '../../services/game-storage.service';
 
 @Component({
   selector: 'app-deck-processor',
@@ -17,13 +18,12 @@ export class DeckProcessorComponent {
   deckMainList: { name: string, quantity: number }[] = [];
   deckSideboardList: { name: string, quantity: number }[] = [];
   deckCards: Cart[] = [];
-  private readonly manaOrder = ['W', 'U', 'B', 'R', 'G'];
   loadError: string | null = null;
 
   constructor(
               private readonly scryfallService: ScryfallService,
-              private readonly sanitizer: DomSanitizer,
               private readonly deckService: DeckService,
+              private readonly gameService: GameStorageService,
     ) {}
 
   processDeckInput() {
@@ -69,45 +69,28 @@ export class DeckProcessorComponent {
     const sideRequests = this.deckSideboardList.map(card => this.scryfallService.getCardByName(card.name.replace(/\s*\(.*$/, '').trim()));
 
     forkJoin([...mainRequests, ...sideRequests]).subscribe({
-      next: (cards) => {
+      next: cards => {
         const allCards: Cart[] = cards.map((card, index) => {
           const isSide = index >= unifiedMainList.length;
-          const cardData: Cart = {
-            instanceId: card.id + '-' + self.crypto?.randomUUID?.() || Math.random().toString(36).substring(2),
-            id: card.id,
-            name: card.name,
-            image_uris: card.image_uris,
-            oracle_text: card.oracle_text,
-            type_line: card.type_line,
-            mana_cost: card.mana_cost,
-            cmc: card.cmc,
-            power: card.power,
-            toughness: card.toughness,
-            loyalty: card.loyalty,
-            keywords: card.keywords,
-            produced_mana: card.produced_mana,
-            color_identity: card.color_identity,
-            sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
-            sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.getOracleText(card), card.keywords)),
-            sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
-            card_faces: card.card_faces ?? null,
-            currentFaceIndex: card.card_faces ? 1 : 0,
-            quantity: isSide ? this.deckSideboardList[index - unifiedMainList.length].quantity : unifiedMainList[index].quantity,
-            isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
-            isCommander: false,
+          const quantity = isSide
+            ? this.deckSideboardList[index - unifiedMainList.length].quantity
+            : unifiedMainList[index].quantity;
+
+          // Enriquecemos cada carta, sin llamar a toggleCardFace aquí
+          return this.gameService.enrichCard({
+            instanceId: `${card.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
+            ...card,
+            quantity,
             zone: isSide ? 'sideboard' : 'library',
-          };
-
-          if (cardData.card_faces && !cardData.isSingleImageDoubleFace) {
-            this.toggleCardFace(cardData);
-          }
-
-          return cardData;
+            isCommander: false,
+          });
         });
 
+        // Separa otra vez main y side según la longitud original
         const mainDeck = allCards.slice(0, unifiedMainList.length);
         const sideboard = allCards.slice(unifiedMainList.length);
 
+        // Guarda en el servicio
         this.deckCards = mainDeck;
         this.deckService.setDeckCards(mainDeck, sideboard);
       },
@@ -118,66 +101,7 @@ export class DeckProcessorComponent {
     });
   }
 
-
-  toggleCardFace(card: Cart) {
-    if (card.card_faces) {
-      card.currentFaceIndex = card.currentFaceIndex === 0 ? 1 : 0;
-      const newFace = card.card_faces[card.currentFaceIndex];
-
-      card.name = newFace.name;
-      card.image_uris = newFace.image_uris;
-      card.oracle_text = newFace.oracle_text;
-      card.type_line = newFace.type_line;
-      card.mana_cost = newFace.mana_cost;
-      card.sanitizedManaCost = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.mana_cost));
-      card.sanitizedOracleText = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.oracle_text, card.keywords));
-    }
-  }
-
-  private replaceManaSymbolsAndHighlightTriggers(text?: string, keywords: string[] = []): string {
-    if (!text) return '';
-
-    text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
-      return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
-    });
-
-    text = text.replace(/((?:<img [^>]+>|[−+A-Za-z0-9\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
-      return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
-    });
-
-    keywords.forEach(keyword => {
-      const keywordRegex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      text = text?.replace(keywordRegex, `<span class="text-primary">${keyword}</span>`);
-    });
-
-    return text.replace(/\{([^}]+)}/g, (_, symbol) => {
-      const cleanSymbol = symbol.replace('/', '');
-      return `<img src="https://svgs.scryfall.io/card-symbols/${cleanSymbol}.svg"
-                 alt="${symbol}"
-                 style="width: 20px; height: auto; vertical-align: middle;">`;
-    });
-  }
-
-  private formatProducedMana(manaList?: string[]): string {
-    if (!manaList) return '';
-    const sortedMana = manaList.sort((a, b) => this.manaOrder.indexOf(a) - this.manaOrder.indexOf(b));
-    return sortedMana.map(mana => `{${mana}}`).join(', ');
-  }
-
-  sanitizeHtml(html: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(html);
-  }
-
-  private isSingleImageDoubleFace(card: any): boolean {
-    return (card.card_faces && !card.card_faces.some((face: any) => face.image_uris?.normal));
-  }
-
-  private getOracleText(card: any): string | undefined {
-    if (card.oracle_text) return card.oracle_text;
-    if (card.card_faces && card.card_faces.length > 0) {
-      const currentFace = card.card_faces[card.currentFaceIndex ?? 0];
-      return currentFace?.oracle_text;
-    }
-    return undefined;
+  toggleCardFace(card: Cart): void {
+    this.gameService.toggleCardFace(card);
   }
 }

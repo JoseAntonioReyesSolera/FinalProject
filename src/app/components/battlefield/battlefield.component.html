@@ -86,7 +86,7 @@
 
     <div class="col mt-4">
 
-      @if (originalDeckCards >= 99) {
+      @if (hasCommander) {
         <div class="col-12 col-md-3">
           <app-commander></app-commander>
         </div>
@@ -123,6 +123,9 @@
                 class="list-group-item list-group-item-action"
                 [class.active]="selectedSaveId === game.id">
               {{ game.id }} <small class="text-muted">({{ game.date }})</small>
+              <button class="btn btn-outline-danger" style="margin-left: 20px" (click)="deleteGame(game.id)" data-bs-dismiss="modal">
+                X
+              </button>
             </li>
             }
           </ul>
