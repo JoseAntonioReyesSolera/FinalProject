@@ -55,12 +55,12 @@ export class BattlefieldComponent implements OnInit {
   constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly log: LogService, private readonly game: GameStorageService) {}
 
   ngOnInit() {
-    this.deckService.getDeckCards().subscribe(cards => {
+    this.deckService.getZoneObservable('library').subscribe(cards => {
       this.allCards = cards;
       this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
     });
 
-    this.deckService.getCommanderZone().subscribe(cards => {
+    this.deckService.getZoneObservable('command').subscribe(cards => {
       this.hasCommander = cards.some(card => card.isCommander);
     });
 
@@ -132,12 +132,12 @@ export class BattlefieldComponent implements OnInit {
 
   saveGame() {
     const allCards = [
-      ...this.deckService.getDeckCardsMain(),
-      ...this.deckService.getDeckCardsSideboard(),
-      ...this.deckService.getHandZoneSnapshot(),
-      ...this.deckService.getExileZoneSnapshot(),
-      ...this.deckService.getGraveyardZoneSnapshot(),
-      ...this.deckService.getCommanderZoneSnapshot(),
+      ...this.deckService.getZone('library'),
+      ...this.deckService.getZone('sideboard'),
+      ...this.deckService.getZone('hand'),
+      ...this.deckService.getZone('exile'),
+      ...this.deckService.getZone('graveyard'),
+      ...this.deckService.getZone('command'),
     ];
 
     const gameState: GameState = {

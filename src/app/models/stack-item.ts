@@ -8,5 +8,6 @@ export interface StackItem {
   source: Permanent | Cart;
   description: string;
   cost?: string;
+  efecto?: string;
 }
 

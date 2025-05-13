@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import {Component, effect, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {Permanent} from '../../models/permanent';
 import {StackItem} from '../../models/stack-item';
 import {StackService} from '../../services/stack.service';
@@ -38,7 +38,7 @@ export class PermanentCardComponent {
 
   executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate', cost?: string) {
     if (!this.selectedCard) return;
-      console.log(this.selectedCard);
+
     if (['destroy', 'backToHand', 'exile'].includes(action) && this.selectedCard.originalCard?.isCommander) {
       this.pendingAction = action as 'destroy' | 'backToHand' | 'exile';
       this.contextMenuVisible = false;
@@ -48,11 +48,17 @@ export class PermanentCardComponent {
 
     if (action === 'activate') {
       if (!cost) return; // Asegura que se pase el coste de la habilidad
+
+      const oracleText = this.selectedCard.originalCard?.oracle_text || '';
+      const line = oracleText.split('\n').find(l => l.startsWith(cost + ':'));
+      const efecto = line?.split(':')[1]?.trim() || '';
+
       const item: StackItem = {
         type: 'ActivatedAbility',
         source: this.selectedCard,
-        description: `${this.selectedCard.name} activa una habilidad con coste ${cost}`,
+        description: `${this.selectedCard.name} resultado ${efecto}`,
         cost: cost,
+        efecto: efecto,
       };
 
       this.stackService.pushToStack(item);
@@ -90,19 +96,25 @@ export class PermanentCardComponent {
       const colonIndex = line.indexOf(':');
       if (colonIndex > 0) {
         const cost = line.substring(0, colonIndex).trim();
-        const effect = line.substring(colonIndex + 1).trim();
 
-        // Verificar si la habilidad es de maná
-        const isManaAbility = effect.includes('add');
-
-        if (!isManaAbility) {
           abilities.push(cost);
         }
-      }
     }
 
     return abilities;
   }
+
+  getTriggeredAbilities(card: Permanent): string[] {
+    const oracleText = card.originalCard?.oracle_text || '';
+    const lines = oracleText.split('\n');
+
+    return lines.filter(line =>
+      line.startsWith('When ') ||
+      line.startsWith('Whenever ') ||
+      line.startsWith('At the beginning of ')
+    );
+  }
+
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {

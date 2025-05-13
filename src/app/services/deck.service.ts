@@ -3,143 +3,78 @@ import { BehaviorSubject } from 'rxjs';
 import { Cart } from '../models/cart';
 import {BattlefieldService} from './battlefield.service';
 import {StackService} from './stack.service';
-
+type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard';
 @Injectable({
   providedIn: 'root'
 })
 export class DeckService {
-  private readonly deckCards$ = new BehaviorSubject<Cart[]>([]);
-  private readonly original$ = new BehaviorSubject<Cart[]>([]);
-  private readonly hand$ = new BehaviorSubject<Cart[]>([]);
-  private readonly exile$ = new BehaviorSubject<Cart[]>([]);
-  private readonly grave$ = new BehaviorSubject<Cart[]>([]);
-  private readonly command$ = new BehaviorSubject<Cart[]>([]);
-  private readonly side$ = new BehaviorSubject<Cart[]>([]);
+  private readonly zones: Map<ZoneName, BehaviorSubject<Cart[]>> = new Map([
+    ['library',   new BehaviorSubject<Cart[]>([])],
+    ['hand',      new BehaviorSubject<Cart[]>([])],
+    ['graveyard', new BehaviorSubject<Cart[]>([])],
+    ['exile',     new BehaviorSubject<Cart[]>([])],
+    ['command',   new BehaviorSubject<Cart[]>([])],
+    ['sideboard', new BehaviorSubject<Cart[]>([])],
+  ]);
 
   constructor(private readonly bf: BattlefieldService, private readonly stack: StackService) {
   }
 
-  getDeckCards() {
-    return this.deckCards$.asObservable();
+  getZone(zone: ZoneName): Cart[] {
+    return [...this.zones.get(zone)!.getValue()];
   }
 
-  getOriginalDeck() {
-    return this.original$.asObservable();
+  getZoneObservable(zone: ZoneName) {
+    return this.zones.get(zone)!.asObservable();
   }
 
-  getHandZone() {
-    return this.hand$.asObservable();
-  }
 
-  getExileZone() {
-    return this.exile$.asObservable();
-  }
-
-  getGraveyardZone() {
-    return this.grave$.asObservable();
-  }
-
-  getCommanderZone() {
-    return this.command$.asObservable();
-  }
-
-  getSideboardZone() {
-    return this.side$.asObservable();
-  }
-
-  getDeckCardsMain() {
-    return [...this.deckCards$.getValue()];
-  }
-
-  getDeckCardsSideboard() {
-    return [...this.side$.getValue()];
-  }
-
-  getHandZoneSnapshot() {
-    return [...this.hand$.getValue()];
-  }
-
-  getExileZoneSnapshot() {
-    return [...this.exile$.getValue()];
-  }
-
-  getGraveyardZoneSnapshot() {
-    return [...this.grave$.getValue()];
-  }
-
-  getCommanderZoneSnapshot() {
-    return [...this.command$.getValue()];
-  }
-
-  setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
-    this.deckCards$.next([...mainDeck]);
-    this.original$.next(mainDeck.map(c => ({...c})));
-    this.side$.next([...sideboard]);
-
+  setZone(zone: ZoneName, cards: Cart[]) {
+    this.zones.get(zone)!.next([...cards]);
   }
 
   // Mover una carta a la zona correspondiente (exilio, mano, etc.)
   // Mover carta de una zona a otra
-  moveCardToZone(card: Cart, to: 'hand'|'exile'|'graveyard'|'library'|'command'|'sideboard'|'battlefield'|'stack', qty = 1) {
-    const from = card.zone as
-      | 'hand' | 'exile' | 'graveyard' | 'library' | 'command' | 'sideboard' | 'stack' | 'battlefield';
-    // Si la carta es un comandante, cambia su flag `isCommander` a false antes de moverla
-    if (from === 'command' && to === 'library') {
-      card.isCommander = false;
-    }
+  moveCardToZone(card: Cart, to: ZoneName | 'battlefield' | 'stack', qty = 1) {
+    const from = card.zone as ZoneName | 'battlefield' | 'stack';
 
-    // 1) Sacarla de la zona origen (si no es stack o battlefield)
     if (from !== 'stack' && from !== 'battlefield') {
-      this.updateZoneList(from, list => this.buildRemovedList(list, card, qty));
+      this.removeFromZone(from as ZoneName, card, qty);
     }
 
-    // 2) Actualizar zona del objeto
     card.zone = to;
 
-    // Si la carta es un comandante, cambia su flag `isCommander` a true al ser movida a la zona de comando
-    if (to === 'command') {
-      card.isCommander = true;
-    }
+    if (to === 'command') card.isCommander = true;
+    if (from === 'command' && to === 'library') card.isCommander = false;
 
-    // 3) Añadir a la zona destino
     if (to === 'stack') {
       this.stack.pushToStack({ type: 'Spell', source: card, description: `${card.name} cast.` });
     } else if (to === 'battlefield') {
       this.bf.addPermanent(card, qty);
     } else {
-      this.updateZoneList(to, list => {
-        const existing = list.find(c => c.id === card.id);
-        if (existing) {
-          return list.map(c =>
-            c.id === card.id ? { ...c, quantity: c.quantity + qty } : c
-          );
-        } else {
-          return [...list, { ...card, quantity: qty }];
-        }
-      });
+      this.addToZone(to, card, qty);
     }
-  }
 
-  private updateZoneList(zone: 'hand'|'exile'|'graveyard'|'library'|'command'|'sideboard', mutator: (list: Cart[]) => Cart[]) {
-    const subject = this.getSubject(zone);
-    const before = subject.getValue();
-    const after  = mutator(before);
-    subject.next([...after]);
+    this.detectZoneChangeTriggers(card, from, to);
   }
-
-  private getSubject(zone: string) {
-    switch(zone) {
-      case 'hand':      return this.hand$;
-      case 'exile':     return this.exile$;
-      case 'graveyard': return this.grave$;
-      case 'library':   return this.deckCards$;
-      case 'command':   return this.command$;
-      case 'sideboard': return this.side$;
-      default: throw Error(`Zona inválida: ${zone}`);
+  private addToZone(zone: ZoneName, card: Cart, qty: number) {
+    const list = this.getZone(zone);
+    const existing = list.find(c => c.id === card.id);
+    if (existing) {
+      existing.quantity += qty;
+    } else {
+      list.push({ ...card, quantity: qty });
     }
+    this.setZone(zone, list);
   }
 
-  private buildRemovedList(list: Cart[], card: Cart, qty: number): Cart[] {
+  private removeFromZone(zone: ZoneName, card: Cart, qty: number) {
+    const list = this.getZone(zone);
+    const updated = this.removeQuantity(list, card, qty);
+    this.setZone(zone, updated);
+  }
+
+  private removeQuantity(list: Cart[], card: Cart, qty: number): Cart[] {
     const result: Cart[] = [];
     let toRemove = qty;
     for (const c of list) {
@@ -147,9 +82,7 @@ export class DeckService {
         if (c.quantity > toRemove) {
           result.push({ ...c, quantity: c.quantity - toRemove });
           toRemove = 0;
-        } else {
-          toRemove -= c.quantity;
-        }
+        } // else skip
       } else {
         result.push(c);
       }
@@ -157,26 +90,48 @@ export class DeckService {
     return result;
   }
 
-  setFullGameState(state: {
-    deck: Cart[], hand: Cart[], graveyard: Cart[],
-    exile: Cart[], commander: Cart[], sideboard: Cart[]
-  }) {
-    this.deckCards$.next([...state.deck]);
-    this.hand$.next([...state.hand]);
-    this.grave$.next([...state.graveyard]);
-    this.exile$.next([...state.exile]);
-    this.command$.next([...state.commander]);
-    this.side$.next([...state.sideboard]);
+  private detectZoneChangeTriggers(card: Cart, from: string, to: string) {
+    // ETB = enters the battlefield
+    if (to === 'battlefield') {
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `${card.name} enters the battlefield (ETB).`
+      });
+    }
+
+    // Dies = from battlefield to graveyard
+    if (from === 'battlefield' && to === 'graveyard') {
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `${card.name} dies.`
+      });
+    }
+
+    // Leaves battlefield = battlefield to any other zone
+    if (from === 'battlefield' && to !== 'battlefield') {
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `${card.name} leaves the battlefield.`
+      });
+    }
   }
 
-  resolveTopStackCard(resolved: boolean) {
-    const top = this.stack.resolveTopStackCard();
-    if (!top) return;
-    if ('type_line' in top.source) {
-      const dest = resolved
-        ? (RegExp(/Sorcery|Instant/).exec(top.source.type_line) ? 'graveyard' : 'battlefield')
-        : 'graveyard';
-      this.moveCardToZone(top.source, dest, 1);
-    }
+  setFullGameState(state: {
+    deck: Cart[];
+    hand: Cart[];
+    graveyard: Cart[];
+    exile: Cart[];
+    commander: Cart[];
+    sideboard: Cart[];
+  }) {
+    this.setZone('library', state.deck);
+    this.setZone('hand', state.hand);
+    this.setZone('graveyard', state.graveyard);
+    this.setZone('exile', state.exile);
+    this.setZone('command', state.commander);
+    this.setZone('sideboard', state.sideboard);
   }
 }
