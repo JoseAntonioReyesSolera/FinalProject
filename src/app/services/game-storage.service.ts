@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { GameState } from '../models/game-state';
 import {Cart} from '../models/cart';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import {Permanent} from '../models/permanent';
 
 @Injectable({ providedIn: 'root' })
 export class GameStorageService {
@@ -10,12 +11,45 @@ export class GameStorageService {
   constructor(private readonly sanitizer: DomSanitizer) {}
   saveGame(state: GameState) {
     const allGames = this.getAllGames();
+    const stripCard = (c: Cart): Cart => {
+      const {
+        sanitizedManaCost,
+        sanitizedOracleText,
+        sanitizedProducedMana,
+        combinedManaCost,
+        combinedOracleText,
+        combinedImageUris,
+        ...raw
+      } = c;
+      return raw as Cart;
+    };
+
+    const stripPermanent = (p: Permanent): Permanent => {
+      const {
+        oracle_text,
+        originalCard,
+        ...raw
+      } = p;
+
+      return {
+        ...raw,
+        originalCard: stripCard(originalCard)
+      };
+    };
+
     const strippedState: GameState = {
       ...state,
-      cards: state.cards.map(c => {
-        const { sanitizedManaCost, sanitizedOracleText, sanitizedProducedMana, ...raw } = c;
-        return raw as Cart;
-      })
+      cards: state.cards.map(stripCard),
+      battlefield: state.battlefield.map(stripPermanent),
+      stack: state.stack.map(item => ({
+        ...item,
+        source: 'originalCard' in item.source
+          ? {
+            ...item.source,
+            originalCard: stripCard((item.source as Permanent).originalCard)
+          }
+          : stripCard(item.source as Cart)
+      })),
     };
 
     allGames[state.id] = strippedState;

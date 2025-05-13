@@ -10,7 +10,7 @@ export interface Permanent {
   loyalty?:number;
   tapped: boolean;
   counters: { [type: string]: number };
-  oracle_text: any;
+  oracle_text?: any;
   type: string;
   originalCard: Cart;
 }

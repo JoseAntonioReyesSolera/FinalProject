@@ -197,8 +197,18 @@ export class BattlefieldComponent implements OnInit {
       sideboard: enrichedState.sideboard,
     });
 
-    this.bf.setPermanentsFromSnapshot(loaded.battlefield);
+    this.bf.setPermanentsFromSnapshot(loaded.battlefield.map((p: any) => {
+      const enrichedPermanent: Permanent = {
+        ...p,
+        originalCard: this.game.enrichCard(p.originalCard), // Enriquecer la carta original asociada al permanente
+      };
+      return enrichedPermanent;
+    }));
+
+    // Restaurar la pila (stack)
     this.stack.setStackFromSnapshot(loaded.stack);
+
+    // Restaurar el log
     this.log.setLogSnapshot(loaded.log);
 
     this.selectedSaveId = null;
