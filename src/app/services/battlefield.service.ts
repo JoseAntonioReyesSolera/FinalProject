@@ -55,6 +55,41 @@ export class BattlefieldService {
     this.permanentsSubject.next([...permanents]);
   }
 
+  transformPermanent(instanceId: string): void {
+    const permanents = this.getPermanentsSnapshot();
+    const index = permanents.findIndex(p => p.instanceId === instanceId);
+
+    if (index === -1) return;
+
+    const current = permanents[index];
+    const card = current.originalCard;
+
+    // Asegúrate de que es una carta transformable
+    if (!card.card_faces || card.card_faces.length < 2) return;
+
+    const isFront = current.name === card.card_faces[0].name;
+    const newFace = isFront ? card.card_faces[1] : card.card_faces[0];
+
+    const newPermanent: Permanent = {
+      instanceId: `${card.id}-${Date.now()}-${Math.random().toString(36)}`,
+      cardId: card.id,
+      name: newFace.name,
+      image: newFace.image_uris?.art_crop ?? newFace.image_uris?.normal ?? '',
+      power: newFace.power,
+      toughness: newFace.toughness,
+      loyalty: newFace.loyalty,
+      tapped: current.tapped,
+      counters: {...current.counters},
+      oracle_text: newFace.oracle_text,
+      type: newFace.type_line,
+      originalCard: card,
+    };
+
+    // Sustituir el permanente
+    permanents.splice(index, 1, newPermanent);
+    this.permanentsSubject.next([...permanents]);
+  }
+
   private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
     const enteredTypes = entered.map(e => e.type.toLowerCase());
 
