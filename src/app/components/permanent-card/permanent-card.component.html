@@ -2,8 +2,9 @@
      (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
     <div class="card-art-container">
-        <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
-        <div class="card-info text-center">
+      <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
+
+      <div class="card-info text-center">
             @if (card.type.includes("Creature")) {
                 <div class="card-stats">{{ card.power }}/{{ card.toughness }}</div>
             }
@@ -27,6 +28,11 @@
           <button (click)="executeAction('activate', cost)">
             Activar ({{ cost }})
           </button>
+        </li>
+      }
+      @if (card.originalCard.card_faces?.length > 1) {
+        <li>
+          <button (click)="executeAction('transform')">Transformar</button>
         </li>
       }
       <li>

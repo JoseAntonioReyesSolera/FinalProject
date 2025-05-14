@@ -1,7 +1,8 @@
-import {Component, effect, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {Permanent} from '../../models/permanent';
 import {StackItem} from '../../models/stack-item';
 import {StackService} from '../../services/stack.service';
+import {BattlefieldService} from '../../services/battlefield.service';
 
 @Component({
   selector: 'app-permanent-card',
@@ -18,12 +19,14 @@ export class PermanentCardComponent {
   contextMenuVisible = false;
   subMenuVisible = false;
   contextMenuPosition = { x: 0, y: 0 };
+  isFrontFaceShown = true;
 
   selectedCard: Permanent | null = null;
   pendingAction: 'destroy' | 'backToHand' | 'exile' | null = null;
 
   constructor(
-    private readonly stackService: StackService
+    private readonly stackService: StackService,
+    private readonly bf: BattlefieldService,
   ) {}
 
   onClick(event: MouseEvent) {
@@ -36,7 +39,7 @@ export class PermanentCardComponent {
     this.selectedCard = this.card;
   }
 
-  executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate', cost?: string) {
+  executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate' | 'transform', cost?: string) {
     if (!this.selectedCard) return;
 
     if (['destroy', 'backToHand', 'exile'].includes(action) && this.selectedCard.originalCard?.isCommander) {
@@ -44,6 +47,10 @@ export class PermanentCardComponent {
       this.contextMenuVisible = false;
       this.subMenuVisible = true;
       return;
+    }
+
+    if (action === 'transform') {
+      this.bf.transformPermanent(this.card.instanceId);
     }
 
     if (action === 'activate') {

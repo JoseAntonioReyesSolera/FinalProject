@@ -107,6 +107,14 @@ export class DeckService {
       ? this.hasETBAbility(oracle, baseName)
       : null;
 
+    const ltbEffect = from === 'battlefield'
+      ? this.hasLeavesTrigger(oracle, baseName)
+      : null;
+
+    const dieEffect = from === 'battlefield' && to === 'graveyard'
+      ? this.hasDiesTrigger(oracle, baseName)
+      : null;
+
     // ETB = enters the battlefield
     if (etbEffect) {
       this.stack.pushToStack({
@@ -118,20 +126,22 @@ export class DeckService {
     }
 
     // Dies = from battlefield to graveyard
-    if (from === 'battlefield' && to === 'graveyard' && this.hasDiesTrigger(oracle, baseName)) {
+    if (dieEffect) {
       this.stack.pushToStack({
         type: 'TriggeredAbility',
         source: card,
-        description: `dies and triggers an ability.`
+        description: `triggers dies:`,
+        efecto: dieEffect
       });
     }
 
     // Leaves battlefield = battlefield to any other zone
-    if (from === 'battlefield' && to !== 'battlefield' && this.hasLeavesTrigger(oracle, baseName)) {
+    if (ltbEffect) {
       this.stack.pushToStack({
         type: 'TriggeredAbility',
         source: card,
-        description: `leaves the battlefield and triggers an ability.`
+        description: `trigger leaves the battlefield:`,
+        efecto: ltbEffect
       });
     }
   }
@@ -143,18 +153,18 @@ export class DeckService {
     return match?.trim() || null;
   }
 
-  private hasDiesTrigger(oracle: string, cardName: string): boolean {
-    return oracle
-        .toLowerCase()
-        .includes(`when ${cardName.toLowerCase()} dies`) ||
-      oracle.toLowerCase().includes(`whenever ${cardName.toLowerCase()} dies`);
+  private hasDiesTrigger(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* dies`, 'i');
+    const match = lines.find(l => pattern.test(l.trim()));
+    return match?.trim() || null;
   }
 
-  private hasLeavesTrigger(oracle: string, cardName: string): boolean {
-    return oracle
-        .toLowerCase()
-        .includes(`when ${cardName.toLowerCase()} leaves the battlefield`) ||
-      oracle.toLowerCase().includes(`whenever ${cardName.toLowerCase()} leaves the battlefield`);
+  private hasLeavesTrigger(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* leaves the battlefield`, 'i');
+    const match = lines.find(l => pattern.test(l.trim()));
+    return match?.trim() || null;
   }
 
 
