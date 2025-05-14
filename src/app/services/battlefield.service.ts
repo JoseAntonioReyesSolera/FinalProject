@@ -9,7 +9,8 @@ export class BattlefieldService {
   private readonly permanentsSubject = new BehaviorSubject<Permanent[]>([]);
   readonly permanents$: Observable<Permanent[]> = this.permanentsSubject.asObservable();
 
-  constructor(private readonly stack: StackService) {}
+  constructor(private readonly stack: StackService) {
+  }
 
   /** Añade uno o varios permanentes basados en un Cart */
   addPermanent(card: Cart, count: number = 1): void {
@@ -33,7 +34,7 @@ export class BattlefieldService {
       });
     }
     this.permanentsSubject.next([...current, ...newOnes]);
-    this.checkEntryTriggers(newOnes, newOnes);
+    this.checkEntryTriggers(newOnes, current);
   }
 
   removePermanent(instanceId: string): void {
@@ -54,6 +55,7 @@ export class BattlefieldService {
   setPermanentsFromSnapshot(permanents: Permanent[]): void {
     this.permanentsSubject.next([...permanents]);
   }
+
 
   transformPermanent(instanceId: string): void {
     const permanents = this.getPermanentsSnapshot();
@@ -91,37 +93,43 @@ export class BattlefieldService {
   }
 
   private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
+    // Prepara un array con los tipos de los entrantes en minúsculas
     const enteredTypes = entered.map(e => e.type.toLowerCase());
 
     for (const permanent of before) {
-      const oracle = permanent.oracle_text.toLowerCase();
-      const lines = oracle
-        .split('\n')
+      const oracle = permanent.originalCard.oracle_text;
+
+      // 1) Toma todas las líneas que contengan "whenever" y "enters"
+      const lines = oracle.split('\n')
         .map((l: string) => l.trim())
         .filter((l: string) =>
-          /(?:landfall\s*—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
+          /(?:—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
         );
 
       for (const triggerText of lines) {
-        // Extrae el sujeto que entra
+        // 2) Extrae lo que entra: captura el fragmento entre "whenever" y "enters"
         const match = /whenever\s+(.+?)\s+enters/i.exec(triggerText);
         if (!match) continue;
-        const subject = match[1].toLowerCase();
-        // e.g. "another creature you control" o "a land you control"
+        const subjectPhrase = match[1].toLowerCase();
+        // e.g. "another creature you control", "a land you control", "an artifact", etc.
 
-        // Si es genérico "permanent"
-        if (subject.includes('permanent')) {
+        // 3) Si es genérico "permanent", dispara siempre
+        if (subjectPhrase.includes('permanent')) {
           this.pushTrigger(permanent, triggerText);
           continue;
         }
 
-        // Extraemos la palabra clave final ("creature", "land", "artifact", …)
-        const keyword = subject
-          .replace(/you control|another|a|an/gi, '')
+        // 4) Para otras frases, verifica si alguno de los entrantes coincide por tipo
+        //    Tomamos la palabra clave más significativa:
+        const keyword = subjectPhrase
+          .replace(/you control/g, '')
+          .replace(/another /g, '')
           .trim()
           .split(' ')
-          .pop()!;
+          .slice(-1)[0];
+        // Ej: "creature", "land", "artifact"
 
+        // 5) Si alguno de los tipos de los entrantes incluye esa palabra clave:
         if (enteredTypes.some(t => t.includes(keyword))) {
           this.pushTrigger(permanent, triggerText);
         }
@@ -182,5 +190,4 @@ export class BattlefieldService {
       efecto: triggerText.trim(),
     });
   }
-
 }
