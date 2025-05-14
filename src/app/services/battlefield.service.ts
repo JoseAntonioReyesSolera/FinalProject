@@ -9,8 +9,7 @@ export class BattlefieldService {
   private readonly permanentsSubject = new BehaviorSubject<Permanent[]>([]);
   readonly permanents$: Observable<Permanent[]> = this.permanentsSubject.asObservable();
 
-  constructor(private readonly stack: StackService) {
-  }
+  constructor(private readonly stack: StackService) {}
 
   /** Añade uno o varios permanentes basados en un Cart */
   addPermanent(card: Cart, count: number = 1): void {
@@ -34,7 +33,7 @@ export class BattlefieldService {
       });
     }
     this.permanentsSubject.next([...current, ...newOnes]);
-    this.checkEntryTriggers(newOnes, current);
+    this.checkEntryTriggers(newOnes, newOnes);
   }
 
   removePermanent(instanceId: string): void {
@@ -56,80 +55,38 @@ export class BattlefieldService {
     this.permanentsSubject.next([...permanents]);
   }
 
-
-  transformPermanent(instanceId: string): void {
-    const permanents = this.getPermanentsSnapshot();
-    const index = permanents.findIndex(p => p.instanceId === instanceId);
-
-    if (index === -1) return;
-
-    const current = permanents[index];
-    const card = current.originalCard;
-
-    // Asegúrate de que es una carta transformable
-    if (!card.card_faces || card.card_faces.length < 2) return;
-
-    const isFront = current.name === card.card_faces[0].name;
-    const newFace = isFront ? card.card_faces[1] : card.card_faces[0];
-
-    const newPermanent: Permanent = {
-      instanceId: `${card.id}-${Date.now()}-${Math.random().toString(36)}`,
-      cardId: card.id,
-      name: newFace.name,
-      image: newFace.image_uris?.art_crop ?? newFace.image_uris?.normal ?? '',
-      power: newFace.power,
-      toughness: newFace.toughness,
-      loyalty: newFace.loyalty,
-      tapped: current.tapped,
-      counters: {...current.counters},
-      oracle_text: newFace.oracle_text,
-      type: newFace.type_line,
-      originalCard: card,
-    };
-
-    // Sustituir el permanente
-    permanents.splice(index, 1, newPermanent);
-    this.permanentsSubject.next([...permanents]);
-  }
-
   private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
-    // Prepara un array con los tipos de los entrantes en minúsculas
     const enteredTypes = entered.map(e => e.type.toLowerCase());
 
     for (const permanent of before) {
-      const oracle = permanent.originalCard.oracle_text;
-
-      // 1) Toma todas las líneas que contengan "whenever" y "enters"
-      const lines = oracle.split('\n')
+      const oracle = permanent.oracle_text.toLowerCase();
+      const lines = oracle
+        .split('\n')
         .map((l: string) => l.trim())
         .filter((l: string) =>
-          /(?:—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
+          /(?:landfall\s*—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
         );
 
       for (const triggerText of lines) {
-        // 2) Extrae lo que entra: captura el fragmento entre "whenever" y "enters"
+        // Extrae el sujeto que entra
         const match = /whenever\s+(.+?)\s+enters/i.exec(triggerText);
         if (!match) continue;
-        const subjectPhrase = match[1].toLowerCase();
-        // e.g. "another creature you control", "a land you control", "an artifact", etc.
+        const subject = match[1].toLowerCase();
+        // e.g. "another creature you control" o "a land you control"
 
-        // 3) Si es genérico "permanent", dispara siempre
-        if (subjectPhrase.includes('permanent')) {
+        // Si es genérico "permanent"
+        if (subject.includes('permanent')) {
           this.pushTrigger(permanent, triggerText);
           continue;
         }
 
-        // 4) Para otras frases, verifica si alguno de los entrantes coincide por tipo
-        //    Tomamos la palabra clave más significativa:
-        const keyword = subjectPhrase
-          .replace(/you control/g, '')
-          .replace(/another /g, '')
+        // Extraemos la palabra clave final ("creature", "land", "artifact", …)
+        const keyword = subject
+          .replace(/you control|another|a|an/gi, '')
           .trim()
           .split(' ')
-          .slice(-1)[0];
-        // Ej: "creature", "land", "artifact"
+          .pop()!;
 
-        // 5) Si alguno de los tipos de los entrantes incluye esa palabra clave:
         if (enteredTypes.some(t => t.includes(keyword))) {
           this.pushTrigger(permanent, triggerText);
         }
@@ -190,4 +147,5 @@ export class BattlefieldService {
       efecto: triggerText.trim(),
     });
   }
+
 }
