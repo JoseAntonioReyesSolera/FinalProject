@@ -2,7 +2,6 @@ import {Component} from '@angular/core';
 import {Cart} from '../../models/cart';
 import {ScryfallService} from '../../services/scryfall.service';
 import {DeckService} from '../../services/deck.service';
-import {DomSanitizer} from '@angular/platform-browser';
 import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 import {GameStorageService} from '../../services/game-storage.service';

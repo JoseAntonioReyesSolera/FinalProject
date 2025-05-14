@@ -4,7 +4,7 @@
     <button class="close-btn" (click)="close()">×</button>
     <div class="card-info">
       <img [src]="activeFace?.image_uris?.normal" alt="{{ activeFace?.name }}" class="img-fluid mb-3" />
-      @if (card?.card_faces?.length > 1 && !card.isSingleImageDoubleFace) {
+      @if (card.card_faces?.length > 1 && !card.isSingleImageDoubleFace) {
         <button (click)="toggleCardFace()" class="btn btn-secondary mt-2">
           Cambiar cara
         </button>

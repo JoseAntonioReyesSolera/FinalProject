@@ -25,14 +25,14 @@ export class LibraryComponent implements OnInit{
   constructor(private readonly deckService: DeckService) {}
 
   ngOnInit() {
-    this.deckService.getDeckCards().subscribe(cards => {
+    this.deckService.getZoneObservable('library').subscribe(cards => {
       this.deckCards = cards;
       if (!this.isSideboard) {
         this.totalDeckCards = cards.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
       }
     });
 
-    this.deckService.getSideboardZone().subscribe(sideboard => {
+    this.deckService.getZoneObservable('sideboard').subscribe(sideboard => {
       this.sideboardCards = sideboard;
       if (this.isSideboard) {
         this.totalDeckCards = sideboard.reduce((sum, card) => sum + (card.quantity ?? 1), 0);

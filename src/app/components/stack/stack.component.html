@@ -5,6 +5,7 @@
       <p class="text-lg font-semibold">{{ top.source.name }}</p>
 
       <!-- Si es una carta de hechizo -->
+      @if (top.type == 'Spell') {
       @if (isCart(top.source)) {
         <p class="text-lg font-semibold">{{ top.source.type_line }}</p>
         @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
@@ -14,12 +15,18 @@
           ></div>
         }
       }
-
-      <!-- Si es una habilidad activada de un permanente -->
-      @if (isPermanent(top.source)) {
-        <p class="text-sm italic">Habilidad activada</p>
-        <p class="text-sm text-gray-700">{{ top.description }}</p>
       }
+      @if (top.type != 'Spell') {
+        <div
+          class="text-sm text-gray-700 whitespace-pre-line"
+          [innerHTML]="top.description"
+        ></div>
+        <div
+          class="text-sm text-gray-700 whitespace-pre-line"
+          [innerHTML]="top.efecto"
+        ></div>
+      }
+
     </div>
 
     <button class="mt-3 btn btn-primary" (click)="moveTopStackCardToBattlefield()">

@@ -56,7 +56,7 @@ export class PermanentCardComponent {
       const item: StackItem = {
         type: 'ActivatedAbility',
         source: this.selectedCard,
-        description: `${this.selectedCard.name} resultado ${efecto}`,
+        description: `Activate an ability:`,
         cost: cost,
         efecto: efecto,
       };
@@ -103,18 +103,6 @@ export class PermanentCardComponent {
 
     return abilities;
   }
-
-  getTriggeredAbilities(card: Permanent): string[] {
-    const oracleText = card.originalCard?.oracle_text || '';
-    const lines = oracleText.split('\n');
-
-    return lines.filter(line =>
-      line.startsWith('When ') ||
-      line.startsWith('Whenever ') ||
-      line.startsWith('At the beginning of ')
-    );
-  }
-
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {

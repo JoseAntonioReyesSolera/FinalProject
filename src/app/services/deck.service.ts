@@ -33,10 +33,15 @@ export class DeckService {
     this.zones.get(zone)!.next([...cards]);
   }
 
+  setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
+    this.setZone('library', mainDeck);
+    this.setZone('sideboard', sideboard);
+  }
+
   // Mover una carta a la zona correspondiente (exilio, mano, etc.)
   // Mover carta de una zona a otra
   moveCardToZone(card: Cart, to: ZoneName | 'battlefield' | 'stack', qty = 1) {
-    const from = card.zone as ZoneName | 'battlefield' | 'stack';
+    const from = card.zone;
 
     if (from !== 'stack' && from !== 'battlefield') {
       this.removeFromZone(from as ZoneName, card, qty);
@@ -54,9 +59,10 @@ export class DeckService {
     } else {
       this.addToZone(to, card, qty);
     }
-
+    console.log(card.oracle_text, from, to);
     this.detectZoneChangeTriggers(card, from, to);
   }
+
   private addToZone(zone: ZoneName, card: Cart, qty: number) {
     const list = this.getZone(zone);
     const existing = list.find(c => c.id === card.id);
@@ -83,6 +89,9 @@ export class DeckService {
           result.push({ ...c, quantity: c.quantity - toRemove });
           toRemove = 0;
         } // else skip
+        else {
+          toRemove -= c.quantity;
+        }
       } else {
         result.push(c);
       }
@@ -91,33 +100,63 @@ export class DeckService {
   }
 
   private detectZoneChangeTriggers(card: Cart, from: string, to: string) {
+    const oracle = (card.oracle_text || '').toString();
+    const baseName = card.name.split(',')[0].toLowerCase();
+
+    const etbEffect = to === 'battlefield'
+      ? this.hasETBAbility(oracle, baseName)
+      : null;
+
     // ETB = enters the battlefield
-    if (to === 'battlefield') {
+    if (etbEffect) {
       this.stack.pushToStack({
         type: 'TriggeredAbility',
         source: card,
-        description: `${card.name} enters the battlefield (ETB).`
+        description: `triggers an ETB ability:`,
+        efecto: etbEffect
       });
     }
 
     // Dies = from battlefield to graveyard
-    if (from === 'battlefield' && to === 'graveyard') {
+    if (from === 'battlefield' && to === 'graveyard' && this.hasDiesTrigger(oracle, baseName)) {
       this.stack.pushToStack({
         type: 'TriggeredAbility',
         source: card,
-        description: `${card.name} dies.`
+        description: `dies and triggers an ability.`
       });
     }
 
     // Leaves battlefield = battlefield to any other zone
-    if (from === 'battlefield' && to !== 'battlefield') {
+    if (from === 'battlefield' && to !== 'battlefield' && this.hasLeavesTrigger(oracle, baseName)) {
       this.stack.pushToStack({
         type: 'TriggeredAbility',
         source: card,
-        description: `${card.name} leaves the battlefield.`
+        description: `leaves the battlefield and triggers an ability.`
       });
     }
   }
+
+  private hasETBAbility(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* enters`, 'i');
+    const match = lines.find(l => pattern.test(l.trim()));
+    return match?.trim() || null;
+  }
+
+  private hasDiesTrigger(oracle: string, cardName: string): boolean {
+    return oracle
+        .toLowerCase()
+        .includes(`when ${cardName.toLowerCase()} dies`) ||
+      oracle.toLowerCase().includes(`whenever ${cardName.toLowerCase()} dies`);
+  }
+
+  private hasLeavesTrigger(oracle: string, cardName: string): boolean {
+    return oracle
+        .toLowerCase()
+        .includes(`when ${cardName.toLowerCase()} leaves the battlefield`) ||
+      oracle.toLowerCase().includes(`whenever ${cardName.toLowerCase()} leaves the battlefield`);
+  }
+
 
   setFullGameState(state: {
     deck: Cart[];
@@ -133,5 +172,26 @@ export class DeckService {
     this.setZone('exile', state.exile);
     this.setZone('command', state.commander);
     this.setZone('sideboard', state.sideboard);
+  }
+
+  resolveTopStackCard(resolved: boolean) {
+    const top = this.stack.resolveTopStackCard();
+    if (!top) return;
+
+    if (top.type !== 'Spell') {
+      // Si no es un hechizo, no hacemos nada más.
+      return;
+    }
+
+    if (!('type_line' in top.source)) return;
+
+    const typeLine = top.source.type_line;
+    const isInstantOrSorcery = /Instant|Sorcery/.test(typeLine);
+
+    const destination = resolved
+      ? (isInstantOrSorcery ? 'graveyard' : 'battlefield')
+      : 'graveyard';
+
+    this.moveCardToZone(top.source, destination, 1);
   }
 }

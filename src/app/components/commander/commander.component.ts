@@ -25,7 +25,7 @@ export class CommanderComponent{
   constructor(private readonly deckService: DeckService) {}
 
   getCommanderCards(): Observable<Cart[]> {
-   return this.deckService.getCommanderZone();
+   return this.deckService.getZoneObservable('command');
   }
 
   onCardClick(event: MouseEvent, card: Cart) {

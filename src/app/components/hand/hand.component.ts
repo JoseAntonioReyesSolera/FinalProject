@@ -23,7 +23,7 @@ export class HandComponent implements OnInit {
 
   ngOnInit() {
     // Suscripción para recibir cambios en la zona de la mano
-    this.deckService.getHandZone().subscribe(hand => {
+    this.deckService.getZoneObservable('hand').subscribe(hand => {
       this.handCards = hand;
     });
   }

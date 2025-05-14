@@ -24,7 +24,7 @@ export class GraveyardComponent implements OnInit {
   constructor(private readonly deckService: DeckService) {}
 
   ngOnInit(): void {
-    this.deckService.getGraveyardZone().subscribe(graveyard => {
+    this.deckService.getZoneObservable('graveyard').subscribe(graveyard => {
       this.graveyardCards = graveyard;
       if (graveyard.length === 0) {
         // Si el cementerio está vacío, la imagen vuelve a la por defecto
@@ -41,7 +41,7 @@ export class GraveyardComponent implements OnInit {
       }
     });
 
-    this.deckService.getExileZone().subscribe(exile => {
+    this.deckService.getZoneObservable('exile').subscribe(exile => {
       this.exileCards = exile;
     });
   }
