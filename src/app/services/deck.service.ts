@@ -59,7 +59,7 @@ export class DeckService {
     } else {
       this.addToZone(to, card, qty);
     }
-    console.log(card.oracle_text, from, to);
+    console.log(card.oracle_text, from,"-->", to);
     this.detectZoneChangeTriggers(card, from, to);
   }
 

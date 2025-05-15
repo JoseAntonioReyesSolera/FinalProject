@@ -3,13 +3,14 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import {StackService} from './stack.service';
+import {TriggerService} from './trigger.service';
 
 @Injectable({ providedIn: 'root' })
 export class BattlefieldService {
   private readonly permanentsSubject = new BehaviorSubject<Permanent[]>([]);
   readonly permanents$: Observable<Permanent[]> = this.permanentsSubject.asObservable();
 
-  constructor(private readonly stack: StackService) {
+  constructor(private readonly stack: StackService, private readonly triggerService: TriggerService) {
   }
 
   /** Añade uno o varios permanentes basados en un Cart */
@@ -37,16 +38,21 @@ export class BattlefieldService {
     this.checkEntryTriggers(newOnes, current);
   }
 
-  removePermanent(instanceId: string): void {
+  removePermanent(instanceId: string, destinationZone: string = ''): void {
     const before = this.permanentsSubject.getValue();
     const died = before.find(p => p.instanceId === instanceId);
     const after = before.filter(p => p.instanceId !== instanceId);
     this.permanentsSubject.next(after);
 
-    if (died) {
+    // Solo considera "muerte" si va al cementerio
+    if (died && destinationZone === 'graveyard') {
       this.checkDiesTriggers(died, after);
     }
+    else {
+      this.checkLeavesWithoutDyingTriggers(died, after);
+    }
   }
+
 
   getPermanentsSnapshot(): Permanent[] {
     return this.permanentsSubject.getValue();
@@ -91,6 +97,8 @@ export class BattlefieldService {
     permanents.splice(index, 1, newPermanent);
     this.permanentsSubject.next([...permanents]);
   }
+
+
 
   private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
     // Prepara un array con los tipos de los entrantes en minúsculas
@@ -181,6 +189,26 @@ export class BattlefieldService {
       }
     }
   }
+
+  private checkLeavesWithoutDyingTriggers(leaving: Permanent | undefined, remaining: Permanent[]) {
+
+    for (const permanent of remaining) {
+      const oracle = permanent.originalCard.oracle_text;
+
+      const lines = oracle
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => /whenever one or more.*leave the battlefield(?!.*dies)/i.test(l));
+
+      for (const triggerText of lines) {
+        const match = /whenever one or more (.+?) leave the battlefield/i.exec(triggerText);
+        if (!match) continue;
+
+        this.pushTrigger(permanent, triggerText);
+      }
+    }
+  }
+
 
   private pushTrigger(source: Permanent, triggerText: string) {
     this.stack.pushToStack({

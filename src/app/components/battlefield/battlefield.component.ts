@@ -108,19 +108,19 @@ export class BattlefieldComponent implements OnInit {
       }
       case 'destroy':
         this.deckService.moveCardToZone(event.card.originalCard, 'graveyard', 1);
-        this.bf.removePermanent(event.card.instanceId);
+        this.bf.removePermanent(event.card.instanceId, 'graveyard');
         break;
       case 'backToHand':
         this.deckService.moveCardToZone(event.card.originalCard, 'hand', 1);
-        this.bf.removePermanent(event.card.instanceId);
+        this.bf.removePermanent(event.card.instanceId, 'hand');
         break;
       case 'commander':
         this.deckService.moveCardToZone(event.card.originalCard, 'command', 1);
-        this.bf.removePermanent(event.card.instanceId);
+        this.bf.removePermanent(event.card.instanceId, 'command');
         break;
       case 'exile':
         this.deckService.moveCardToZone(event.card.originalCard, 'exile', 1);
-        this.bf.removePermanent(event.card.instanceId);
+        this.bf.removePermanent(event.card.instanceId, 'exile');
         break;
     }
   }
