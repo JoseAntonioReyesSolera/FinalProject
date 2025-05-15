@@ -8,110 +8,91 @@ export class TriggerService {
   constructor(private readonly stack: StackService) {}
 
   detectZoneChangeTriggers(card: Cart, from: string, to: string): void {
-    const oracle = (card.oracle_text || '').toString();
-    const baseName = card.name.split(',')[0].toLowerCase();
+    const oracle = (card.oracle_text || '').toString().toLowerCase();
+    const etb = to === 'battlefield' ? this.extractLine(oracle, /^when .* enters/i) : null;
+    const ltb = from === 'battlefield' ? this.extractLine(oracle, /^when .* leaves the battlefield/i) : null;
+    const dies = from === 'battlefield' && to === 'graveyard'
+      ? this.extractLine(oracle, /^when .* dies/i)
+      : null;
 
-    const etbEffect = to === 'battlefield' ? this.extractETB(oracle, baseName) : null;
-    const ltbEffect = from === 'battlefield' ? this.extractLeaves(oracle, baseName) : null;
-    const dieEffect = from === 'battlefield' && to === 'graveyard' ? this.extractDies(oracle, baseName) : null;
+    if (etb)  this.push(card, 'triggers an ETB ability:', etb);
+    if (dies) this.push(card, 'triggers dies:',              dies);
+    if (ltb)  this.push(card, 'trigger leaves the battlefield:', ltb);
+  }
 
-    if (etbEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: 'triggers an ETB ability:',
-        efecto: etbEffect
-      });
-    }
-
-    if (dieEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: 'triggers dies:',
-        efecto: dieEffect
-      });
-    }
-
-    if (ltbEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: 'trigger leaves the battlefield:',
-        efecto: ltbEffect
-      });
+  detectBattlefieldTriggers(
+    permanent: Permanent,
+    event: 'entry' | 'dies' | 'leaves',
+    allBefore: Permanent[] = []
+  ): void {
+    this.pushSelfTriggers(permanent, event);
+    if (event === 'entry') {
+      this.pushOtherEntryTriggers(permanent, allBefore);
     }
   }
 
-  detectBattlefieldTriggers(permanent: Permanent, event: 'entry' | 'leaves' | 'dies', allBefore: Permanent[] = []): void {
+  // — Helpers for detectBattlefieldTriggers —
+
+  private pushSelfTriggers(permanent: Permanent, event: 'entry' | 'dies' | 'leaves') {
     const oracle = permanent.originalCard.oracle_text || '';
-    const type = permanent.type.toLowerCase();
-
-    const triggers = oracle.split('\n')
+    const lines = oracle
+      .split('\n')
       .map(l => l.trim())
-      .filter(l => {
-        if (event === 'entry') return /whenever .* enters/i.test(l);
-        if (event === 'dies') return /when .* dies/i.test(l);
-        if (event === 'leaves') return /when .* leaves the battlefield/i.test(l);
-        return false;
-      });
+      .filter(l =>
+        (event === 'entry' && /whenever .* enters/i.test(l)) ||
+        (event === 'dies'  && /when .* dies/i.test(l))  ||
+        (event === 'leaves'&& /when .* leaves the battlefield/i.test(l))
+      );
 
-    for (const text of triggers) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: permanent.originalCard,
-        description: `triggered ability:`,
-        efecto: text
-      });
+    for (const text of lines) {
+      this.push(permanent.originalCard, 'triggered ability:', text);
     }
+  }
 
-    // Detectar si otros permanentes deben reaccionar
-    if (event === 'entry') {
-      for (const before of allBefore) {
-        const oracleText = before.originalCard.oracle_text || '';
-        const lines = oracleText.split('\n').map(l => l.trim());
+  private pushOtherEntryTriggers(permanent: Permanent, beforeList: Permanent[]) {
+    const type = permanent.type.toLowerCase();
+    for (const before of beforeList) {
+      const oracleText = before.originalCard.oracle_text || '';
+      for (const line of oracleText.split('\n').map(l => l.trim())) {
+        const m = /whenever\s+(.+?)\s+enters/i.exec(line);
+        if (!m) continue;
 
-        for (const line of lines) {
-          const pattern = /whenever\s+(.+?)\s+enters/i;
-          const match = pattern.exec(line);
-          if (!match) continue;
+        const cond = m[1].toLowerCase();
+        const isSame = cond.includes('another') && permanent.originalCard.id === before.originalCard.id;
+        const matches =
+          (!cond.includes('another') || !isSame) &&
+          (
+            cond.includes('permanent') ||
+            (cond.includes('creature') && type.includes('creature')) ||
+            type.includes(cond)
+          );
 
-          const condition = match[1].toLowerCase();
-
-          if (
-            condition.includes('another') && permanent.originalCard.id === before.originalCard.id
-          ) continue;
-
-          const matchesType = type.includes(condition) || condition.includes('permanent') || condition.includes('creature') && type.includes('creature');
-
-          if (matchesType) {
-            this.stack.pushToStack({
-              type: 'TriggeredAbility',
-              source: before.originalCard,
-              description: 'triggered by battlefield entry of another:',
-              efecto: line
-            });
-          }
+        if (matches) {
+          this.push(
+            before.originalCard,
+            'triggered by battlefield entry of another:',
+            line
+          );
         }
       }
     }
   }
 
-  private extractETB(oracle: string, cardName: string): string | null {
-    return this.extractLineMatching(oracle, /^when .* enters/i);
+  // — Common utilities —
+
+  private extractLine(oracle: string, pattern: RegExp): string | null {
+    const line = oracle
+      .split('\n')
+      .find(l => pattern.test(l.trim()));
+    return line ? line.trim() : null;
   }
 
-  private extractDies(oracle: string, cardName: string): string | null {
-    return this.extractLineMatching(oracle, /^when .* dies/i);
-  }
-
-  private extractLeaves(oracle: string, cardName: string): string | null {
-    return this.extractLineMatching(oracle, /^when .* leaves the battlefield/i);
-  }
-
-  private extractLineMatching(oracle: string, pattern: RegExp): string | null {
-    const lines = oracle.split('\n');
-    const match = lines.find(line => pattern.test(line.trim()));
-    return match?.trim() || null;
+  private push(source: Cart | Permanent, desc: string, efecto: string) {
+    this.stack.pushToStack({
+      type: 'TriggeredAbility',
+      source,
+      description: desc,
+      efecto: efecto.trim(),
+    });
   }
 }

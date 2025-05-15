@@ -58,7 +58,7 @@ export class PermanentCardComponent {
 
       const oracleText = this.selectedCard.originalCard?.oracle_text || '';
       const line = oracleText.split('\n').find(l => l.startsWith(cost + ':'));
-      const efecto = line?.split(':')[1]?.trim() || '';
+      const efecto = line?.split(':')[1]?.trim() ?? '';
 
       const item: StackItem = {
         type: 'ActivatedAbility',

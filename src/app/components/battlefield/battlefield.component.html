@@ -118,7 +118,7 @@
           <strong>Saved Games</strong>
           <ul class="list-group mt-2">
             @for (game of savedGames; track $index) {
-            <li
+            <button
                 (click)="selectSavedGame(game)"
                 class="list-group-item list-group-item-action"
                 [class.active]="selectedSaveId === game.id">
@@ -126,7 +126,7 @@
               <button class="btn btn-outline-danger" style="margin-left: 20px" (click)="deleteGame(game.id)" data-bs-dismiss="modal">
                 X
               </button>
-            </li>
+            </button>
             }
           </ul>
         </div>

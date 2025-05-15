@@ -150,21 +150,21 @@ export class DeckService {
     const lines = oracle.split('\n');
     const pattern = new RegExp(`^when .* enters`, 'i');
     const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() || null;
+    return match?.trim() ?? null;
   }
 
   private hasDiesTrigger(oracle: string, cardName: string): string | null {
     const lines = oracle.split('\n');
     const pattern = new RegExp(`^when .* dies`, 'i');
     const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() || null;
+    return match?.trim() ?? null;
   }
 
   private hasLeavesTrigger(oracle: string, cardName: string): string | null {
     const lines = oracle.split('\n');
     const pattern = new RegExp(`^when .* leaves the battlefield`, 'i');
     const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() || null;
+    return match?.trim() ?? null;
   }
 
 
