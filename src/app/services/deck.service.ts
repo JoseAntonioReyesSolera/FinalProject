@@ -3,6 +3,8 @@ import { BehaviorSubject } from 'rxjs';
 import { Cart } from '../models/cart';
 import {BattlefieldService} from './battlefield.service';
 import {StackService} from './stack.service';
+import {TriggerService} from './trigger.service';
+import {LogService} from './log.service';
 type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard';
 @Injectable({
   providedIn: 'root'
@@ -17,7 +19,7 @@ export class DeckService {
     ['sideboard', new BehaviorSubject<Cart[]>([])],
   ]);
 
-  constructor(private readonly bf: BattlefieldService, private readonly stack: StackService) {
+  constructor(private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly triggerService: TriggerService, private readonly logService: LogService) {
   }
 
   getZone(zone: ZoneName): Cart[] {
@@ -59,8 +61,10 @@ export class DeckService {
     } else {
       this.addToZone(to, card, qty);
     }
-    console.log(card.oracle_text, from,"-->", to);
-    this.detectZoneChangeTriggers(card, from, to);
+    this.logService.addLog("[DeckService.moveCardToZone] ", card.name, ": ", from,"-->", to);
+    if (from !== to) {
+      this.triggerService.detectZoneChangeTriggers(card, from, to);
+    }
   }
 
   private addToZone(zone: ZoneName, card: Cart, qty: number) {
@@ -98,75 +102,6 @@ export class DeckService {
     }
     return result;
   }
-
-  private detectZoneChangeTriggers(card: Cart, from: string, to: string) {
-    const oracle = (card.oracle_text || '').toString();
-    const baseName = card.name.split(',')[0].toLowerCase();
-
-    const etbEffect = to === 'battlefield'
-      ? this.hasETBAbility(oracle, baseName)
-      : null;
-
-    const ltbEffect = from === 'battlefield'
-      ? this.hasLeavesTrigger(oracle, baseName)
-      : null;
-
-    const dieEffect = from === 'battlefield' && to === 'graveyard'
-      ? this.hasDiesTrigger(oracle, baseName)
-      : null;
-
-    // ETB = enters the battlefield
-    if (etbEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: `triggers an ETB ability:`,
-        efecto: etbEffect
-      });
-    }
-
-    // Dies = from battlefield to graveyard
-    if (dieEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: `triggers dies:`,
-        efecto: dieEffect
-      });
-    }
-
-    // Leaves battlefield = battlefield to any other zone
-    if (ltbEffect) {
-      this.stack.pushToStack({
-        type: 'TriggeredAbility',
-        source: card,
-        description: `trigger leaves the battlefield:`,
-        efecto: ltbEffect
-      });
-    }
-  }
-
-  private hasETBAbility(oracle: string, cardName: string): string | null {
-    const lines = oracle.split('\n');
-    const pattern = new RegExp(`^when .* enters`, 'i');
-    const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() ?? null;
-  }
-
-  private hasDiesTrigger(oracle: string, cardName: string): string | null {
-    const lines = oracle.split('\n');
-    const pattern = new RegExp(`^when .* dies`, 'i');
-    const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() ?? null;
-  }
-
-  private hasLeavesTrigger(oracle: string, cardName: string): string | null {
-    const lines = oracle.split('\n');
-    const pattern = new RegExp(`^when .* leaves the battlefield`, 'i');
-    const match = lines.find(l => pattern.test(l.trim()));
-    return match?.trim() ?? null;
-  }
-
 
   setFullGameState(state: {
     deck: Cart[];

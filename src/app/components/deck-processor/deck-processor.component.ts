@@ -5,6 +5,7 @@ import {DeckService} from '../../services/deck.service';
 import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 import {GameStorageService} from '../../services/game-storage.service';
+import {LogService} from '../../services/log.service';
 
 @Component({
   selector: 'app-deck-processor',
@@ -23,6 +24,7 @@ export class DeckProcessorComponent {
               private readonly scryfallService: ScryfallService,
               private readonly deckService: DeckService,
               private readonly gameService: GameStorageService,
+              private readonly logService: LogService
     ) {}
 
   processDeckInput() {
@@ -92,6 +94,7 @@ export class DeckProcessorComponent {
         // Guarda en el servicio
         this.deckCards = mainDeck;
         this.deckService.setDeckCards(mainDeck, sideboard);
+        this.logService.addLog("[DeckProcessorComponent.loadDeck] ", "Deck loaded")
       },
       error: (err) => {
         console.error('Error al cargar el mazo:', err);

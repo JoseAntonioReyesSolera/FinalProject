@@ -9,10 +9,10 @@ export class LogService {
     return this.logSubject.asObservable();
   }
 
-  addLog(message: string) {
+  addLog(message: any, ...optionalParams: any[]): void {
     const currentLogs = this.logSubject.getValue();
     const timestamp = new Date().toLocaleTimeString();
-    this.logSubject.next([...currentLogs, `[${timestamp}] ${message}`]);
+    this.logSubject.next([...currentLogs, `[${timestamp}] ${message} ${optionalParams}`]);
   }
 
   clearLogs() {

@@ -2,97 +2,206 @@ import { Injectable } from '@angular/core';
 import { StackService } from './stack.service';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
+import {LogService} from './log.service';
 
 @Injectable({ providedIn: 'root' })
 export class TriggerService {
-  constructor(private readonly stack: StackService) {}
+  constructor(private readonly stack: StackService, private readonly logService: LogService) {}
 
-  detectZoneChangeTriggers(card: Cart, from: string, to: string): void {
-    const oracle = (card.oracle_text || '').toString().toLowerCase();
-    const etb = to === 'battlefield' ? this.extractLine(oracle, /^when .* enters/i) : null;
-    const ltb = from === 'battlefield' ? this.extractLine(oracle, /^when .* leaves the battlefield/i) : null;
-    const dies = from === 'battlefield' && to === 'graveyard'
-      ? this.extractLine(oracle, /^when .* dies/i)
+  detectZoneChangeTriggers(card: Cart, from: string, to: string) {
+    const oracle = (card.oracle_text || '').toString();
+    const baseName = card.name.split(',')[0].toLowerCase();
+
+    const etbEffect = to === 'battlefield'
+      ? this.hasETBAbility(oracle, baseName)
       : null;
 
-    if (etb)  this.push(card, 'triggers an ETB ability:', etb);
-    if (dies) this.push(card, 'triggers dies:',              dies);
-    if (ltb)  this.push(card, 'trigger leaves the battlefield:', ltb);
+    const ltbEffect = from === 'battlefield'
+      ? this.hasLeavesTrigger(oracle, baseName)
+      : null;
+
+    const dieEffect = from === 'battlefield' && to === 'graveyard'
+      ? this.hasDiesTrigger(oracle, baseName)
+      : null;
+
+    // ETB = enters the battlefield
+    if (etbEffect) {
+      this.logService.addLog("[TriggerService.detectZoneChangeTriggers] ", card.name, " enter the battlefield");
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `triggers an ETB ability:`,
+        efecto: etbEffect
+      });
+    }
+
+    // Dies = from battlefield to graveyard
+    if (dieEffect) {
+      this.logService.addLog("[TriggerService.detectZoneChangeTriggers] ", card.name, " enter the graveyard");
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `triggers dies:`,
+        efecto: dieEffect
+      });
+    }
+
+    // Leaves battlefield = battlefield to any other zone
+    if (ltbEffect) {
+      this.logService.addLog("[TriggerService.detectZoneChangeTriggers] ", card.name, " leave the battlefield");
+      this.stack.pushToStack({
+        type: 'TriggeredAbility',
+        source: card,
+        description: `trigger leaves the battlefield:`,
+        efecto: ltbEffect
+      });
+    }
+  }
+
+  private hasETBAbility(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* enters`, 'i');
+    return lines.find(line => pattern.test(line.trim()))?.trim() ?? null;
+  }
+
+  private hasDiesTrigger(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* dies`, 'i');
+    return lines.find(line => pattern.test(line.trim()))?.trim() ?? null;
+  }
+
+  private hasLeavesTrigger(oracle: string, cardName: string): string | null {
+    const lines = oracle.split('\n');
+    const pattern = new RegExp(`^when .* leaves the battlefield`, 'i');
+    return lines.find(line => pattern.test(line.trim()))?.trim() ?? null;
   }
 
   detectBattlefieldTriggers(
-    permanent: Permanent,
-    event: 'entry' | 'dies' | 'leaves',
-    allBefore: Permanent[] = []
+    event: "enters" | "dies" | "leaves",
+    affected: Permanent | Permanent[] | undefined,
+    otherPermanents: Permanent[]
   ): void {
-    this.pushSelfTriggers(permanent, event);
-    if (event === 'entry') {
-      this.pushOtherEntryTriggers(permanent, allBefore);
+    this.logService.addLog("[TriggerService.detectBattlefieldTriggers] ", "caused a trigger?");
+    switch (event) {
+      case 'enters':
+        this.checkEntryTriggers(affected as unknown as Permanent[], otherPermanents);
+        break;
+      case 'dies':
+        this.checkDiesTriggers(affected as Permanent, otherPermanents);
+        break;
+      case 'leaves':
+        this.checkLeavesTriggers(affected as Permanent | undefined, otherPermanents);
+        break;
     }
   }
 
-  // — Helpers for detectBattlefieldTriggers —
+  private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
+    // Prepara un array con los tipos de los entrantes en minúsculas
+    const enteredTypes = entered.map(e => e.type.toLowerCase());
 
-  private pushSelfTriggers(permanent: Permanent, event: 'entry' | 'dies' | 'leaves') {
-    const oracle = permanent.originalCard.oracle_text || '';
-    const lines = oracle
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l =>
-        (event === 'entry' && /whenever .* enters/i.test(l)) ||
-        (event === 'dies'  && /when .* dies/i.test(l))  ||
-        (event === 'leaves'&& /when .* leaves the battlefield/i.test(l))
-      );
+    for (const permanent of before) {
+      const oracle = permanent.originalCard.oracle_text;
 
-    for (const text of lines) {
-      this.push(permanent.originalCard, 'triggered ability:', text);
-    }
-  }
+      // 1) Toma todas las líneas que contengan "whenever" y "enters"
+      const lines = oracle.split('\n')
+        .map((l: string) => l.trim())
+        .filter((l: string) =>
+          /(?:—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
+        );
 
-  private pushOtherEntryTriggers(permanent: Permanent, beforeList: Permanent[]) {
-    const type = permanent.type.toLowerCase();
-    for (const before of beforeList) {
-      const oracleText = before.originalCard.oracle_text || '';
-      for (const line of oracleText.split('\n').map(l => l.trim())) {
-        const m = /whenever\s+(.+?)\s+enters/i.exec(line);
-        if (!m) continue;
+      for (const triggerText of lines) {
+        // 2) Extrae lo que entra: captura el fragmento entre "whenever" y "enters"
+        const match = /whenever\s+(.+?)\s+enters/i.exec(triggerText);
+        if (!match) continue;
+        const subjectPhrase = match[1].toLowerCase();
+        // 3) Si es genérico "permanent", dispara siempre
+        if (subjectPhrase.includes('permanent')) {
+          this.pushTrigger(permanent, triggerText);
+          continue;
+        }
 
-        const cond = m[1].toLowerCase();
-        const isSame = cond.includes('another') && permanent.originalCard.id === before.originalCard.id;
-        const matches =
-          (!cond.includes('another') || !isSame) &&
-          (
-            cond.includes('permanent') ||
-            (cond.includes('creature') && type.includes('creature')) ||
-            type.includes(cond)
-          );
-
-        if (matches) {
-          this.push(
-            before.originalCard,
-            'triggered by battlefield entry of another:',
-            line
-          );
+        // 4) Para otras frases, verifica si alguno de los entrantes coincide por tipo
+        //    Tomamos la palabra clave más significativa:
+        const keyword = subjectPhrase
+          .replace(/you control/g, '')
+          .replace(/another /g, '')
+          .trim()
+          .split(' ')
+          .slice(-1)[0];
+        // 5) Si alguno de los tipos de los entrantes incluye esa palabra clave:
+        if (enteredTypes.some(t => t.includes(keyword))) {
+          this.pushTrigger(permanent, triggerText);
         }
       }
     }
   }
 
-  // — Common utilities —
+  private checkDiesTriggers(died: Permanent, remaining: Permanent[]) {
+    // Prepara el tipo del permanente que murió, en minúsculas
+    const diedType = died.type.toLowerCase();
 
-  private extractLine(oracle: string, pattern: RegExp): string | null {
-    const line = oracle
-      .split('\n')
-      .find(l => pattern.test(l.trim()));
-    return line ? line.trim() : null;
+    for (const permanent of remaining) {
+      const oracle = permanent.originalCard.oracle_text.toLowerCase();
+
+      // 1) Filtra líneas que contengan "whenever ... dies"
+      const lines = oracle
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => /^whenever (?:another )?.+ dies/i.test(l));
+
+      for (const triggerText of lines) {
+        // 2) Extrae el sujeto que muere (entre "whenever" y "dies")
+        const match = /^whenever (?:another )?(.+?) dies/i.exec(triggerText);
+        if (!match) continue;
+
+        const subjectPhrase = match[1].toLowerCase().trim();
+        // 3) Si es genérico "permanent", dispara siempre
+        if (subjectPhrase.includes('permanent')) {
+          this.pushTrigger(permanent, triggerText);
+          continue;
+        }
+
+        // 4) Extrae la palabra clave principal
+        const keyword = subjectPhrase
+          .replace(/you control/gi, '')
+          .replace(/another /gi, '')
+          .replace(/a |an /gi, '')
+          .trim()
+          .split(' ')
+          .pop()!;
+        // 5) Si el tipo del muerto coincide con la keyword, dispara
+        if (diedType.includes(keyword)) {
+          this.pushTrigger(permanent, triggerText);
+        }
+      }
+    }
   }
 
-  private push(source: Cart | Permanent, desc: string, efecto: string) {
+  private checkLeavesTriggers(leaving: Permanent | undefined, remaining: Permanent[]) {
+
+    for (const permanent of remaining) {
+      const oracle = permanent.originalCard.oracle_text;
+
+      const lines = oracle
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => /whenever one or more.*leave the battlefield(?!.*dies)/i.test(l));
+
+      for (const triggerText of lines) {
+        const match = /whenever one or more (.+?) leave the battlefield/i.exec(triggerText);
+        if (!match) continue;
+
+        this.pushTrigger(permanent, triggerText);
+      }
+    }
+  }
+
+  private pushTrigger(source: Permanent, triggerText: string) {
     this.stack.pushToStack({
       type: 'TriggeredAbility',
       source,
-      description: desc,
-      efecto: efecto.trim(),
+      description: `${source.name} triggers:`,
+      efecto: triggerText.trim(),
     });
   }
 }

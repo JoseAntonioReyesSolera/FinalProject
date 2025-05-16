@@ -4,13 +4,14 @@ import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import {StackService} from './stack.service';
 import {TriggerService} from './trigger.service';
+import {LogService} from './log.service';
 
 @Injectable({ providedIn: 'root' })
 export class BattlefieldService {
   private readonly permanentsSubject = new BehaviorSubject<Permanent[]>([]);
   readonly permanents$: Observable<Permanent[]> = this.permanentsSubject.asObservable();
 
-  constructor(private readonly stack: StackService, private readonly triggerService: TriggerService) {
+  constructor(private readonly stack: StackService, private readonly triggerService: TriggerService, private readonly logService: LogService) {
   }
 
   /** Añade uno o varios permanentes basados en un Cart */
@@ -35,7 +36,8 @@ export class BattlefieldService {
       });
     }
     this.permanentsSubject.next([...current, ...newOnes]);
-    this.checkEntryTriggers(newOnes, current);
+    this.logService.addLog("[BattlefieldService.addPermanent] ", card.name, " enter the battlefield");
+    this.triggerService.detectBattlefieldTriggers("enters", newOnes, current);
   }
 
   removePermanent(instanceId: string, destinationZone: string = ''): void {
@@ -46,10 +48,12 @@ export class BattlefieldService {
 
     // Solo considera "muerte" si va al cementerio
     if (died && destinationZone === 'graveyard') {
-      this.checkDiesTriggers(died, after);
+      this.logService.addLog("[BattlefieldService.removePermanent] ", died.name, " enter the graveyard");
+      this.triggerService.detectBattlefieldTriggers("dies", died, before);
     }
     else {
-      this.checkLeavesWithoutDyingTriggers(died, after);
+      this.logService.addLog("[BattlefieldService.removePermanent] ", died?.name, " leave the battlefield");
+      this.triggerService.detectBattlefieldTriggers('leaves', died, before);
     }
   }
 
@@ -95,127 +99,7 @@ export class BattlefieldService {
 
     // Sustituir el permanente
     permanents.splice(index, 1, newPermanent);
+    this.logService.addLog("[BattlefieldService.transformPermanent]", "card flipped ", current.name, "to ", newPermanent.name);
     this.permanentsSubject.next([...permanents]);
-  }
-
-
-
-  private checkEntryTriggers(entered: Permanent[], before: Permanent[]) {
-    // Prepara un array con los tipos de los entrantes en minúsculas
-    const enteredTypes = entered.map(e => e.type.toLowerCase());
-
-    for (const permanent of before) {
-      const oracle = permanent.originalCard.oracle_text;
-
-      // 1) Toma todas las líneas que contengan "whenever" y "enters"
-      const lines = oracle.split('\n')
-        .map((l: string) => l.trim())
-        .filter((l: string) =>
-          /(?:—\s*)?whenever .* enters(?: the battlefield)?/i.test(l)
-        );
-
-      for (const triggerText of lines) {
-        // 2) Extrae lo que entra: captura el fragmento entre "whenever" y "enters"
-        const match = /whenever\s+(.+?)\s+enters/i.exec(triggerText);
-        if (!match) continue;
-        const subjectPhrase = match[1].toLowerCase();
-        // e.g. "another creature you control", "a land you control", "an artifact", etc.
-
-        // 3) Si es genérico "permanent", dispara siempre
-        if (subjectPhrase.includes('permanent')) {
-          this.pushTrigger(permanent, triggerText);
-          continue;
-        }
-
-        // 4) Para otras frases, verifica si alguno de los entrantes coincide por tipo
-        //    Tomamos la palabra clave más significativa:
-        const keyword = subjectPhrase
-          .replace(/you control/g, '')
-          .replace(/another /g, '')
-          .trim()
-          .split(' ')
-          .slice(-1)[0];
-        // Ej: "creature", "land", "artifact"
-
-        // 5) Si alguno de los tipos de los entrantes incluye esa palabra clave:
-        if (enteredTypes.some(t => t.includes(keyword))) {
-          this.pushTrigger(permanent, triggerText);
-        }
-      }
-    }
-  }
-
-  private checkDiesTriggers(died: Permanent, remaining: Permanent[]) {
-    // Prepara el tipo del permanente que murió, en minúsculas
-    const diedType = died.type.toLowerCase();
-
-    for (const permanent of remaining) {
-      const oracle = permanent.originalCard.oracle_text.toLowerCase();
-
-      // 1) Filtra líneas que contengan "whenever ... dies"
-      const lines = oracle
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => /^whenever (?:another )?.+ dies/i.test(l));
-
-      for (const triggerText of lines) {
-        // 2) Extrae el sujeto que muere (entre "whenever" y "dies")
-        const match = /^whenever (?:another )?(.+?) dies/i.exec(triggerText);
-        if (!match) continue;
-
-        const subjectPhrase = match[1].toLowerCase().trim();
-        // e.g. "another creature you control", "an artifact", "a nontoken creature", etc.
-
-        // 3) Si es genérico "permanent", dispara siempre
-        if (subjectPhrase.includes('permanent')) {
-          this.pushTrigger(permanent, triggerText);
-          continue;
-        }
-
-        // 4) Extrae la palabra clave principal
-        const keyword = subjectPhrase
-          .replace(/you control/gi, '')
-          .replace(/another /gi, '')
-          .replace(/a |an /gi, '')
-          .trim()
-          .split(' ')
-          .pop()!;
-        // Ej.: "creature", "artifact", "enchantment", etc.
-
-        // 5) Si el tipo del muerto coincide con la keyword, dispara
-        if (diedType.includes(keyword)) {
-          this.pushTrigger(permanent, triggerText);
-        }
-      }
-    }
-  }
-
-  private checkLeavesWithoutDyingTriggers(leaving: Permanent | undefined, remaining: Permanent[]) {
-
-    for (const permanent of remaining) {
-      const oracle = permanent.originalCard.oracle_text;
-
-      const lines = oracle
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => /whenever one or more.*leave the battlefield(?!.*dies)/i.test(l));
-
-      for (const triggerText of lines) {
-        const match = /whenever one or more (.+?) leave the battlefield/i.exec(triggerText);
-        if (!match) continue;
-
-        this.pushTrigger(permanent, triggerText);
-      }
-    }
-  }
-
-
-  private pushTrigger(source: Permanent, triggerText: string) {
-    this.stack.pushToStack({
-      type: 'TriggeredAbility',
-      source,
-      description: `${source.name} triggers:`,
-      efecto: triggerText.trim(),
-    });
   }
 }

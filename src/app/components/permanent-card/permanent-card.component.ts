@@ -3,6 +3,7 @@ import {Permanent} from '../../models/permanent';
 import {StackItem} from '../../models/stack-item';
 import {StackService} from '../../services/stack.service';
 import {BattlefieldService} from '../../services/battlefield.service';
+import {LogService} from '../../services/log.service';
 
 @Component({
   selector: 'app-permanent-card',
@@ -27,6 +28,7 @@ export class PermanentCardComponent {
   constructor(
     private readonly stackService: StackService,
     private readonly bf: BattlefieldService,
+    private readonly logService: LogService
   ) {}
 
   onClick(event: MouseEvent) {
@@ -68,6 +70,7 @@ export class PermanentCardComponent {
         efecto: efecto,
       };
 
+      this.logService.addLog("[PermanentCardComponent.executeAction] ", "activated ability ", this.card.name, ": ", cost)
       this.stackService.pushToStack(item);
       this.contextMenuVisible = false;
       this.subMenuVisible = false;
