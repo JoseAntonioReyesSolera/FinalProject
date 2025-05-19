@@ -20,7 +20,7 @@ export class TriggerService {
       const m = lines.find(l => /^when\s/.test(l) && l.includes('enters'));
       if (m) {
         this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange enters');
-        this.pushTrigger(card, 'When this or another enters:', m);
+        this.pushTrigger(card, m);
       }
     }
     if (from === 'battlefield' && to === 'graveyard') {
@@ -28,7 +28,7 @@ export class TriggerService {
       const m = lines.find(l => /^when\s/.test(l) && l.includes('dies'));
       if (m) {
         this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange dies');
-        this.pushTrigger(card, 'When this or another dies:', m);
+        this.pushTrigger(card, m);
       }
     }
     if (from === 'battlefield' && to !== 'graveyard') {
@@ -36,7 +36,7 @@ export class TriggerService {
       const m = lines.find(l => /^when\s/.test(l) && l.includes('leaves'));
       if (m) {
         this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange leaves');
-        this.pushTrigger(card, 'When this or another leaves:', m);
+        this.pushTrigger(card, m);
       }
     }
   }
@@ -79,7 +79,7 @@ export class TriggerService {
     const selfMatches = lines.filter(l => /^when you cast this spell/.test(l));
     selfMatches.forEach(text => {
       this.logService.addLog('[TriggerService.pushTrigger] self cast');
-      this.pushTrigger(card, text, text);
+      this.pushTrigger(card, text);
     });
 
     // Other permanents reacting to your cast
@@ -96,7 +96,7 @@ export class TriggerService {
         if (text.includes('historic spell') && !card.type_line.toLowerCase().includes('artifact') && !card.type_line.toLowerCase().includes('legendary') && !card.type_line.toLowerCase().includes('saga')) {
           return;
         }
-        this.pushTrigger(perm, text, text);
+        this.pushTrigger(perm, text);
       });
     });
   }
@@ -111,14 +111,13 @@ export class TriggerService {
         .forEach(text => {
           if (text.includes('this') || text.includes(e.name.toLowerCase())) {
             this.logService.addLog('[TriggerService.checkSelfEntry]');
-            this.pushTrigger(e, text, text);
+            this.pushTrigger(e, text);
           }
         });
     });
   }
 
   private checkEntry(entered: Permanent[], before: Permanent[]) {
-    const enteredNames = entered.map(e => e.name.toLowerCase());
     const enteredTypes = entered.map(e => e.type.toLowerCase());
 
     before.forEach(perm => {
@@ -134,13 +133,18 @@ export class TriggerService {
             const reqType = matchType[1];
             if (enteredTypes.some(t => t.includes(reqType))) {
               this.logService.addLog('[TriggerService.checkEntry] another ' + reqType);
-              this.pushTrigger(perm, text, text);
+              this.pushTrigger(perm, text);
             }
             return;
           }
-          if (enteredNames.some(n => txt.includes(n))) {
-            this.logService.addLog('[TriggerService.checkEntry] specific name');
-            this.pushTrigger(perm, text, text);
+          const matchGeneric = txt.match(/whenever\s+a[nother]*\s+([a-z]+)(?:\s+you control)?\s+enters/);
+          if (matchGeneric) {
+            const reqType = matchGeneric[1];
+            if (enteredTypes.some(t => t.includes(reqType))) {
+              this.logService.addLog('[TriggerService.checkEntry] generic ' + reqType);
+              this.pushTrigger(perm, text);
+            }
+            return;
           }
         });
     });
@@ -155,7 +159,7 @@ export class TriggerService {
       .forEach(text => {
         if (text.includes('this')) {
           this.logService.addLog('[TriggerService.checkSelfDies]');
-          this.pushTrigger(died, text, text);
+          this.pushTrigger(died, text);
         }
       });
   }
@@ -177,13 +181,13 @@ export class TriggerService {
             const reqType = matchType[1];
             if (diedType.includes(reqType)) {
               this.logService.addLog('[TriggerService.checkDies] another ' + reqType);
-              this.pushTrigger(perm, text, text);
+              this.pushTrigger(perm, text);
             }
             return;
           }
           if (txt.includes(diedName) || txt.includes(diedType)) {
             this.logService.addLog('[TriggerService.checkDies] specific match');
-            this.pushTrigger(perm, text, text);
+            this.pushTrigger(perm, text);
           }
         });
     });
@@ -198,7 +202,7 @@ export class TriggerService {
         .filter(l => l.includes('whenever') && l.includes('leaves'))
         .forEach(text => {
           this.logService.addLog('[TriggerService.checkLeaves]');
-          this.pushTrigger(perm, text, text);
+          this.pushTrigger(perm, text);
         });
     });
   }
@@ -214,15 +218,12 @@ export class TriggerService {
   private pushTrigger(
     source: Permanent | Cart,
     description: string,
-    efectoLine?: string
   ) {
-    const efecto = (efectoLine ?? description).trim();
     this.logService.addLog('[TriggerService.pushTrigger]');
     this.stack.pushToStack({
       type: 'TriggeredAbility',
       source,
       description,
-      efecto,
     });
   }
 }

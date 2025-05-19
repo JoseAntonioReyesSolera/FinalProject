@@ -34,10 +34,10 @@
 <div class="container mt-6">
 
   <div class="row">
-    <div class="col">
+    <div class="col-12 col-md-3 mb-4">
       <app-stack></app-stack>
     </div>
-    <div class="col-12 col-md-9 mb-4">
+    <div class="col-12 col-md-8 mb-4">
       <div class="ratio ratio-1x4" style=" height: 600px; background-color: #f4f4f4; border: 2px solid #ccc;">
         <div class="d-flex">
 
@@ -84,18 +84,18 @@
       </app-card-detail>
     }
 
-    <div class="col mt-4">
+    <div class="col-12 col-md-1 mt-4 d-flex flex-column justify-content-start gap-3">
 
       @if (hasCommander) {
-        <div class="col-12 col-md-3">
+        <div>
           <app-commander></app-commander>
         </div>
       }
-      <div class="col-12 col-md-3">
+      <div>
         <app-library></app-library>
       </div>
       <br/>
-      <div class="col-12 col-md-3">
+      <div>
         <app-graveyard></app-graveyard>
       </div>
     </div>
