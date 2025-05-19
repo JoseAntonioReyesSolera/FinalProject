@@ -55,9 +55,11 @@ export class DeckService {
     if (from === 'command' && to === 'library') card.isCommander = false;
 
     if (to === 'stack') {
+      const battlefield = this.bf.getPermanentsSnapshot();
+      this.triggerService.detectCastTriggers(card, battlefield);
       this.stack.pushToStack({ type: 'Spell', source: card, description: `${card.name} cast.` });
     } else if (to === 'battlefield') {
-      this.bf.addPermanent(card, qty);
+      this.bf.addPermanent(card, qty, from);
     } else {
       this.addToZone(to, card, qty);
     }

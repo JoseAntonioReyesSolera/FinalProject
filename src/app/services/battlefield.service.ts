@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
-import {StackService} from './stack.service';
 import {TriggerService} from './trigger.service';
 import {LogService} from './log.service';
 
@@ -11,11 +10,11 @@ export class BattlefieldService {
   private readonly permanentsSubject = new BehaviorSubject<Permanent[]>([]);
   readonly permanents$: Observable<Permanent[]> = this.permanentsSubject.asObservable();
 
-  constructor(private readonly stack: StackService, private readonly triggerService: TriggerService, private readonly logService: LogService) {
+  constructor(private readonly triggerService: TriggerService, private readonly logService: LogService) {
   }
 
   /** Añade uno o varios permanentes basados en un Cart */
-  addPermanent(card: Cart, count: number = 1): void {
+  addPermanent(card: Cart, count: number = 1, to:string="battlefield", fromZone = ''): void {
     const current = this.permanentsSubject.getValue();
     const newOnes: Permanent[] = [];
 
@@ -37,23 +36,28 @@ export class BattlefieldService {
     }
     this.permanentsSubject.next([...current, ...newOnes]);
     this.logService.addLog("[BattlefieldService.addPermanent] ", card.name, " enter the battlefield");
-    this.triggerService.detectBattlefieldTriggers("enters", newOnes, current);
+    // Zone‐change triggers on the card itself:
+    this.triggerService.detectZoneChangeTriggers(card, fromZone, 'battlefield');
+
+    // "Whenever" triggers on existing permanents:
+    this.triggerService.detectBattlefieldTriggers('enters', newOnes, current);
   }
 
-  removePermanent(instanceId: string, destinationZone: string = ''): void {
+  removePermanent(instanceId: string, toZone: string = ''): void {
     const before = this.permanentsSubject.getValue();
-    const died = before.find(p => p.instanceId === instanceId);
+    const died = before.find(p => p.instanceId === instanceId)!;
     const after = before.filter(p => p.instanceId !== instanceId);
     this.permanentsSubject.next(after);
 
     // Solo considera "muerte" si va al cementerio
-    if (died && destinationZone === 'graveyard') {
-      this.logService.addLog("[BattlefieldService.removePermanent] ", died.name, " enter the graveyard");
-      this.triggerService.detectBattlefieldTriggers("dies", died, before);
-    }
-    else {
-      this.logService.addLog("[BattlefieldService.removePermanent] ", died?.name, " leave the battlefield");
-      this.triggerService.detectBattlefieldTriggers('leaves', died, before);
+    if (toZone === 'graveyard') {
+      this.logService.addLog('[Battlefield.removePermanent.died] dies →', died.name);
+      this.triggerService.detectZoneChangeTriggers(died.originalCard, 'battlefield', 'graveyard');
+      this.triggerService.detectBattlefieldTriggers('dies', died, after);
+    } else {
+      this.logService.addLog('[Battlefield.removePermanent.leave] leaves →', died.name);
+      this.triggerService.detectZoneChangeTriggers(died.originalCard, 'battlefield', toZone);
+      this.triggerService.detectBattlefieldTriggers('leaves', undefined, after);
     }
   }
 
