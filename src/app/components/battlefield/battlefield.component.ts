@@ -18,6 +18,7 @@ import {GameState} from '../../models/game-state';
 import {GameStorageService} from '../../services/game-storage.service';
 import {StackService} from '../../services/stack.service';
 import {FormsModule} from '@angular/forms';
+import {HelpperComponent} from '../helpper/helpper.component';
 
 @Component({
   selector: 'app-battlefield',
@@ -31,6 +32,7 @@ import {FormsModule} from '@angular/forms';
     PermanentCardComponent,
     CardDetailComponent,
     FormsModule,
+    HelpperComponent,
   ],
   templateUrl: './battlefield.component.html',
   styleUrl: './battlefield.component.css'

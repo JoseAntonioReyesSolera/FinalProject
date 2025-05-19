@@ -2,6 +2,11 @@
      (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
     <div class="card-art-container">
+      @if (card.tapped) {
+        <div class="tapped-overlay">
+          <img src="https://svgs.scryfall.io/card-symbols/T.svg" alt="Tapped" class="tap-icon"/>
+        </div>
+      }
       <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
 
       <div class="card-info text-center">
@@ -46,6 +51,11 @@
       </li>
       <li>
         <button (click)="executeAction('exile')">Exiliar</button>
+      </li>
+      <li>
+        <button (click)="toggleTap()">
+          {{ card.tapped ? 'Enderezar' : 'Girar' }}
+        </button>
       </li>
     </ul>
   </button>

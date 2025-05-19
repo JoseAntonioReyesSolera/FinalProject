@@ -2,7 +2,7 @@
 <button data-bs-toggle="modal" data-bs-target="#deckProcessorModal">
   Import Deck
 </button>
-  <button>
+  <button data-bs-toggle="modal" data-bs-target="#helpModal">
     Help
   </button>
   <button data-bs-toggle="modal" data-bs-target="#saveGameModal">
@@ -141,5 +141,13 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!--modal help-->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="deckProcessorModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <app-helpper></app-helpper>
   </div>
 </div>

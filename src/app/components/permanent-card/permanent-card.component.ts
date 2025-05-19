@@ -62,16 +62,30 @@ export class PermanentCardComponent {
       const line = oracleText.split('\n').find(l => l.startsWith(cost + ':'));
       const efecto = line?.split(':')[1]?.trim() ?? '';
 
-      const item: StackItem = {
-        type: 'ActivatedAbility',
-        source: this.selectedCard,
-        description: `Activate an ability:`,
-        cost: cost,
-        efecto: efecto,
-      };
+      const isManaAbility = /Add\s+\{|\bany color\b/i.test(efecto);
 
-      this.logService.addLog("[PermanentCardComponent.executeAction] ", "activated ability ", this.card.name, ": ", cost)
-      this.stackService.pushToStack(item);
+      if (cost.includes('{T}')) {
+        this.card.tapped = true;
+        this.logService.addLog("[PermanentCardComponent.executeAction]", this.card.name, "girada al activar", cost);
+      }
+
+      if (isManaAbility) {
+        // Ejecutar directamente la habilidad de maná (puedes ajustar esta lógica si usas otra forma de aplicar el efecto)
+        this.logService.addLog("[PermanentCardComponent.executeAction] ", "mana ability ", this.card.name, ": ", cost);
+        // Aquí podrías agregar lógica para modificar la reserva de maná si la implementas
+      } else {
+        const item: StackItem = {
+          type: 'ActivatedAbility',
+          source: this.selectedCard,
+          description: `Activate an ability:`,
+          cost: cost,
+          efecto: efecto,
+        };
+        this.stackService.pushToStack(item);
+        this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
+      }
+
+
       this.contextMenuVisible = false;
       this.subMenuVisible = false;
       return;
@@ -112,6 +126,13 @@ export class PermanentCardComponent {
     }
 
     return abilities;
+  }
+
+  toggleTap() {
+    this.card.tapped = !this.card.tapped;
+    this.logService.addLog("[PermanentCardComponent.toggleTap]", this.card.name, this.card.tapped ? "girada" : "enderezada");
+    this.contextMenuVisible = false;
+    this.subMenuVisible = false;
   }
 
   @HostListener('document:click', ['$event'])

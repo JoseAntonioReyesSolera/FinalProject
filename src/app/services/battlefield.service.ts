@@ -17,6 +17,8 @@ export class BattlefieldService {
   addPermanent(card: Cart, count: number = 1, to:string="battlefield", fromZone = ''): void {
     const current = this.permanentsSubject.getValue();
     const newOnes: Permanent[] = [];
+    const entersTapped =  /this [\w\s]+ enters tapped/i.test(card.oracle_text ?? '')
+
 
     for (let i = 0; i < count; i++) {
       newOnes.push({
@@ -27,7 +29,7 @@ export class BattlefieldService {
         power: card.power,
         toughness: card.toughness,
         loyalty: card.loyalty,
-        tapped: false,
+        tapped: entersTapped,
         counters: {},
         oracle_text: card.sanitizedOracleText,
         type: card.type_line,
