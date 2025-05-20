@@ -236,7 +236,7 @@ export class BattlefieldComponent implements OnInit {
     { type: 'black', colorClass: 'mana-black', icon: 'https://svgs.scryfall.io/card-symbols/B.svg' },
     { type: 'red', colorClass: 'mana-red', icon: 'https://svgs.scryfall.io/card-symbols/R.svg' },
     { type: 'green', colorClass: 'mana-green', icon: 'https://svgs.scryfall.io/card-symbols/G.svg' },
-    { type: 'colorless', colorClass: 'mana-colorless', icon: 'https://svgs.scryfall.io/card-symbols/C.svg' },
+    { type: 'colorless', colorClass: 'mana-colorless', icon: 'https://svgs.scryfall.io/card-symbols/C.svg' }
   ];
 
 // Estado de mana pool, cantidad por tipo
@@ -273,7 +273,19 @@ export class BattlefieldComponent implements OnInit {
     Object.keys(this.manaPool).forEach(color => this.manaPool[color] = 0);
   }
 
-  resetManaPoolOnStepChange() {
-    this.clearManaPool();
-  }
+// Vida
+  addLife() { this.lifePoints++; }
+  removeLife() { if (this.lifePoints>0) this.lifePoints--; }
+
+// Energía
+  addEnergy() { this.energyCounters++; }
+  removeEnergy() { if (this.energyCounters>0) this.energyCounters--; }
+
+// Veneno
+  addPoison() { this.poisonCounters++; }
+  removePoison() { if (this.poisonCounters>0) this.poisonCounters--; }
+
+// Experiencia
+  addXp() { this.experienceCounters++; }
+  removeXp() { if (this.experienceCounters>0) this.experienceCounters--; }
 }
