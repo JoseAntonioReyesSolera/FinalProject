@@ -101,6 +101,12 @@ export class TriggerService {
     });
   }
 
+  reorderTriggers(newOrder: number[]): void {
+    const current = this.stack.getCurrentStackSnapshot();
+    const reordered = newOrder.map(i => current[i]).filter(x => !!x);
+    this.stack.setStackFromSnapshot(reordered);
+  }
+
   private checkSelfEntry(entered: Permanent[]) {
     entered.forEach(e => {
       (e.originalCard.oracle_text || '')

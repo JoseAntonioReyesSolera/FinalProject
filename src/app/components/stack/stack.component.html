@@ -1,5 +1,10 @@
-<p>{{ stackCards.length }}</p>
-  @if (stackCards.length > 0) {
+<p>Objetos en el Stack: {{ stackCards.length }}</p>
+    @if (fixedCount < stackCards.length - 1) {
+      <button class="btn btn-secondary mt-2" (click)="openReorderModal()">
+        Ordenar triggers
+      </button>
+    }
+@if (stackCards.length > 0 && !showModal) {
     @let top = stackCards[stackCards.length - 1];
     <div class="card-in-stack p-4 border rounded shadow bg-gray-100">
       <p class="text-lg font-semibold">{{ top.source.name }}</p>
@@ -35,6 +40,32 @@
     <button class="mt-3 btn btn-primary" (click)="moveTopStackCardToGraveyard()">
       No Resuelto
     </button>
-  } @else {
-    <p class="text-gray-500">No hay hechizos en la pila.</p>
   }
+
+@if (showModal) {
+<div class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white rounded-lg p-4 max-w-md w-full shadow-lg">
+    <h2 class="text-xl font-semibold mb-4">Ordenar Triggers</h2>
+    <div>[ ▲ ultimo ▼ primero en resolver ]</div>
+
+    <ul>
+      @for (item of tempStack; track $index) {
+        <li class="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
+          <span>{{item.source.name}}:</span>
+          <hr>
+          <span class="text-sm"> {{ item.description || item.efecto || 'Trigger' }}</span>
+          <div class="flex gap-1">
+            <button (click)="moveUp(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === 0 || item.type == 'Spell'" class="btn btn-xs btn-outline">▲</button>
+            <button (click)="moveDown(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === tempStack.length - 1 || item.type == 'Spell'" class="btn btn-xs btn-outline">▼</button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <div class="flex justify-end mt-4 gap-2">
+      <button (click)="confirmReorder()" class="btn btn-sm btn-primary">Guardar orden</button>
+      <button (click)="closeModal()" class="btn btn-sm btn-secondary">Cerrar</button>
+    </div>
+  </div>
+</div>
+}

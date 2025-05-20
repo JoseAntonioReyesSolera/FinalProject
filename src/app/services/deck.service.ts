@@ -56,8 +56,8 @@ export class DeckService {
 
     if (to === 'stack') {
       const battlefield = this.bf.getPermanentsSnapshot();
-      this.triggerService.detectCastTriggers(card, battlefield);
       this.stack.pushToStack({ type: 'Spell', source: card, description: `${card.name} cast.` });
+      this.triggerService.detectCastTriggers(card, battlefield);
     } else if (to === 'battlefield') {
       this.bf.addPermanent(card, qty, from);
     } else {
