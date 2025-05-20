@@ -12,5 +12,6 @@ export interface Permanent {
   counters: { [type: string]: number };
   oracle_text?: any;
   type: string;
+  chosenCreatureType?: string;
   originalCard: Cart;
 }

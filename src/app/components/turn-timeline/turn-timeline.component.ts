@@ -12,7 +12,7 @@ import {BattlefieldService} from '../../services/battlefield.service';
 export class TurnTimelineComponent {
   phases: Phase[] = [
     { name: 'Beginning Phase', steps: ['Untap', 'Upkeep', 'Draw'] },
-    { name: 'Main Phase 1' },
+    { name: 'PreCombat Main Phase' },
     {
       name: 'Combat Phase',
       steps: [
@@ -23,7 +23,7 @@ export class TurnTimelineComponent {
         'End of Combat'
       ]
     },
-    { name: 'Main Phase 2' },
+    { name: 'PostCombat Main Phase' },
     { name: 'Ending Phase', steps: ['End Step', 'Cleanup'] },
     { name: 'Opponent Turn' }
     ];
@@ -52,6 +52,9 @@ export class TurnTimelineComponent {
       this.stepIndex = 0;
     }
     this.triggerService.detectBeginningOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    if (this.currentStep === 'Untap') {
+      this.battlefieldService.untapAll();
+    }
   }
 
   prev(): void {
@@ -66,5 +69,8 @@ export class TurnTimelineComponent {
         : 0;
     }
     this.triggerService.detectBeginningOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    if (this.currentStep === 'Untap') {
+      this.battlefieldService.untapAll();
+    }
   }
 }

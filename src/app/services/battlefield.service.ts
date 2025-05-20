@@ -21,8 +21,9 @@ export class BattlefieldService {
 
 
     for (let i = 0; i < count; i++) {
+      const instanceId = `${card.id}-${Date.now()}-${Math.random().toString(36)}`;
       newOnes.push({
-        instanceId: `${card.id}-${Date.now()}-${Math.random().toString(36)}`,
+        instanceId,
         cardId: card.id,
         name: card.name,
         image: card.image_uris?.art_crop ?? card.image_uris?.normal ?? '',
@@ -107,5 +108,11 @@ export class BattlefieldService {
     permanents.splice(index, 1, newPermanent);
     this.logService.addLog("[BattlefieldService.transformPermanent]", "card flipped ", current.name, "to ", newPermanent.name);
     this.permanentsSubject.next([...permanents]);
+  }
+
+  untapAll(): void {
+    const updated = this.getPermanentsSnapshot().map(p => ({ ...p, tapped: false }));
+    this.permanentsSubject.next(updated);
+    this.logService.addLog('[BattlefieldService.untapAll]', 'All permanents untapped');
   }
 }
