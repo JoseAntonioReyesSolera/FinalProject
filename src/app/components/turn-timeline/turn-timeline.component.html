@@ -1,0 +1,31 @@
+<div class="turn-timeline-container">
+  <button (click)="prev()">⬅️</button>
+
+  <div class="phases-wrapper">
+    @for (phase of phases; track $index) {
+      <div class="phase-item">
+        <div
+          class="phase-name"
+          [class.active]="$index === phaseIndex"
+        >
+          {{ phase.name }}
+        </div>
+
+        @if ($index === phaseIndex && phase.steps) {
+          <div class="steps">
+            @for (step of phase.steps; track $index) {
+              <span
+                class="step"
+                [class.active]="$index === stepIndex"
+              >
+                {{ step }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <button (click)="next()">➡️</button>
+</div>

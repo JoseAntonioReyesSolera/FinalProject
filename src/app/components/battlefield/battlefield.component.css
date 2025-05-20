@@ -17,3 +17,81 @@
   gap: 8px;
   min-height: 110px;
 }
+
+.mana-colors {
+  display: grid;
+  grid-template-columns: repeat(2, max-content); /* 2 columnas iguales */
+  gap: 8px 12px; /* espacio entre filas y columnas */
+  justify-items: center; /* centrar botones horizontalmente */
+  align-items: center;
+}
+
+.mana-white { background-color: #f8f8e8; border: 1px solid #ddd; }
+.mana-blue { background-color: #a6c8ff; border: 1px solid #6b9eff; }
+.mana-black { background-color: #333; color: white; }
+.mana-red { background-color: #f76262; border: 1px solid #dd4b4b; }
+.mana-green { background-color: #66bb66; border: 1px solid #449944; }
+.mana-colorless { background-color: #cccccc; border: 1px solid #999999; }
+
+.counter-item {
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+.split-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-width: 2px;
+  border-style: solid;
+  padding: 0 4px;
+  height: 32px;
+  box-shadow: 0 0 3px rgba(0,0,0,0.15);
+  user-select: none;
+  cursor: default;
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
+  /* ancho automático para ajustarse al contenido */
+  width: max-content;
+  max-width: 100%;
+}
+
+/* Mantén tus estilos de botones (+ y -) tal cual */
+.split-btn {
+  width: 24px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-btn.left {
+  border-right: 1px solid rgba(0,0,0,0.15);
+}
+
+.split-btn.right {
+  border-left: 1px solid rgba(0,0,0,0.15);
+}
+
+
+/* Icono y cantidad de mana */
+.mana-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.mana-amount {
+  font-weight: bold;
+  min-width: 18px;
+  text-align: center;
+  margin: 0 2px;
+}

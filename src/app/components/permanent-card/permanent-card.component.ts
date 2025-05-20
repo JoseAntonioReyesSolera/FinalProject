@@ -73,7 +73,7 @@ export class PermanentCardComponent {
         // Ejecutar directamente la habilidad de maná (puedes ajustar esta lógica si usas otra forma de aplicar el efecto)
         this.logService.addLog("[PermanentCardComponent.executeAction] ", "mana ability ", this.card.name, ": ", cost);
         // Aquí podrías agregar lógica para modificar la reserva de maná si la implementas
-      } else {
+      }
         const item: StackItem = {
           type: 'ActivatedAbility',
           source: this.selectedCard,
@@ -83,7 +83,6 @@ export class PermanentCardComponent {
         };
         this.stackService.pushToStack(item);
         this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
-      }
 
 
       this.contextMenuVisible = false;

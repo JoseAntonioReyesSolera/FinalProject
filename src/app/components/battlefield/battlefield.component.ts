@@ -8,7 +8,7 @@ import {DeckService} from '../../services/deck.service';
 import {BattlefieldService} from '../../services/battlefield.service';
 import {BehaviorSubject } from 'rxjs';
 import {Permanent} from '../../models/permanent';
-import {AsyncPipe} from '@angular/common';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {PermanentCardComponent} from '../permanent-card/permanent-card.component';
 import {CardDetailComponent} from '../card-detail/card-detail.component';
 import {Cart} from '../../models/cart';
@@ -19,6 +19,7 @@ import {GameStorageService} from '../../services/game-storage.service';
 import {StackService} from '../../services/stack.service';
 import {FormsModule} from '@angular/forms';
 import {HelpperComponent} from '../helpper/helpper.component';
+import {TurnTimelineComponent} from '../turn-timeline/turn-timeline.component';
 
 @Component({
   selector: 'app-battlefield',
@@ -33,6 +34,8 @@ import {HelpperComponent} from '../helpper/helpper.component';
     CardDetailComponent,
     FormsModule,
     HelpperComponent,
+    TurnTimelineComponent,
+    NgClass,
   ],
   templateUrl: './battlefield.component.html',
   styleUrl: './battlefield.component.css'
@@ -226,4 +229,51 @@ export class BattlefieldComponent implements OnInit {
     this.savedGames = this.game.listGameSummaries();
   }
 
+  // Colores de maná y sus íconos (usa rutas reales a iconos de mana)
+  manaColors = [
+    { type: 'white', colorClass: 'mana-white', icon: 'https://svgs.scryfall.io/card-symbols/W.svg' },
+    { type: 'blue', colorClass: 'mana-blue', icon: 'https://svgs.scryfall.io/card-symbols/U.svg' },
+    { type: 'black', colorClass: 'mana-black', icon: 'https://svgs.scryfall.io/card-symbols/B.svg' },
+    { type: 'red', colorClass: 'mana-red', icon: 'https://svgs.scryfall.io/card-symbols/R.svg' },
+    { type: 'green', colorClass: 'mana-green', icon: 'https://svgs.scryfall.io/card-symbols/G.svg' },
+    { type: 'colorless', colorClass: 'mana-colorless', icon: 'https://svgs.scryfall.io/card-symbols/C.svg' },
+  ];
+
+// Estado de mana pool, cantidad por tipo
+  manaPool: Record<string, number> = {
+    white: 0,
+    blue: 0,
+    black: 0,
+    red: 0,
+    green: 0,
+    colorless: 0,
+  };
+
+// Recursos extra
+  lifePoints: number = 20;
+  energyCounters: number = 0;
+  poisonCounters: number = 0;
+  experienceCounters: number = 0;
+
+  addMana(color: string) {
+    if (!this.manaPool[color]) {
+      this.manaPool[color] = 0;
+    }
+    this.manaPool[color]++;
+  }
+
+  removeMana(color: string) {
+    if (this.manaPool[color] > 0) {
+      this.manaPool[color]--;
+    }
+  }
+
+// Limpiar toda la mana pool
+  clearManaPool() {
+    Object.keys(this.manaPool).forEach(color => this.manaPool[color] = 0);
+  }
+
+  resetManaPoolOnStepChange() {
+    this.clearManaPool();
+  }
 }

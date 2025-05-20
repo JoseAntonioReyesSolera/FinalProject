@@ -221,6 +221,30 @@ export class TriggerService {
       .some(l => /^when\s/.test(l) && l.includes(keyword));
   }
 
+  public detectBeginningOfStepTriggers(stepName: string, battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
+      lines.forEach(line => {
+        if (line.includes('at the beginning of') && line.includes(stepName.toLowerCase())) {
+          this.logService.addLog(`[TriggerService] Beginning of step trigger: ${stepName} on ${perm.name}`);
+          this.pushTrigger(perm, line);
+        }
+      });
+    });
+  }
+
+  public detectEndOfStepTriggers(stepName: string, battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
+      lines.forEach(line => {
+        if (line.includes('at the end of') && line.includes(stepName.toLowerCase())) {
+          this.logService.addLog(`[TriggerService] End of step trigger: ${stepName} on ${perm.name}`);
+          this.pushTrigger(perm, line);
+        }
+      });
+    });
+  }
+
   private pushTrigger(
     source: Permanent | Cart,
     description: string,
