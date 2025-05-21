@@ -3,12 +3,14 @@ import { StackService } from './stack.service';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import { LogService } from './log.service';
+import {GameStorageService} from './game-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class TriggerService {
   constructor(
     private readonly stack: StackService,
     private readonly logService: LogService,
+    private readonly gameStorage: GameStorageService,
   ) {}
 
   detectZoneChangeTriggers(card: Cart, from: string, to: string) {
@@ -245,15 +247,52 @@ export class TriggerService {
     });
   }
 
+  public detectDiscardTriggers(discardedCards: Cart[], battlefield: Permanent[], from: string, to: string) {
+    if (from === 'hand' && to === 'graveyard') {
+      if (discardedCards.length === 0) return;
+
+      const discardedTypes = discardedCards.map(card => card.type_line.toLowerCase());
+
+      battlefield.forEach(perm => {
+        const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
+
+        lines.forEach(line => {
+          if (
+            line.includes('whenever you discard') &&
+            (line.includes('card') || line.includes('cards'))
+          ) {
+            const isCreatureSpecific = line.includes('creature card');
+
+            // ¿Se ha descartado al menos una criatura?
+            const discardedCreature = discardedTypes.some(type => type.includes('creature'));
+
+            // Decide si este trigger aplica
+            const shouldTrigger =
+              !isCreatureSpecific || (isCreatureSpecific && discardedCreature);
+
+            if (shouldTrigger) {
+              this.logService.addLog(`[TriggerService.detectDiscardTriggers] Trigger: "${line}" on ${perm.name} due to discard.`);
+              this.pushTrigger(perm, line);
+            }
+          }
+        });
+      });
+    }
+  }
+
   private pushTrigger(
     source: Permanent | Cart,
     description: string,
   ) {
     this.logService.addLog('[TriggerService.pushTrigger]');
+    const keywords = 'keywords' in source ? source.keywords : [];
+    const sanitized = this.gameStorage.sanitizeHtml(
+      this.gameStorage.replaceManaSymbolsAndHighlightTriggers(description, keywords)
+    );
     this.stack.pushToStack({
       type: 'TriggeredAbility',
       source,
-      description,
+      description: sanitized,
     });
   }
 }

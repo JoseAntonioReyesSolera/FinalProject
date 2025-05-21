@@ -1,4 +1,4 @@
-<div class="hand-container row" style="display: flex; flex-wrap: wrap; justify-content: flex-start;">
+<div class="hand-container row">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
   <div class="col-2 col-md-1 card-item" (click)="onCardClick($event, card)">

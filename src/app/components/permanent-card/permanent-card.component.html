@@ -28,10 +28,10 @@
     [style.left.px]="contextMenuPosition.x"
     (click)="contextMenuVisible = false">
     <ul>
-      @for (cost of getActivatedAbilities(card); track cost) {
+      @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>
-          <button (click)="executeAction('activate', cost)">
-            Activar ({{ cost }})
+          <button (click)="executeAction('activate', ability.cost)">
+            Activar <span [innerHTML]="ability.sanitized"></span>
           </button>
         </li>
       }

@@ -14,7 +14,7 @@ export class BattlefieldService {
   }
 
   /** Añade uno o varios permanentes basados en un Cart */
-  addPermanent(card: Cart, count: number = 1, to:string="battlefield", fromZone = ''): void {
+  addPermanent(card: Cart, count: number = 1, fromZone = ''): void {
     const current = this.permanentsSubject.getValue();
     const newOnes: Permanent[] = [];
     const entersTapped =  /this [\w\s]+ enters tapped/i.test(card.oracle_text ?? '')

@@ -6,8 +6,8 @@ export type StackItemType = 'Spell' | 'ActivatedAbility' | 'TriggeredAbility';
 export interface StackItem {
   type: StackItemType;
   source: Permanent | Cart;
-  description: string;
+  description: any;
   cost?: string;
-  efecto?: string;
+  efecto?: any;
 }
 

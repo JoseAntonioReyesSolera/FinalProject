@@ -1,6 +1,6 @@
 <p>Objetos en el Stack: {{ stackCards.length }}</p>
     @if (fixedCount < stackCards.length - 1) {
-      <button class="btn btn-secondary mt-2" (click)="openReorderModal()">
+      <button class="btn btn-secondary mt-2" (click)="showModal ? closeModal() : openReorderModal()">
         Ordenar triggers
       </button>
     }
@@ -16,7 +16,7 @@
         @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
           <div
             class="text-sm text-gray-700 whitespace-pre-line"
-            [innerHTML]="top.source.sanitizedOracleText"
+            [innerHTML]="(top.source.sanitizedOracleText)"
           ></div>
         }
       }
@@ -53,10 +53,10 @@
         <li class="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
           <span>{{item.source.name}}:</span>
           <hr>
-          <span class="text-sm"> {{ item.description || item.efecto || 'Trigger' }}</span>
+          <span class="text-sm" [innerHTML]=" item.efecto || item.description || 'Trigger'"></span>
           <div class="flex gap-1">
-            <button (click)="moveUp(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === 0 || item.type == 'Spell'" class="btn btn-xs btn-outline">▲</button>
-            <button (click)="moveDown(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === tempStack.length - 1 || item.type == 'Spell'" class="btn btn-xs btn-outline">▼</button>
+            <button (click)="moveUp(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === 0 || item.type == 'Spell' ||  tempStack[tempStack.indexOf(item) - 1]?.type === 'Spell'" class="btn btn-xs btn-outline">▲</button>
+            <button (click)="moveDown(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === tempStack.length - 1 || item.type == 'Spell' ||  tempStack[tempStack.indexOf(item) - 1]?.type === 'Spell'" class="btn btn-xs btn-outline">▼</button>
           </div>
         </li>
       }

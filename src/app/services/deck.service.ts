@@ -5,7 +5,7 @@ import {BattlefieldService} from './battlefield.service';
 import {StackService} from './stack.service';
 import {TriggerService} from './trigger.service';
 import {LogService} from './log.service';
-type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard';
+type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard' | 'battlefield' | 'stack';
 @Injectable({
   providedIn: 'root'
 })
@@ -42,7 +42,7 @@ export class DeckService {
 
   // Mover una carta a la zona correspondiente (exilio, mano, etc.)
   // Mover carta de una zona a otra
-  moveCardToZone(card: Cart, to: ZoneName | 'battlefield' | 'stack', qty = 1) {
+  moveCardToZone(card: Cart, to: ZoneName, qty = 1) {
     const from = card.zone;
 
     if (from !== 'stack' && from !== 'battlefield') {
@@ -66,6 +66,8 @@ export class DeckService {
     this.logService.addLog("[DeckService.moveCardToZone] ", card.name, ": ", from,"-->", to);
     if (from !== to) {
       this.triggerService.detectZoneChangeTriggers(card, from, to);
+      const battlefield = this.bf.getPermanentsSnapshot();
+      this.triggerService.detectDiscardTriggers([card], battlefield, from, to);
     }
   }
 

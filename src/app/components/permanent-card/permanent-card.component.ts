@@ -4,6 +4,8 @@ import {StackItem} from '../../models/stack-item';
 import {StackService} from '../../services/stack.service';
 import {BattlefieldService} from '../../services/battlefield.service';
 import {LogService} from '../../services/log.service';
+import {GameStorageService} from '../../services/game-storage.service';
+import {SafeHtml} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-permanent-card',
@@ -28,7 +30,8 @@ export class PermanentCardComponent {
   constructor(
     private readonly stackService: StackService,
     private readonly bf: BattlefieldService,
-    private readonly logService: LogService
+    private readonly logService: LogService,
+    private readonly gameStorage: GameStorageService
   ) {}
 
   onClick(event: MouseEvent) {
@@ -62,6 +65,7 @@ export class PermanentCardComponent {
       const line = oracleText.split('\n').find(l => l.startsWith(cost + ':'));
       const efecto = line?.split(':')[1]?.trim() ?? '';
 
+
       const isManaAbility = /Add\s+\{|\bany color\b/i.test(efecto);
 
       if (cost.includes('{T}')) {
@@ -74,12 +78,14 @@ export class PermanentCardComponent {
         this.logService.addLog("[PermanentCardComponent.executeAction] ", "mana ability ", this.card.name, ": ", cost);
         // Aquí podrías agregar lógica para modificar la reserva de maná si la implementas
       }
+      const sanitizedEfecto = this.gameStorage['sanitizeHtml'](
+        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](efecto));
         const item: StackItem = {
           type: 'ActivatedAbility',
           source: this.selectedCard,
           description: `Activate an ability:`,
           cost: cost,
-          efecto: efecto,
+          efecto: sanitizedEfecto,
         };
         this.stackService.pushToStack(item);
         this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
@@ -110,17 +116,19 @@ export class PermanentCardComponent {
     }
   }
 
-  getActivatedAbilities(card: Permanent): string[] {
-    const abilities: string[] = [];
+  getActivatedAbilities(card: Permanent): { cost: string; sanitized: SafeHtml }[] {
     const oracleText = card.originalCard?.oracle_text || '';
     const lines = oracleText.split('\n');
+    const abilities: { cost: string; sanitized: SafeHtml }[] = [];
 
     for (const line of lines) {
       const colonIndex = line.indexOf(':');
       if (colonIndex > 0) {
         const cost = line.substring(0, colonIndex).trim();
+        const sanitized = this.gameStorage['sanitizeHtml'](
+          this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](cost));
 
-          abilities.push(cost);
+          abilities.push({cost, sanitized});
         }
     }
 

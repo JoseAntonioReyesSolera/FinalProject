@@ -123,7 +123,7 @@ export class GameStorageService {
     card.sanitizedOracleText = this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(newFace.oracle_text, card.keywords));
   }
 
-  private replaceManaSymbolsAndHighlightTriggers(text?: string, keywords: string[] = []): string {
+  replaceManaSymbolsAndHighlightTriggers(text?: string, keywords: string[] = []): string {
     if (!text) return '';
 
     text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
@@ -140,7 +140,7 @@ export class GameStorageService {
     });
 
     return text.replace(/\{([^}]+)}/g, (_, symbol) => {
-      const cleanSymbol = symbol.replace('/', '');
+      const cleanSymbol = symbol.replace('/', '').toUpperCase();
       return `<img src="https://svgs.scryfall.io/card-symbols/${cleanSymbol}.svg"
                  alt="${symbol}"
                  style="width: 20px; height: auto; vertical-align: middle;">`;
@@ -166,7 +166,7 @@ export class GameStorageService {
     return (card.card_faces && !card.card_faces.some((face: any) => face.image_uris?.normal));
   }
 
-  private sanitizeHtml(html: string): SafeHtml {
+  sanitizeHtml(html: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }
