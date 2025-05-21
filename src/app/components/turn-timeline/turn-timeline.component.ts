@@ -7,7 +7,7 @@ import {BattlefieldService} from '../../services/battlefield.service';
   selector: 'app-turn-timeline',
   imports: [],
   templateUrl: './turn-timeline.component.html',
-  styleUrl: './turn-timeline.component.css'
+  styleUrl: './turn-timeline.component.css',
 })
 export class TurnTimelineComponent {
   phases: Phase[] = [

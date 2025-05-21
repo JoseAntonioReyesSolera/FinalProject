@@ -1,3 +1,14 @@
+@keyframes zoomIn {
+  0% {
+    transform: scale(0.8) translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
 .turn-timeline-container {
   display: flex;
   align-items: flex-start;
@@ -55,6 +66,9 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   overflow-x: auto;
   white-space: nowrap;
+  /* animación */
+  animation: zoomIn 300ms ease-out;
+  transform-origin: top center;
 }
 
 .step.active {

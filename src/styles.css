@@ -1,1 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: 'Beleren';
+  src: url('assets/fonts/Beleren2016-Bold.woff') format('woff'),
+  url('assets/fonts/Beleren2016-Bold.ttf') format('truetype'),
+  url('assets/fonts/Beleren2016-Bold.svg#Beleren2016-Bold') format('svg');
+  font-style: normal;
+  font-weight: bold;
+  text-rendering: optimizeLegibility;
+}
+
+:root {
+  --bs-body-font-family: 'Beleren', serif !important;
+}
+
