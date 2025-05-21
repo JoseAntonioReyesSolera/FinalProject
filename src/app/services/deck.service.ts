@@ -67,7 +67,7 @@ export class DeckService {
     if (from !== to) {
       this.triggerService.detectZoneChangeTriggers(card, from, to);
       const battlefield = this.bf.getPermanentsSnapshot();
-      this.triggerService.detectDiscardTriggers([card], battlefield, from, to);
+      this.triggerService.detectCastTriggers(card, battlefield);
     }
   }
 

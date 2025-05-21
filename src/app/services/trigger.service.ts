@@ -3,7 +3,7 @@ import { StackService } from './stack.service';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import { LogService } from './log.service';
-import {GameStorageService} from './game-storage.service';
+import { GameStorageService } from './game-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class TriggerService {
@@ -17,28 +17,24 @@ export class TriggerService {
     const oracle = (card.oracle_text || '').toLowerCase();
     const lines = oracle.split('\n').map(l => l.trim());
 
-    if (to === 'battlefield') {
-      this.logService.addLog('[TriggerService.detectZoneChangeTriggers.enter]');
-      const m = lines.find(l => /^when\s/.test(l) && l.includes('enters'));
-      if (m) {
-        this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange enters');
-        this.pushTrigger(card, m);
-      }
-    }
-    if (from === 'battlefield' && to === 'graveyard') {
-      this.logService.addLog('[TriggerService.detectZoneChangeTriggers.dies]');
-      const m = lines.find(l => /^when\s/.test(l) && l.includes('dies'));
-      if (m) {
-        this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange dies');
-        this.pushTrigger(card, m);
-      }
-    }
-    if (from === 'battlefield' && to !== 'graveyard') {
-      this.logService.addLog('[TriggerService.detectZoneChangeTriggers.leave]');
-      const m = lines.find(l => /^when\s/.test(l) && l.includes('leaves'));
-      if (m) {
-        this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange leaves');
-        this.pushTrigger(card, m);
+    for (const line of lines) {
+      const subTriggers = this.extractMultipleTriggers(line);
+      for (const trigger of subTriggers) {
+        if (to === 'battlefield' && trigger.startsWith('when') && trigger.includes('enters')) {
+          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.enter]');
+          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange enters');
+          this.pushTrigger(card, trigger);
+        }
+        if (from === 'battlefield' && to === 'graveyard' && trigger.startsWith('when') && trigger.includes('dies')) {
+          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.dies]');
+          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange dies');
+          this.pushTrigger(card, trigger);
+        }
+        if (from === 'battlefield' && to !== 'graveyard' && trigger.startsWith('when') && trigger.includes('leaves')) {
+          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.leave]');
+          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange leaves');
+          this.pushTrigger(card, trigger);
+        }
       }
     }
   }
@@ -85,17 +81,23 @@ export class TriggerService {
     });
 
     // Other permanents reacting to your cast
-    // recorremos permanentes en battlefield (se podrían inyectar si es necesario)
     battlefield.forEach(perm => {
       const olines = (perm.originalCard.oracle_text || '')
         .toLowerCase()
         .split('\n')
         .map(l => l.trim())
         .filter(l => l.includes('whenever you cast'));
+
       olines.forEach(text => {
         this.logService.addLog('[TriggerService.pushTrigger] other cast');
-        // opcional: filtrar por tipo historic
-        if (text.includes('historic spell') && !card.type_line.toLowerCase().includes('artifact') && !card.type_line.toLowerCase().includes('legendary') && !card.type_line.toLowerCase().includes('saga')) {
+
+        // Optional: filter by historic type spells only
+        if (
+          text.includes('historic spell') &&
+          !card.type_line.toLowerCase().includes('artifact') &&
+          !card.type_line.toLowerCase().includes('legendary') &&
+          !card.type_line.toLowerCase().includes('saga')
+        ) {
           return;
         }
         this.pushTrigger(perm, text);
@@ -225,7 +227,11 @@ export class TriggerService {
 
   public detectBeginningOfStepTriggers(stepName: string, battlefield: Permanent[]) {
     battlefield.forEach(perm => {
-      const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
+      const lines = (perm.originalCard.oracle_text || '')
+        .toLowerCase()
+        .split('\n')
+        .map(l => l.trim());
+
       lines.forEach(line => {
         if (line.includes('at the beginning of') && line.includes(stepName.toLowerCase())) {
           this.logService.addLog(`[TriggerService] Beginning of step trigger: ${stepName} on ${perm.name}`);
@@ -237,62 +243,30 @@ export class TriggerService {
 
   public detectEndOfStepTriggers(stepName: string, battlefield: Permanent[]) {
     battlefield.forEach(perm => {
-      const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
+      const lines = (perm.originalCard.oracle_text || '')
+        .toLowerCase()
+        .split('\n')
+        .map(l => l.trim());
       lines.forEach(line => {
-        if (line.includes('at the end of') && line.includes(stepName.toLowerCase())) {
-          this.logService.addLog(`[TriggerService] End of step trigger: ${stepName} on ${perm.name}`);
+        if (line.includes('at the beginning of the end step') && stepName.toLowerCase().includes('end')) {
+          this.logService.addLog(`[TriggerService] End step trigger on ${perm.name}`);
           this.pushTrigger(perm, line);
         }
       });
     });
   }
 
-  public detectDiscardTriggers(discardedCards: Cart[], battlefield: Permanent[], from: string, to: string) {
-    if (from === 'hand' && to === 'graveyard') {
-      if (discardedCards.length === 0) return;
-
-      const discardedTypes = discardedCards.map(card => card.type_line.toLowerCase());
-
-      battlefield.forEach(perm => {
-        const lines = (perm.originalCard.oracle_text || '').toLowerCase().split('\n').map(l => l.trim());
-
-        lines.forEach(line => {
-          if (
-            line.includes('whenever you discard') &&
-            (line.includes('card') || line.includes('cards'))
-          ) {
-            const isCreatureSpecific = line.includes('creature card');
-
-            // ¿Se ha descartado al menos una criatura?
-            const discardedCreature = discardedTypes.some(type => type.includes('creature'));
-
-            // Decide si este trigger aplica
-            const shouldTrigger =
-              !isCreatureSpecific || (isCreatureSpecific && discardedCreature);
-
-            if (shouldTrigger) {
-              this.logService.addLog(`[TriggerService.detectDiscardTriggers] Trigger: "${line}" on ${perm.name} due to discard.`);
-              this.pushTrigger(perm, line);
-            }
-          }
-        });
-      });
-    }
+  private pushTrigger(source: Cart | Permanent, text: string) {
+    this.stack.pushToStack({
+      source,
+      description: text,
+      type: 'TriggeredAbility',
+    });
   }
 
-  private pushTrigger(
-    source: Permanent | Cart,
-    description: string,
-  ) {
-    this.logService.addLog('[TriggerService.pushTrigger]');
-    const keywords = 'keywords' in source ? source.keywords : [];
-    const sanitized = this.gameStorage.sanitizeHtml(
-      this.gameStorage.replaceManaSymbolsAndHighlightTriggers(description, keywords)
-    );
-    this.stack.pushToStack({
-      type: 'TriggeredAbility',
-      source,
-      description: sanitized,
-    });
+  private extractMultipleTriggers(line: string): string[] {
+    if (!line.includes(' and ')) return [line];
+    const parts = line.split(' and ').map(s => s.trim());
+    return parts.map(part => (part.includes('when') ? part : 'when ' + part));
   }
 }

@@ -1,9 +1,11 @@
 .modal-dialog.modal-lg {
-  max-width: 35%;
+  max-width: 90vw;
+  width: 600px;
 }
 
 .battlefield-container {
-  height: 600px;
+  max-height: 60vh;
+  height: auto;
   padding: 10px;
   display: flex;
   flex-direction: column;

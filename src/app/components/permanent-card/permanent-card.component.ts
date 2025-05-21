@@ -62,9 +62,14 @@ export class PermanentCardComponent {
       if (!cost) return; // Asegura que se pase el coste de la habilidad
 
       const oracleText = this.selectedCard.originalCard?.oracle_text || '';
-      const line = oracleText.split('\n').find(l => l.startsWith(cost + ':'));
-      const efecto = line?.split(':')[1]?.trim() ?? '';
 
+// Busca líneas que empiecen exactamente con el coste (por ejemplo, '{1}{T}:')
+      const line = oracleText
+        .split('\n')
+        .map(l => l.trim())
+        .find(l => l.startsWith(cost + ':'));
+
+      const efecto = line?.split(':')[1]?.trim() ?? '';
 
       const isManaAbility = /Add\s+\{|\bany color\b/i.test(efecto);
 

@@ -1,5 +1,5 @@
 <div class="col">
-<button data-bs-toggle="modal" data-bs-target="#deckProcessorModal">
+<button data-bs-toggle="modal" data-bs-target="#deckProcessorModal" aria-controls="deckProcessorModal">
   Import Deck
 </button>
   <button data-bs-toggle="modal" data-bs-target="#helpModal">
@@ -103,14 +103,14 @@
         <div class="mana-colors">
           @for (mana of manaColors; track $index) {
             <div class="split-button" [ngClass]="mana.colorClass">
-              <button class="split-btn left" (click)="removeMana(mana.type)">−</button>
+              <button type="button" class="split-btn left" (click)="removeMana(mana.type)">−</button>
               <img [src]="mana.icon" class="mana-icon" alt="{{mana.type}}">
               <span class="mana-amount">{{ manaPool[mana.type] || 0 }}</span>
-              <button class="split-btn right" (click)="addMana(mana.type)">+</button>
+              <button type="button" class="split-btn right" (click)="addMana(mana.type)">+</button>
             </div>
           }
         </div>
-        <button class="btn btn-sm btn-outline-danger w-100 mt-2" (click)="clearManaPool()">
+        <button class="btn btn-sm btn-outline-danger w-100 mt-2" title="Reset all mana" (click)="clearManaPool()">
           Limpiar Mana Pool
         </button>
       </div>
@@ -121,34 +121,34 @@
         <div class="res-colors">
           <!-- Vida -->
           <div class="res-control res-life">
-            <button class="res-btn" (click)="removeLife()">−</button>
+            <button type="button" class="res-btn" (click)="removeLife()">−</button>
             <span class="res-icon">❤️</span>
             <span class="res-amount">{{ lifePoints }}</span>
-            <button class="res-btn" (click)="addLife()">+</button>
+            <button type="button" class="res-btn" (click)="addLife()">+</button>
           </div>
 
           <!-- Energía -->
           <div class="res-control res-energy">
-            <button class="res-btn" (click)="removeEnergy()">−</button>
+            <button type="button" class="res-btn" (click)="removeEnergy()">−</button>
             <img src="https://svgs.scryfall.io/card-symbols/E.svg" alt="energy" class="res-icon">
             <span class="res-amount">{{ energyCounters }}</span>
-            <button class="res-btn" (click)="addEnergy()">+</button>
+            <button type="button" class="res-btn" (click)="addEnergy()">+</button>
           </div>
 
           <!-- Veneno -->
           <div class="res-control res-poison">
-            <button class="res-btn" (click)="removePoison()">−</button>
+            <button type="button" class="res-btn" (click)="removePoison()">−</button>
             <img src="https://svgs.scryfall.io/card-symbols/H.svg" class="res-icon" alt="poison">
             <span class="res-amount">{{ poisonCounters }}</span>
-            <button class="res-btn" (click)="addPoison()">+</button>
+            <button type="button" class="res-btn" (click)="addPoison()">+</button>
           </div>
 
           <!-- Experiencia -->
           <div class="res-control res-xp">
-            <button class="res-btn" (click)="removeXp()">−</button>
+            <button type="button" class="res-btn" (click)="removeXp()">−</button>
             <span class="res-icon">⭐</span>
             <span class="res-amount">{{ experienceCounters }}</span>
-            <button class="res-btn" (click)="addXp()">+</button>
+            <button type="button" class="res-btn" (click)="addXp()">+</button>
           </div>
       </div>
     </div>
