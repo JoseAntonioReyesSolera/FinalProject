@@ -49,14 +49,14 @@
     <div>[ ▲ ultimo ▼ primero en resolver ]</div>
 
     <ul>
-      @for (item of stackCards; track $index) {
+      @for (item of tempStack; track $index) {
         <li class="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
           <span>{{item.source.name}}:</span>
           <hr>
           <span class="text-sm" [innerHTML]=" item.efecto || item.description || 'Trigger'"></span>
           <div class="flex gap-1">
-            <button (click)="moveUp(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === 0 || item.type == 'Spell' ||  tempStack[tempStack.indexOf(item) - 1].type === 'Spell'" class="btn btn-xs btn-outline">▲</button>
-            <button (click)="moveDown(tempStack.indexOf(item))" [disabled]="tempStack.indexOf(item) === tempStack.length - 1 || item.type == 'Spell' ||  tempStack[tempStack.indexOf(item) - 1].type === 'Spell'" class="btn btn-xs btn-outline">▼</button>
+            <button (click)="moveUp($index)" [disabled]="$index === 0 || item.type == 'Spell' ||  tempStack[$index - 1].type === 'Spell'" class="btn btn-xs btn-outline">▲</button>
+            <button (click)="moveDown($index)" [disabled]="$index === tempStack.length - 1 || item.type == 'Spell' ||  tempStack[$index - 1].type === 'Spell'" class="btn btn-xs btn-outline">▼</button>
           </div>
         </li>
       }

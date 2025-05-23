@@ -13,9 +13,15 @@ export class TriggerService {
     private readonly gameStorage: GameStorageService,
   ) {}
 
+  private extractOracleLines(card: Cart): string[] {
+    return (card?.oracle_text || '')
+      .toLowerCase()
+      .split('\n')
+      .map(l => l.trim());
+  }
+
   detectZoneChangeTriggers(card: Cart, from: string, to: string) {
-    const oracle = (card.oracle_text || '').toLowerCase();
-    const lines = oracle.split('\n').map(l => l.trim());
+    const lines = this.extractOracleLines(card);
 
     for (const line of lines) {
       const subTriggers = this.extractMultipleTriggers(line);
@@ -69,8 +75,7 @@ export class TriggerService {
   }
 
   detectCastTriggers(card: Cart, battlefield: Permanent[]) {
-    const oracle = (card.oracle_text || '').toLowerCase();
-    const lines = oracle.split('\n').map(l => l.trim());
+    const lines = this.extractOracleLines(card)
     this.logService.addLog('[TriggerService.detectCastTriggers]');
 
     // Self triggers on the spell itself casting
@@ -89,7 +94,7 @@ export class TriggerService {
         .filter(l => l.includes('whenever you cast'));
 
       olines.forEach(text => {
-        this.logService.addLog('[TriggerService.pushTrigger] other cast');
+        this.logService.addLog('[TriggerService.pushTrigger] other cast', text);
 
         // Optional: filter by historic type spells only
         if (
@@ -142,7 +147,7 @@ export class TriggerService {
           if (matchType) {
             const reqType = matchType[1];
             if (enteredTypes.some(t => t.includes(reqType))) {
-              this.logService.addLog('[TriggerService.checkEntry] another ' + reqType);
+              this.logService.addLog('[TriggerService.checkEntry] another ' + reqType, txt);
               this.pushTrigger(perm, text);
             }
             return;
@@ -190,7 +195,7 @@ export class TriggerService {
           if (matchType) {
             const reqType = matchType[1];
             if (diedType.includes(reqType)) {
-              this.logService.addLog('[TriggerService.checkDies] another ' + reqType);
+              this.logService.addLog('[TriggerService.checkDies] another ' + reqType, txt);
               this.pushTrigger(perm, text);
             }
             return;
@@ -265,8 +270,12 @@ export class TriggerService {
   }
 
   private extractMultipleTriggers(line: string): string[] {
-    if (!line.includes(' and ')) return [line];
-    const parts = line.split(' and ').map(s => s.trim());
-    return parts.map(part => (part.includes('when') ? part : 'when ' + part));
+    // Solo dividir si contiene múltiples cláusulas de disparo 'whenever' o 'when'
+    const hasMultipleWhens = (line.match(/(?:^|\s)(when(?:ever)?)(?=\s)/g) || []).length > 1;
+    if (!hasMultipleWhens) return [line];
+
+    // Dividir por los conectores si hay múltiples cláusulas 'when/whenever'
+    const parts = line.split(/(?<=\))\?\s+and\s+(?=when|whenever)/i).map(s => s.trim());
+    return parts;
   }
 }
