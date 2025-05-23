@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {Phase} from '../../models/phase';
 import {TriggerService} from '../../services/trigger.service';
 import {BattlefieldService} from '../../services/battlefield.service';
+import {StackService} from '../../services/stack.service';
 
 @Component({
   selector: 'app-turn-timeline',
@@ -31,7 +32,7 @@ export class TurnTimelineComponent {
   phaseIndex = 0;
   stepIndex = 0;
 
-  constructor(private readonly triggerService: TriggerService, private readonly battlefieldService: BattlefieldService) {}
+  constructor(private readonly triggerService: TriggerService, private readonly battlefieldService: BattlefieldService, private readonly stackService: StackService) {}
 
   get currentPhase(): Phase {
     return this.phases[this.phaseIndex];
@@ -54,6 +55,9 @@ export class TurnTimelineComponent {
     this.triggerService.detectBeginningOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
     if (this.currentStep === 'Untap') {
       this.battlefieldService.untapAll();
+    }
+    if (this.currentPhase.name === 'Opponent Turn') {
+      this.stackService.startNewTurn();
     }
   }
 

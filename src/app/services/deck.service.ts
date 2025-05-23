@@ -44,6 +44,7 @@ export class DeckService {
   // Mover carta de una zona a otra
   moveCardToZone(card: Cart, to: ZoneName, qty = 1) {
     const from = card.zone;
+    const originalFrom = from;
 
     if (from !== 'stack' && from !== 'battlefield') {
       this.removeFromZone(from as ZoneName, card, qty);
@@ -54,11 +55,16 @@ export class DeckService {
     if (to === 'command') card.isCommander = true;
     if (from === 'command' && to === 'library') card.isCommander = false;
 
-    if (to === 'stack') {
+    if (to === 'stack' && !this.stack.isSplitSecondActive()) {
       const battlefield = this.bf.getPermanentsSnapshot();
-      this.stack.pushToStack({ type: 'Spell', source: card, description: `${card.name} cast.` });
+      this.stack.castSpell({ type: 'Spell', source: card, description: `${card.name} cast.` });
       this.triggerService.detectCastTriggers(card, battlefield);
-    } else if (to === 'battlefield') {
+    }
+    else if (to === 'stack' && this.stack.isSplitSecondActive()) {
+      card.zone = originalFrom as ZoneName;
+      this.addToZone(originalFrom as ZoneName, card, card.quantity);
+    }
+    else if (to === 'battlefield') {
       this.bf.addPermanent(card, qty, from);
     } else {
       this.addToZone(to, card, qty);

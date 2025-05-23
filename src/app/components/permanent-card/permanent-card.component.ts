@@ -82,6 +82,9 @@ export class PermanentCardComponent {
         // Ejecutar directamente la habilidad de maná (puedes ajustar esta lógica si usas otra forma de aplicar el efecto)
         this.logService.addLog("[PermanentCardComponent.executeAction] ", "mana ability ", this.card.name, ": ", cost);
         // Aquí podrías agregar lógica para modificar la reserva de maná si la implementas
+        this.contextMenuVisible = false;
+        this.subMenuVisible = false;
+        return;
       }
       const sanitizedEfecto = this.gameStorage['sanitizeHtml'](
         this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](efecto));
@@ -92,10 +95,14 @@ export class PermanentCardComponent {
           cost: cost,
           efecto: sanitizedEfecto,
         };
-        this.stackService.pushToStack(item);
-        this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
+      if (this.stackService.isSplitSecondActive()) {
+        this.card.tapped = false;
+        this.logService.addLog("[PermanentCardComponent.executeAction]", "No se puede activar habilidad por Split Second activo.");
+        return;
+      }
 
-
+      this.stackService.pushToStack(item);
+      this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
       this.contextMenuVisible = false;
       this.subMenuVisible = false;
       return;
