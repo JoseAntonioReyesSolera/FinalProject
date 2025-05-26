@@ -2,8 +2,6 @@ import {Component, OnInit} from '@angular/core';
 import {StackService} from '../../services/stack.service';
 import {DeckService} from '../../services/deck.service';
 import {StackItem} from '../../models/stack-item';
-import {Cart} from '../../models/cart';
-import {Permanent} from '../../models/permanent';
 import {TriggerService} from '../../services/trigger.service';
 
 @Component({
@@ -18,7 +16,7 @@ export class StackComponent implements OnInit{
   showModal = false;
   fixedCount= 0;
 
-  constructor(private readonly stackService: StackService, private readonly deckService: DeckService,private readonly triggerService: TriggerService) {}
+  constructor(protected readonly stackService: StackService, private readonly deckService: DeckService, private readonly triggerService: TriggerService) {}
 
   ngOnInit() {
     this.stackService.getStackObservable().subscribe(cards => {
@@ -43,15 +41,6 @@ export class StackComponent implements OnInit{
   moveTopStackCardToGraveyard() {
     this.deckService.resolveTopStackCard(false);
   }
-
-  isCart(source: any): source is Cart {
-    return 'type_line' in source;
-  }
-
-  isPermanent(source: any): source is Permanent {
-    return 'originalCard' in source;
-  }
-
 
   openReorderModal() {
     this.tempStack = this.stackCards.slice(this.fixedCount);

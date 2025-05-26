@@ -22,90 +22,76 @@ export class TriggerService {
 
   detectZoneChangeTriggers(card: Cart, from: string, to: string) {
     const lines = this.extractOracleLines(card);
-
     for (const line of lines) {
       const subTriggers = this.extractMultipleTriggers(line);
       for (const trigger of subTriggers) {
-        if (to === 'battlefield' && trigger.startsWith('when') && trigger.includes('enters')) {
-          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.enter]');
-          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange enters');
-          this.pushTrigger(card, trigger);
+        if (trigger.includes('cast')) continue;
+        if (to === 'battlefield' && this.isTrigger(trigger, 'enters', 'when')) {
+          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.enter');
         }
-        if (from === 'battlefield' && to === 'graveyard' && trigger.startsWith('when') && trigger.includes('dies')) {
-          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.dies]');
-          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange dies');
-          this.pushTrigger(card, trigger);
+        if (from === 'battlefield' && to === 'graveyard' && this.isTrigger(trigger, 'dies', 'when')) {
+          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.dies');
         }
-        if (from === 'battlefield' && to !== 'graveyard' && trigger.startsWith('when') && trigger.includes('leaves')) {
-          this.logService.addLog('[TriggerService.detectZoneChangeTriggers.leave]');
-          this.logService.addLog('[TriggerService.pushTrigger] detectZoneChange leaves');
-          this.pushTrigger(card, trigger);
+        if (from === 'battlefield' && to !== 'graveyard' && this.isTrigger(trigger, 'leaves', 'when')) {
+          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.leave');
         }
       }
     }
   }
 
-  detectBattlefieldTriggers(
-    event: 'enters' | 'dies' | 'leaves',
-    affected: Permanent | Permanent[] | undefined,
-    others: Permanent[]
-  ) {
+  detectBattlefieldTriggers(event: 'enters' | 'dies' | 'leaves', affected: Permanent | Permanent[] | undefined, others: Permanent[]) {
     switch (event) {
       case 'enters': {
         const entered = affected as Permanent[];
-        this.logService.addLog('[TriggerService.detectBattlefieldTriggers.enters]');
-        this.checkSelfEntry(entered);
-        this.checkEntry(entered, others);
+        this.checkBattlefieldTrigger(entered, others, 'enters');
         break;
       }
       case 'dies': {
         const died = affected as Permanent;
-        this.logService.addLog('[TriggerService.detectBattlefieldTriggers.dies]');
         if (!this.hasZoneChangeWhen(died.originalCard.oracle_text, 'dies')) {
-          this.checkSelfDies(died);
+          this.checkSelfTrigger(died, 'dies');
         }
-        this.checkDies(died, others);
+        this.checkOthersTrigger(died, others, 'dies');
         break;
       }
-      case 'leaves':
-        this.logService.addLog('[TriggerService.detectBattlefieldTriggers.leaves]');
-        this.checkLeaves(others);
+      case 'leaves': {
+        this.checkOthersTrigger(null, others, 'leaves');
         break;
+      }
     }
   }
 
   detectCastTriggers(card: Cart, battlefield: Permanent[]) {
-    const lines = this.extractOracleLines(card)
-    this.logService.addLog('[TriggerService.detectCastTriggers]');
-
-    // Self triggers on the spell itself casting
-    const selfMatches = lines.filter(l => /^when you cast this spell/.test(l));
-    selfMatches.forEach(text => {
-      this.logService.addLog('[TriggerService.pushTrigger] self cast');
-      this.pushTrigger(card, text);
+    const lines = this.extractOracleLines(card);
+    lines.filter(l => /^when you cast this spell/.test(l)).forEach(text => {
+      this.pushTrigger(card, text, 'detectCastTriggers.this');
     });
 
-    // Other permanents reacting to your cast
     battlefield.forEach(perm => {
-      const olines = (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.includes('whenever you cast'));
+      const lines = this.extractOracleLines(perm.originalCard).filter(l => l.includes('whenever you cast'));
+      lines.forEach(text => {
+        if (text.includes('historic spell') && !this.isHistoric(card)) return;
+        this.pushTrigger(perm, text, 'detectCastTriggers.other');
+      });
+    });
+  }
 
-      olines.forEach(text => {
-        this.logService.addLog('[TriggerService.pushTrigger] other cast', text);
-
-        // Optional: filter by historic type spells only
-        if (
-          text.includes('historic spell') &&
-          !card.type_line.toLowerCase().includes('artifact') &&
-          !card.type_line.toLowerCase().includes('legendary') &&
-          !card.type_line.toLowerCase().includes('saga')
-        ) {
-          return;
+  detectBeginningOfStepTriggers(stepName: string, battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      this.extractOracleLines(perm.originalCard).forEach(line => {
+        if (line.includes('at the beginning of') && line.includes(stepName.toLowerCase())) {
+          this.pushTrigger(perm, line, 'detectBeginningOfStepTriggers');
         }
-        this.pushTrigger(perm, text);
+      });
+    });
+  }
+
+  detectEndOfStepTriggers(stepName: string, battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      this.extractOracleLines(perm.originalCard).forEach(line => {
+        if (line.includes('at the beginning of the end step') && stepName.toLowerCase().includes('end')) {
+          this.pushTrigger(perm, line, 'detectEndOfStepTriggers');
+        }
       });
     });
   }
@@ -116,110 +102,68 @@ export class TriggerService {
     this.stack.setStackFromSnapshot(reordered);
   }
 
-  private checkSelfEntry(entered: Permanent[]) {
-    entered.forEach(e => {
-      (e.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.includes('whenever') && l.includes('enters'))
-        .forEach(text => {
-          if (text.includes('this') || text.includes(e.name.toLowerCase())) {
-            this.logService.addLog('[TriggerService.checkSelfEntry]');
-            this.pushTrigger(e, text);
-          }
-        });
-    });
-  }
-
-  private checkEntry(entered: Permanent[], before: Permanent[]) {
+  private checkBattlefieldTrigger(entered: Permanent[], before: Permanent[], type: 'enters') {
+    entered.forEach(e => this.checkSelfTrigger(e, type));
     const enteredTypes = entered.map(e => e.type.toLowerCase());
 
     before.forEach(perm => {
-      (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.includes('whenever') && l.includes('enters'))
-        .forEach(text => {
-          const txt = text;
-          const matchType = txt.match(/another\s+([a-z]+)(?:\s+you control)?\s+enters/);
-          if (matchType) {
-            const reqType = matchType[1];
-            if (enteredTypes.some(t => t.includes(reqType))) {
-              this.logService.addLog('[TriggerService.checkEntry] another ' + reqType, txt);
-              this.pushTrigger(perm, text);
-            }
-            return;
-          }
-          const matchGeneric = txt.match(/whenever\s+a[nother]*\s+([a-z]+)(?:\s+you control)?\s+enters/);
-          if (matchGeneric) {
-            const reqType = matchGeneric[1];
-            if (enteredTypes.some(t => t.includes(reqType))) {
-              this.logService.addLog('[TriggerService.checkEntry] generic ' + reqType);
-              this.pushTrigger(perm, text);
-            }
-            return;
-          }
-        });
+      this.extractOracleLines(perm.originalCard).forEach(text => {
+        if (!text.includes('whenever') || !text.includes('enters')) return;
+
+        const match = text.match(/another\s+([a-z]+)(?:\s+you control)?\s+enters/);
+        if (match && enteredTypes.some(t => t.includes(match[1]))) {
+          this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter');
+          return;
+        }
+
+        const matchGeneric = text.match(/whenever\s+a[nother]*\s+([a-z]+)(?:\s+you control)?\s+enters/);
+        if (matchGeneric && enteredTypes.some(t => t.includes(matchGeneric[1]))) {
+          this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter.permanent');
+        }
+      });
     });
   }
 
-  private checkSelfDies(died: Permanent) {
-    (died.originalCard.oracle_text || '')
-      .toLowerCase()
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.includes('whenever') && l.includes('dies'))
+  private checkSelfTrigger(card: Cart | Permanent, type: 'enters' | 'dies') {
+    this.extractOracleLines(this.stack.isPermanent(card) ? card.originalCard : card)
+      .filter(l => l.includes('whenever') && l.includes(type))
       .forEach(text => {
-        if (text.includes('this')) {
-          this.logService.addLog('[TriggerService.checkSelfDies]');
-          this.pushTrigger(died, text);
+        if (text.includes('this') || (this.stack.isPermanent(card) && text.includes(card.name.toLowerCase()))) {
+          this.pushTrigger(card, text, 'checkSelfTrigger');
         }
       });
   }
 
-  private checkDies(died: Permanent, before: Permanent[]) {
-    const diedName = died.name.toLowerCase();
-    const diedType = died.type.toLowerCase();
+  private checkOthersTrigger(died: Permanent | null, before: Permanent[], type: 'dies' | 'leaves') {
+    const diedName = died?.name.toLowerCase();
+    const diedType = died?.type.toLowerCase();
 
     before.forEach(perm => {
-      (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.includes('whenever') && l.includes('dies'))
-        .forEach(text => {
-          const txt = text;
-          const matchType = txt.match(/another\s+([a-z]+)(?:\s+you control)?\s+dies/);
-          if (matchType) {
-            const reqType = matchType[1];
-            if (diedType.includes(reqType)) {
-              this.logService.addLog('[TriggerService.checkDies] another ' + reqType, txt);
-              this.pushTrigger(perm, text);
-            }
-            return;
-          }
-          if (txt.includes(diedName) || txt.includes(diedType)) {
-            this.logService.addLog('[TriggerService.checkDies] specific match');
-            this.pushTrigger(perm, text);
-          }
-        });
+      this.extractOracleLines(perm.originalCard).forEach(text => {
+        if (!text.includes('whenever') || !text.includes(type)) return;
+
+        const match = text.match(/another\s+([a-z]+)(?:\s+you control)?\s+dies/);
+        if (match && diedType?.includes(match[1])) {
+          this.pushTrigger(perm, text, 'checkOthersTrigger.enter');
+          return;
+        }
+
+        if (diedName && (text.includes(diedName) || (diedType && text.includes(diedType)))) {
+          this.pushTrigger(perm, text, 'checkOthersTrigger.dies');
+        } else if (type === 'leaves') {
+          this.pushTrigger(perm, text, 'checkOthersTrigger.leaves');
+        }
+      });
     });
   }
 
-  private checkLeaves(before: Permanent[]) {
-    before.forEach(perm => {
-      (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.includes('whenever') && l.includes('leaves'))
-        .forEach(text => {
-          this.logService.addLog('[TriggerService.checkLeaves]');
-          this.pushTrigger(perm, text);
-        });
-    });
+  private isTrigger(text: string, keyword: string, start: 'when' | 'whenever'): boolean {
+    return text.startsWith(start) && text.includes(keyword);
+  }
+
+  private isHistoric(card: Cart): boolean {
+    const typeLine = card.type_line.toLowerCase();
+    return typeLine.includes('artifact') || typeLine.includes('legendary') || typeLine.includes('saga');
   }
 
   private hasZoneChangeWhen(oracle: string, keyword: 'enters' | 'dies' | 'leaves'): boolean {
@@ -227,55 +171,28 @@ export class TriggerService {
       .toLowerCase()
       .split('\n')
       .map(l => l.trim())
-      .some(l => /^when\s/.test(l) && l.includes(keyword));
+      .some(l => l.startsWith('when') && l.includes(keyword));
   }
 
-  public detectBeginningOfStepTriggers(stepName: string, battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      const lines = (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim());
-
-      lines.forEach(line => {
-        if (line.includes('at the beginning of') && line.includes(stepName.toLowerCase())) {
-          this.logService.addLog(`[TriggerService] Beginning of step trigger: ${stepName} on ${perm.name}`);
-          this.pushTrigger(perm, line);
-        }
-      });
-    });
+  private extractMultipleTriggers(line: string): string[] {
+    const triggers: string[] = [];
+    const regex = /(?:when(?:ever)?[^.]+\.)/g;
+    let match;
+    while ((match = regex.exec(line)) !== null) {
+      triggers.push(match[0].trim());
+    }
+    return triggers.length ? triggers : [line];
   }
 
-  public detectEndOfStepTriggers(stepName: string, battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      const lines = (perm.originalCard.oracle_text || '')
-        .toLowerCase()
-        .split('\n')
-        .map(l => l.trim());
-      lines.forEach(line => {
-        if (line.includes('at the beginning of the end step') && stepName.toLowerCase().includes('end')) {
-          this.logService.addLog(`[TriggerService] End step trigger on ${perm.name}`);
-          this.pushTrigger(perm, line);
-        }
-      });
-    });
-  }
-
-  private pushTrigger(source: Cart | Permanent, text: string) {
+  private pushTrigger(source: Cart | Permanent, text: string, context = '') {
     this.stack.pushToStack({
       source,
       description: text,
       type: 'TriggeredAbility',
     });
-  }
 
-  private extractMultipleTriggers(line: string): string[] {
-    // Solo dividir si contiene múltiples cláusulas de disparo 'whenever' o 'when'
-    const hasMultipleWhens = (line.match(/(?:^|\s)(when(?:ever)?)(?=\s)/g) || []).length > 1;
-    if (!hasMultipleWhens) return [line];
-
-    // Dividir por los conectores si hay múltiples cláusulas 'when/whenever'
-    const parts = line.split(/(?<=\))\?\s+and\s+(?=when|whenever)/i).map(s => s.trim());
-    return parts;
+    const name = source.name;
+    const zone = this.stack.isPermanent(source) ? 'Permanent' : 'Cart';
+    this.logService.addLog(`[TriggerService.${context}] Pushed trigger from ${zone} ${name}: ${text}`);
   }
 }

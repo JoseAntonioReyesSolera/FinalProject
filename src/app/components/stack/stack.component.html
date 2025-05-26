@@ -11,7 +11,7 @@
 
       <!-- Si es una carta de hechizo -->
       @if (top.type == 'Spell') {
-      @if (isCart(top.source)) {
+      @if (stackService.isCart(top.source)) {
         <p class="text-lg font-semibold">{{ top.source.type_line }}</p>
         @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
           <div

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import {StackItem} from '../models/stack-item';
 import {Cart} from '../models/cart';
+import {Permanent} from '../models/permanent';
 
 @Injectable({
   providedIn: 'root'
@@ -75,5 +76,13 @@ export class StackService {
 
   startNewTurn() {
     this._spellsCastThisTurn = 0;
+  }
+
+  isCart(source: any): source is Cart {
+    return 'type_line' in source;
+  }
+
+  isPermanent(source: any): source is Permanent {
+    return 'originalCard' in source;
   }
 }

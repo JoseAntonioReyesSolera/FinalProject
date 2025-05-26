@@ -39,9 +39,6 @@ export class BattlefieldService {
     }
     this.permanentsSubject.next([...current, ...newOnes]);
     this.logService.addLog("[BattlefieldService.addPermanent] ", card.name, " enter the battlefield");
-    // Zone‐change triggers on the card itself:
-    this.triggerService.detectZoneChangeTriggers(card, fromZone, 'battlefield');
-
     // "Whenever" triggers on existing permanents:
     this.triggerService.detectBattlefieldTriggers('enters', newOnes, current);
   }

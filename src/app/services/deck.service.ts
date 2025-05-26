@@ -46,35 +46,46 @@ export class DeckService {
     const from = card.zone;
     const originalFrom = from;
 
+    // No hacer nada si la carta ya está en la zona de destino
+    if (from === to) return;
+
+    // Evitar modificar directamente hasta validar tod.o
     if (from !== 'stack' && from !== 'battlefield') {
       this.removeFromZone(from as ZoneName, card, qty);
     }
 
+    // Split Second evita que se pongan cartas en la pila
+    if (to === 'stack' && this.stack.isSplitSecondActive()) {
+      this.addToZone(originalFrom as ZoneName, card, qty);
+      return;
+    }
+
+    // Ahora sí podemos cambiar la zona
     card.zone = to;
 
-    if (to === 'command') card.isCommander = true;
-    if (from === 'command' && to === 'library') card.isCommander = false;
+    // Control de comandante
+    if (to === 'command') {
+      card.isCommander = true;
+    } else if (from === 'command' && to === 'library') {
+      card.isCommander = false;
+    }
 
-    if (to === 'stack' && !this.stack.isSplitSecondActive()) {
+    // Acción según zona de destino
+    if (to === 'stack') {
       const battlefield = this.bf.getPermanentsSnapshot();
       this.stack.castSpell({ type: 'Spell', source: card, description: `${card.name} cast.` });
       this.triggerService.detectCastTriggers(card, battlefield);
     }
-    else if (to === 'stack' && this.stack.isSplitSecondActive()) {
-      card.zone = originalFrom as ZoneName;
-      this.addToZone(originalFrom as ZoneName, card, card.quantity);
-    }
     else if (to === 'battlefield') {
       this.bf.addPermanent(card, qty, from);
-    } else {
+    }
+    else {
       this.addToZone(to, card, qty);
     }
-    this.logService.addLog("[DeckService.moveCardToZone] ", card.name, ": ", from,"-->", to);
-    if (from !== to) {
-      this.triggerService.detectZoneChangeTriggers(card, from, to);
-      const battlefield = this.bf.getPermanentsSnapshot();
-      this.triggerService.detectCastTriggers(card, battlefield);
-    }
+
+    // Registrar log y disparar triggers si hay cambio de zona
+    this.logService.addLog("[DeckService.moveCardToZone]", card.name, ":", from, "-->", to);
+    this.triggerService.detectZoneChangeTriggers(card, from, to);
   }
 
   private addToZone(zone: ZoneName, card: Cart, qty: number) {
