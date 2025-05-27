@@ -45,14 +45,18 @@ export class TurnTimelineComponent {
   }
 
   next(): void {
-    this.triggerService.detectEndOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    this.triggerService.detectTriggers('endStep', this.battlefieldService.getPermanentsSnapshot(), {
+      stepName: this.currentStep,
+    });
     if (this.currentPhase.steps && this.stepIndex < this.currentPhase.steps.length - 1) {
       this.stepIndex++;
     } else {
       this.phaseIndex = (this.phaseIndex + 1) % this.phases.length;
       this.stepIndex = 0;
     }
-    this.triggerService.detectBeginningOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    this.triggerService.detectTriggers('beginStep', this.battlefieldService.getPermanentsSnapshot(), {
+      stepName: this.currentStep,
+    });
     if (this.currentStep === 'Untap') {
       this.battlefieldService.untapAll();
     }
@@ -60,12 +64,14 @@ export class TurnTimelineComponent {
       this.stackService.startNewTurn();
     }
     if (this.currentStep === 'Declare Attackers') {
-      this.triggerService.detectAttackTriggers(this.battlefieldService.getPermanentsSnapshot());
+      this.triggerService.detectTriggers('attack', this.battlefieldService.getPermanentsSnapshot());
     }
   }
 
   prev(): void {
-    this.triggerService.detectEndOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    this.triggerService.detectTriggers('endStep', this.battlefieldService.getPermanentsSnapshot(), {
+      stepName: this.currentStep,
+    });
     if (this.currentPhase.steps && this.stepIndex > 0) {
       this.stepIndex--;
     } else {
@@ -75,7 +81,9 @@ export class TurnTimelineComponent {
         ? this.phases[this.phaseIndex].steps!.length - 1
         : 0;
     }
-    this.triggerService.detectBeginningOfStepTriggers(this.currentStep, this.battlefieldService.getPermanentsSnapshot());
+    this.triggerService.detectTriggers('beginStep', this.battlefieldService.getPermanentsSnapshot(), {
+      stepName: this.currentStep,
+    });
     if (this.currentStep === 'Untap') {
       this.battlefieldService.untapAll();
     }

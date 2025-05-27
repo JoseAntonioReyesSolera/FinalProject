@@ -74,7 +74,7 @@ export class DeckService {
     if (to === 'stack') {
       const battlefield = this.bf.getPermanentsSnapshot();
       this.stack.castSpell({ type: 'Spell', source: card, description: `${card.name} cast.` });
-      this.triggerService.detectCastTriggers(card, battlefield);
+      this.triggerService.detectTriggers('cast', battlefield, { source: card });
     }
     else if (to === 'battlefield') {
       this.bf.addPermanent(card, qty, from);
@@ -85,12 +85,17 @@ export class DeckService {
     if (from === 'library' && to === 'hand') {
       const battlefield = this.bf.getPermanentsSnapshot();
       this.logService.addLog("[DeckService.drawCard]", card.name);
-      this.triggerService.detectCardDrawnTriggers(battlefield); // si implementas esta funcionalidad
+      this.triggerService.detectTriggers('draw', battlefield, { source: card });
+    }
+
+    if (from === 'hand' && to === 'graveyard') {
+      const battlefield = this.bf.getPermanentsSnapshot();
+      this.logService.addLog("[DeckService.discardCard]", card.name);
+      this.triggerService.detectTriggers('discard', battlefield, { source: card });
     }
 
     // Registrar log y disparar triggers si hay cambio de zona
     this.logService.addLog("[DeckService.moveCardToZone]", card.name, ":", from, "-->", to);
-    this.triggerService.detectZoneChangeTriggers(card, from, to);
   }
 
   private addToZone(zone: ZoneName, card: Cart, qty: number) {

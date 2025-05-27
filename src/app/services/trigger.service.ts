@@ -1,18 +1,188 @@
-import { Injectable } from '@angular/core';
-import { StackService } from './stack.service';
-import { Cart } from '../models/cart';
-import { Permanent } from '../models/permanent';
-import { LogService } from './log.service';
-import { GameStorageService } from './game-storage.service';
+import {Cart} from '../models/cart';
+import {Permanent} from '../models/permanent';
+import {Injectable} from '@angular/core';
+import {StackService} from './stack.service';
+import {LogService} from './log.service';
+import {GameStorageService} from './game-storage.service';
+
+type TriggerEvent =
+  | 'cast'
+  | 'enters'
+  | 'dies'
+  | 'leaves'
+  | 'draw'
+  | 'discard'
+  | 'attack'
+  | 'beginStep'
+  | 'endStep';
+
+interface TriggerPattern {
+  includes: string[];
+  startsWith?: string;
+  extraCondition?: (line: string, context?: { source?: Cart | Permanent; stepName?: string }) => boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class TriggerService {
   constructor(
     private readonly stack: StackService,
     private readonly logService: LogService,
-    private readonly gameStorage: GameStorageService,
+    private readonly gameStorage: GameStorageService
   ) {}
 
+  private readonly triggerPatterns: Record<TriggerEvent, TriggerPattern> = {
+    cast: {
+      includes: ['whenever you cast'],
+      extraCondition: (line, ctx) => {
+        // “Whenever you cast a historic spell…”
+        if (line.includes('historic spell')) {
+          const src = ctx?.source as Cart;
+          return src ? this.isHistoric(src) : false;
+        }
+        return true;
+      }
+    },
+    enters: {
+        // Solo requerimos 'enters'; el cuándo lo validamos abajo
+      includes: ['enters'],
+      extraCondition: (line, ctx) => {
+        // 1) Landfall (no empieza con 'when' ni 'whenever')
+        if (line.startsWith('landfall')) {
+          const src = ctx?.source as Permanent;
+          return !!src && src.originalCard.type_line.toLowerCase().includes('land');
+        }
+        // 2) Para el resto, solo líneas que empiecen con 'when ' o 'whenever '
+        return line.startsWith('when ') || line.startsWith('whenever ');
+      }
+    },
+    dies: {
+      // Solo pedimos “dies” en la línea
+      includes: ['dies'],
+      extraCondition: (line, ctx) => {
+        // ctx.source es la criatura que acaba de morir
+        const src = ctx?.source as Permanent;
+        if (!src) return false;
+
+        // Intentamos extraer el subtipo: “another Insect you control dies”
+        //                                ^^^^^^
+        const m = line.match(/\b(?:another|this)\s+([a-z]+)\b/);
+        if (m) {
+          const subtype = m[1].toLowerCase();
+          // Solo disparamos si el type_line contiene ese subtipo
+          return src.originalCard.type_line.toLowerCase().includes(subtype);
+        }
+        // Si no se ajusta al formato “another X” o “this X”, dejamos pasar
+        return true;
+      }
+    },
+    leaves: {
+      includes: ['leaves'],
+      extraCondition: (line, ctx) => {
+        // 1) “when [this creature] leaves…”
+        if (line.startsWith('when ')) {
+          // solo dispara si la fuente es la que se va
+          const src = ctx?.source as Permanent;
+          return !!src && line.includes(src.name.toLowerCase());
+        }
+        // 2) “whenever … leaves…” para cualquiera
+        return line.startsWith('whenever ');
+      }
+    },
+    draw: {
+      includes: ['whenever you draw a card'],
+    },
+    discard: {
+      includes: ['whenever you discard a'],
+      extraCondition: (line, ctx) => {
+        // Asegurarse de que la carta descartada es criatura
+        const src = ctx?.source as Cart;
+        return !!src && src.type_line.toLowerCase().includes('creature');
+      }
+    },
+    attack: {
+      includes: ['whenever you attack'],
+    },
+    beginStep: {
+      includes: ['at the beginning of'],
+      extraCondition: (line, ctx) => {
+        const s = ctx?.stepName?.toLowerCase();
+        // upkeep
+        if (line.includes('at the beginning of your upkeep')) {
+          return s === 'upkeep';
+        }
+        // combat
+        if (line.includes('at the beginning of combat on your turn')) {
+          return s === 'beginning of combat';
+        }
+        // otras fases siguen disparando normalmente
+        return !/(upkeep|combat)/.test(line);
+      }
+    },
+    endStep: {
+      includes: ['at the beginning of the end step'],
+    },
+  };
+
+  detectTriggers(
+    event: TriggerEvent,
+    battlefield: Permanent[],
+    options?: {
+      source?: Cart | Permanent;
+      context?: string;
+      stepName?: string;
+    }
+  ) {
+    const pattern = this.triggerPatterns[event];
+
+    if (event === 'cast' && options?.source) {
+      const spell = options.source as Cart;
+
+      // 1) disparadores “when you cast this spell” en la propia carta
+      this.extractOracleLines(spell)
+        .filter(line => line.startsWith('when you cast'))
+        .forEach(line =>
+          this.pushTrigger(spell, line, `detectTriggers.cast.self`)
+        );
+
+      // 2) disparadores “whenever you cast…” en permanentes en mesa
+      battlefield.forEach(perm => {
+        this.extractOracleLines(perm.originalCard)
+          .filter(line => line.includes('whenever') && line.includes('cast'))
+          .forEach(line => {
+            // aplicamos extraCondition para histórico si hace falta
+            const ok = pattern.extraCondition ? pattern.extraCondition(line, options) : true;
+            if (ok) {
+              this.pushTrigger(perm, line, `detectTriggers.cast.other`);
+            }
+          });
+      });
+      return;
+    }
+
+    (battlefield).forEach(entity => {
+      const card = this.stack.isPermanent(entity) ? entity.originalCard : entity;
+      this.extractOracleLines(card).forEach(line => {
+        const matchesInc = pattern.includes.every(substr => line.includes(substr));
+        const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
+        const extraOk = pattern.extraCondition
+          ? pattern.extraCondition(line, { source: options?.source, stepName: options?.stepName })
+          : true;
+
+        if (matchesInc && matchesStart && extraOk) {
+          // Caso especial para 'enters':
+          if (event === 'enters' && line.startsWith('when ')) {
+            // Líneas "when X enters..." solo para el propio X:
+            const src = options?.source as Permanent;
+            // si entity !== src, no disparamos
+            if (entity !== src) return;
+          }
+          this.pushTrigger(entity, line, `detectTriggers.${event}`);
+          }
+      });
+    });
+  }
+
+  // Utilidades
   private extractOracleLines(card: Cart): string[] {
     return (card?.oracle_text || '')
       .toLowerCase()
@@ -20,80 +190,18 @@ export class TriggerService {
       .map(l => l.trim());
   }
 
-  detectZoneChangeTriggers(card: Cart, from: string, to: string) {
-    const lines = this.extractOracleLines(card);
-    for (const line of lines) {
-      const subTriggers = this.extractMultipleTriggers(line);
-      for (const trigger of subTriggers) {
-        if (trigger.includes('cast')) continue;
-        if (to === 'battlefield' && this.isTrigger(trigger, 'enters', 'when')) {
-          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.enter');
-        }
-        if (from === 'battlefield' && to === 'graveyard' && this.isTrigger(trigger, 'dies', 'when')) {
-          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.dies');
-        }
-        if (from === 'battlefield' && to !== 'graveyard' && this.isTrigger(trigger, 'leaves', 'when')) {
-          this.pushTrigger(card, trigger, 'detectZoneChangeTriggers.leave');
-        }
-      }
-    }
-  }
-
-  detectBattlefieldTriggers(event: 'enters' | 'dies' | 'leaves', affected: Permanent | Permanent[] | undefined, others: Permanent[]) {
-    switch (event) {
-      case 'enters': {
-        const entered = affected as Permanent[];
-        this.checkBattlefieldTrigger(entered, others, 'enters');
-        break;
-      }
-      case 'dies': {
-        const died = affected as Permanent;
-        if (!this.hasZoneChangeWhen(died.originalCard.oracle_text, 'dies')) {
-          this.checkSelfTrigger(died, 'dies');
-        }
-        this.checkOthersTrigger(died, others, 'dies');
-        break;
-      }
-      case 'leaves': {
-        this.checkOthersTrigger(null, others, 'leaves');
-        break;
-      }
-    }
-  }
-
-  detectCastTriggers(card: Cart, battlefield: Permanent[]) {
-    const lines = this.extractOracleLines(card);
-    lines.filter(l => l.startsWith("when you cast this spell")).forEach(text => {
-      this.pushTrigger(card, text, 'detectCastTriggers.this');
+  private pushTrigger(source: Cart | Permanent, text: string, context = '') {
+    this.stack.pushToStack({
+      source,
+      description: this.gameStorage['sanitizeHtml'](
+        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](text)
+      ),
+      type: 'TriggeredAbility',
     });
 
-    battlefield.forEach(perm => {
-      const lines = this.extractOracleLines(perm.originalCard).filter(l => l.includes('whenever you cast'));
-      lines.forEach(text => {
-        if (text.includes('historic spell') && !this.isHistoric(card)) return;
-        this.pushTrigger(perm, text, 'detectCastTriggers.other');
-      });
-    });
-  }
-
-  detectBeginningOfStepTriggers(stepName: string, battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(line => {
-        if (line.includes('at the beginning of') && line.includes(stepName.toLowerCase())) {
-          this.pushTrigger(perm, line, 'detectBeginningOfStepTriggers');
-        }
-      });
-    });
-  }
-
-  detectEndOfStepTriggers(stepName: string, battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(line => {
-        if (line.includes('at the beginning of the end step') && stepName.toLowerCase().includes('end')) {
-          this.pushTrigger(perm, line, 'detectEndOfStepTriggers');
-        }
-      });
-    });
+    const name = source.name;
+    const zone = this.stack.isPermanent(source) ? 'Permanent' : 'Cart';
+    this.logService.addLog(`[TriggerService.${context}] Pushed trigger from ${zone} ${name}: ${text}`);
   }
 
   reorderTriggers(newOrder: number[]): void {
@@ -102,140 +210,9 @@ export class TriggerService {
     this.stack.setStackFromSnapshot(reordered);
   }
 
-  private checkBattlefieldTrigger(entered: Permanent[], before: Permanent[], type: 'enters') {
-    entered.forEach(e => this.checkSelfTrigger(e, type));
-
-    before.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(text => {
-        if (!text.includes('whenever') || !text.includes('enters')) return;
-
-        for (const e of entered) {
-          if (this.isTriggerMatchingEnteredCard(text, e)) {
-            this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter.permanent');
-            break; // Evita pushear múltiples veces para el mismo permanente
-          }
-        }
-      });
-    });
-  }
-
-
-  private isTriggerMatchingEnteredCard(triggerLine: string, entered: Permanent): boolean {
-    const line = triggerLine.toLowerCase();
-    const typeLine = entered.type.toLowerCase();
-
-    // Clases comunes
-    const isLand = typeLine.includes('land');
-    const isCreature = typeLine.includes('creature');
-    const isArtifact = typeLine.includes('artifact');
-    const isEnchantment = typeLine.includes('enchantment');
-    const isPlaneswalker = typeLine.includes('planeswalker');
-    const isToken = entered.originalCard.name.toLowerCase().includes('token'); // o usa un flag si lo tienes
-
-    if (line.includes('a land') && !isLand) return false;
-    if (line.includes('a creature') && !isCreature) return false;
-    if (line.includes('an artifact') && !isArtifact) return false;
-    if (line.includes('an enchantment') && !isEnchantment) return false;
-    if (line.includes('a planeswalker') && !isPlaneswalker) return false;
-    if (line.includes('a nontoken') && isToken) return false;
-
-    return true;
-  }
-
-
-  private checkSelfTrigger(card: Cart | Permanent, type: 'enters' | 'dies') {
-    this.extractOracleLines(this.stack.isPermanent(card) ? card.originalCard : card)
-      .filter(l => l.includes('whenever') && l.includes(type))
-      .forEach(text => {
-        if (text.includes('this') || (this.stack.isPermanent(card) && text.includes(card.name.toLowerCase()))) {
-          this.pushTrigger(card, text, 'checkSelfTrigger');
-        }
-      });
-  }
-
-  private checkOthersTrigger(died: Permanent | null, before: Permanent[], type: 'dies' | 'leaves') {
-    const diedName = died?.name.toLowerCase();
-    const diedType = died?.type.toLowerCase();
-
-    before.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(text => {
-        if (!text.includes('whenever') || !text.includes(type)) return;
-
-        const match = text.match(/another\s+([a-z]+)(?:\s+you control)?\s+dies/);
-        if (match && diedType?.includes(match[1])) {
-          this.pushTrigger(perm, text, 'checkOthersTrigger.enter');
-          return;
-        }
-
-        if (diedName && (text.includes(diedName) || (diedType && text.includes(diedType)))) {
-          this.pushTrigger(perm, text, 'checkOthersTrigger.dies');
-        } else if (type === 'leaves') {
-          this.pushTrigger(perm, text, 'checkOthersTrigger.leaves');
-        }
-      });
-    });
-  }
-
-  private isTrigger(text: string, keyword: string, start: 'when' | 'whenever'): boolean {
-    const normalized = text.toLowerCase().trim();
-    if (start === 'when') return normalized.startsWith('when ') && normalized.includes(keyword);
-    if (start === 'whenever') return normalized.startsWith('whenever ') && normalized.includes(keyword);
-    return false;
-  }
-
   private isHistoric(card: Cart): boolean {
     const typeLine = card.type_line.toLowerCase();
     return typeLine.includes('artifact') || typeLine.includes('legendary') || typeLine.includes('saga');
   }
 
-  private hasZoneChangeWhen(oracle: string, keyword: 'enters' | 'dies' | 'leaves'): boolean {
-    return (oracle || '')
-      .toLowerCase()
-      .split('\n')
-      .map(l => l.trim())
-      .some(l => l.startsWith('when') && l.includes(keyword));
-  }
-
-  private extractMultipleTriggers(line: string): string[] {
-    const triggers: string[] = [];
-    const regex = /(?:when(?:ever)?[^.]+\.)/g;
-    let match;
-    while ((match = regex.exec(line)) !== null) {
-      triggers.push(match[0].trim());
-    }
-    return triggers.length ? triggers : [line];
-  }
-
-  detectCardDrawnTriggers(battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(line => {
-        if (line.includes('whenever you draw a card')) {
-          this.pushTrigger(perm, line, 'detectCardDrawnTriggers');
-        }
-      });
-    });
-  }
-
-  detectAttackTriggers(battlefield: Permanent[]) {
-    battlefield.forEach(perm => {
-      this.extractOracleLines(perm.originalCard).forEach(line => {
-        if (line.includes('whenever you attack')) {
-          this.pushTrigger(perm, line, 'detectAttackTriggers');
-        }
-      });
-    });
-  }
-
-  private pushTrigger(source: Cart | Permanent, text: string, context = '') {
-    this.stack.pushToStack({
-      source,
-      description:this.gameStorage['sanitizeHtml'](
-        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](text)),
-      type: 'TriggeredAbility',
-    });
-
-    const name = source.name;
-    const zone = this.stack.isPermanent(source) ? 'Permanent' : 'Cart';
-    this.logService.addLog(`[TriggerService.${context}] Pushed trigger from ${zone} ${name}: ${text}`);
-  }
 }

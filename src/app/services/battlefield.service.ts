@@ -40,7 +40,7 @@ export class BattlefieldService {
     this.permanentsSubject.next([...current, ...newOnes]);
     this.logService.addLog("[BattlefieldService.addPermanent] ", card.name, " enter the battlefield");
     // "Whenever" triggers on existing permanents:
-    this.triggerService.detectBattlefieldTriggers('enters', newOnes, current);
+      this.triggerService.detectTriggers('enters', this.getPermanentsSnapshot(), { source: newOnes[0] })
   }
 
   removePermanent(instanceId: string, toZone: string = ''): void {
@@ -52,12 +52,10 @@ export class BattlefieldService {
     // Solo considera "muerte" si va al cementerio
     if (toZone === 'graveyard') {
       this.logService.addLog('[Battlefield.removePermanent.died] dies →', died.name);
-      this.triggerService.detectZoneChangeTriggers(died.originalCard, 'battlefield', 'graveyard');
-      this.triggerService.detectBattlefieldTriggers('dies', died, after);
+      this.triggerService.detectTriggers('dies', after, { source: died });
     } else {
       this.logService.addLog('[Battlefield.removePermanent.leave] leaves →', died.name);
-      this.triggerService.detectZoneChangeTriggers(died.originalCard, 'battlefield', toZone);
-      this.triggerService.detectBattlefieldTriggers('leaves', undefined, after);
+      this.triggerService.detectTriggers('leaves', after, {source: died});
     }
   }
 
