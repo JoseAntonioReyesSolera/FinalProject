@@ -229,7 +229,8 @@ export class TriggerService {
   private pushTrigger(source: Cart | Permanent, text: string, context = '') {
     this.stack.pushToStack({
       source,
-      description: this.gameStorage.replaceManaSymbolsAndHighlightTriggers(text),
+      description:this.gameStorage['sanitizeHtml'](
+        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](text)),
       type: 'TriggeredAbility',
     });
 
