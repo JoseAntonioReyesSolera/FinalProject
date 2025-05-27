@@ -114,44 +114,6 @@
           Limpiar Mana Pool
         </button>
       </div>
-
-      <!-- Contadores extra debajo -->
-      <div class="counters mt-3 p-2 border rounded bg-light text-center" style="min-width: 240px;">
-        <h6>Recursos</h6>
-        <div class="res-colors">
-          <!-- Vida -->
-          <div class="res-control res-life">
-            <button type="button" class="res-btn" (click)="removeLife()">−</button>
-            <span class="res-icon">❤️</span>
-            <span class="res-amount">{{ lifePoints }}</span>
-            <button type="button" class="res-btn" (click)="addLife()">+</button>
-          </div>
-
-          <!-- Energía -->
-          <div class="res-control res-energy">
-            <button type="button" class="res-btn" (click)="removeEnergy()">−</button>
-            <img src="https://svgs.scryfall.io/card-symbols/E.svg" alt="energy" class="res-icon">
-            <span class="res-amount">{{ energyCounters }}</span>
-            <button type="button" class="res-btn" (click)="addEnergy()">+</button>
-          </div>
-
-          <!-- Veneno -->
-          <div class="res-control res-poison">
-            <button type="button" class="res-btn" (click)="removePoison()">−</button>
-            <img src="https://svgs.scryfall.io/card-symbols/H.svg" class="res-icon" alt="poison">
-            <span class="res-amount">{{ poisonCounters }}</span>
-            <button type="button" class="res-btn" (click)="addPoison()">+</button>
-          </div>
-
-          <!-- Experiencia -->
-          <div class="res-control res-xp">
-            <button type="button" class="res-btn" (click)="removeXp()">−</button>
-            <span class="res-icon">⭐</span>
-            <span class="res-amount">{{ experienceCounters }}</span>
-            <button type="button" class="res-btn" (click)="addXp()">+</button>
-          </div>
-      </div>
-    </div>
   </div>
   </div>
 </div>

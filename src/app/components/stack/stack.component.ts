@@ -56,4 +56,13 @@ export class StackComponent implements OnInit{
   closeModal() {
     this.showModal = false;
   }
+
+  canMoveUp(index: number, item: StackItem): boolean {
+    return index > 0 && item.type !== 'Spell' && this.tempStack[index - 1]?.type !== 'Spell';
+  }
+
+  canMoveDown(index: number, item: StackItem): boolean {
+    return index < this.tempStack.length - 1 && item.type !== 'Spell' && this.tempStack[index + 1]?.type !== 'Spell';
+  }
+
 }

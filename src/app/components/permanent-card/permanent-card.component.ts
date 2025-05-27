@@ -102,7 +102,6 @@ export class PermanentCardComponent {
       const loyaltyCostMatch = cost.match(/^([+\u2212]?)(\d+)$/);
       if (loyaltyCostMatch && this.card.type.includes('Planeswalker')) {
         const sign = loyaltyCostMatch[1]; // '+' | '-' | ''
-        console.log(sign, sign.charCodeAt(0));
         const amount = parseInt(loyaltyCostMatch[2], 10);
 
         const change = sign === '\u2212' ? -amount : amount;

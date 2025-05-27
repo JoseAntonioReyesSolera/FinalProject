@@ -206,6 +206,26 @@ export class TriggerService {
     return triggers.length ? triggers : [line];
   }
 
+  detectCardDrawnTriggers(battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      this.extractOracleLines(perm.originalCard).forEach(line => {
+        if (line.includes('whenever you draw a card')) {
+          this.pushTrigger(perm, line, 'detectCardDrawnTriggers');
+        }
+      });
+    });
+  }
+
+  detectAttackTriggers(battlefield: Permanent[]) {
+    battlefield.forEach(perm => {
+      this.extractOracleLines(perm.originalCard).forEach(line => {
+        if (line.includes('whenever you attack')) {
+          this.pushTrigger(perm, line, 'detectAttackTriggers');
+        }
+      });
+    });
+  }
+
   private pushTrigger(source: Cart | Permanent, text: string, context = '') {
     this.stack.pushToStack({
       source,

@@ -82,6 +82,11 @@ export class DeckService {
     else {
       this.addToZone(to, card, qty);
     }
+    if (from === 'library' && to === 'hand') {
+      const battlefield = this.bf.getPermanentsSnapshot();
+      this.logService.addLog("[DeckService.drawCard]", card.name);
+      this.triggerService.detectCardDrawnTriggers(battlefield); // si implementas esta funcionalidad
+    }
 
     // Registrar log y disparar triggers si hay cambio de zona
     this.logService.addLog("[DeckService.moveCardToZone]", card.name, ":", from, "-->", to);

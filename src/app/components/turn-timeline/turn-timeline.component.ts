@@ -59,6 +59,9 @@ export class TurnTimelineComponent {
     if (this.currentPhase.name === 'Opponent Turn') {
       this.stackService.startNewTurn();
     }
+    if (this.currentStep === 'Declare Attackers') {
+      this.triggerService.detectAttackTriggers(this.battlefieldService.getPermanentsSnapshot());
+    }
   }
 
   prev(): void {

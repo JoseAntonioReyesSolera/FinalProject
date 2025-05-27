@@ -55,8 +55,8 @@
           <hr>
           <span class="text-sm" [innerHTML]=" item.efecto || item.description || 'Trigger'"></span>
           <div class="flex gap-1">
-            <button (click)="moveUp($index)" [disabled]="$index === 0 || item.type == 'Spell' ||  tempStack[$index - 1].type === 'Spell'" class="btn btn-xs btn-outline">▲</button>
-            <button (click)="moveDown($index)" [disabled]="$index === tempStack.length - 1 || item.type == 'Spell' ||  tempStack[$index - 1].type === 'Spell'" class="btn btn-xs btn-outline">▼</button>
+            <button (click)="moveUp($index)" [disabled]="!canMoveUp($index, item)" class="btn btn-xs btn-outline">▲</button>
+            <button (click)="moveDown($index)" [disabled]="!canMoveDown($index, item)" class="btn btn-xs btn-outline">▼</button>
           </div>
         </li>
       }
