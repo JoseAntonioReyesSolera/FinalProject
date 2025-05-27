@@ -55,13 +55,11 @@ export class ZoneViewerComponent {
     return this.zoneType === 'exile';
   }
 
-  setAsCommander(card: any) {
-    if (card.isCommander) {
-      // Si es comandante, quitarla como comandante
-      card.isCommander = false;
-    } else {
-      // Si no es comandante, marcarla como comandante
-      card.isCommander = true;
-    }
+  isCommanderCandidate(card: Cart): boolean {
+    const typeLine = card.type_line?.toLowerCase() || '';
+    const oracleText = card.oracle_text?.toLowerCase() || '';
+
+    return (typeLine.includes('legendary') && typeLine.includes('creature'))
+      || oracleText.includes('can be your commander');
   }
 }

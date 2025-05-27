@@ -63,7 +63,7 @@ export class TriggerService {
 
   detectCastTriggers(card: Cart, battlefield: Permanent[]) {
     const lines = this.extractOracleLines(card);
-    lines.filter(l => /^when you cast this spell/.test(l)).forEach(text => {
+    lines.filter(l => l.startsWith("when you cast this spell")).forEach(text => {
       this.pushTrigger(card, text, 'detectCastTriggers.this');
     });
 
@@ -104,25 +104,44 @@ export class TriggerService {
 
   private checkBattlefieldTrigger(entered: Permanent[], before: Permanent[], type: 'enters') {
     entered.forEach(e => this.checkSelfTrigger(e, type));
-    const enteredTypes = entered.map(e => e.type.toLowerCase());
 
     before.forEach(perm => {
       this.extractOracleLines(perm.originalCard).forEach(text => {
         if (!text.includes('whenever') || !text.includes('enters')) return;
 
-        const match = text.match(/another\s+([a-z]+)(?:\s+you control)?\s+enters/);
-        if (match && enteredTypes.some(t => t.includes(match[1]))) {
-          this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter');
-          return;
-        }
-
-        const matchGeneric = text.match(/whenever\s+a[nother]*\s+([a-z]+)(?:\s+you control)?\s+enters/);
-        if (matchGeneric && enteredTypes.some(t => t.includes(matchGeneric[1]))) {
-          this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter.permanent');
+        for (const e of entered) {
+          if (this.isTriggerMatchingEnteredCard(text, e)) {
+            this.pushTrigger(perm, text, 'checkBattlefieldTrigger.enter.permanent');
+            break; // Evita pushear múltiples veces para el mismo permanente
+          }
         }
       });
     });
   }
+
+
+  private isTriggerMatchingEnteredCard(triggerLine: string, entered: Permanent): boolean {
+    const line = triggerLine.toLowerCase();
+    const typeLine = entered.type.toLowerCase();
+
+    // Clases comunes
+    const isLand = typeLine.includes('land');
+    const isCreature = typeLine.includes('creature');
+    const isArtifact = typeLine.includes('artifact');
+    const isEnchantment = typeLine.includes('enchantment');
+    const isPlaneswalker = typeLine.includes('planeswalker');
+    const isToken = entered.originalCard.name.toLowerCase().includes('token'); // o usa un flag si lo tienes
+
+    if (line.includes('a land') && !isLand) return false;
+    if (line.includes('a creature') && !isCreature) return false;
+    if (line.includes('an artifact') && !isArtifact) return false;
+    if (line.includes('an enchantment') && !isEnchantment) return false;
+    if (line.includes('a planeswalker') && !isPlaneswalker) return false;
+    if (line.includes('a nontoken') && isToken) return false;
+
+    return true;
+  }
+
 
   private checkSelfTrigger(card: Cart | Permanent, type: 'enters' | 'dies') {
     this.extractOracleLines(this.stack.isPermanent(card) ? card.originalCard : card)
@@ -158,7 +177,10 @@ export class TriggerService {
   }
 
   private isTrigger(text: string, keyword: string, start: 'when' | 'whenever'): boolean {
-    return text.startsWith(start) && text.includes(keyword);
+    const normalized = text.toLowerCase().trim();
+    if (start === 'when') return normalized.startsWith('when ') && normalized.includes(keyword);
+    if (start === 'whenever') return normalized.startsWith('whenever ') && normalized.includes(keyword);
+    return false;
   }
 
   private isHistoric(card: Cart): boolean {
@@ -187,7 +209,7 @@ export class TriggerService {
   private pushTrigger(source: Cart | Permanent, text: string, context = '') {
     this.stack.pushToStack({
       source,
-      description: text,
+      description: this.gameStorage.replaceManaSymbolsAndHighlightTriggers(text),
       type: 'TriggeredAbility',
     });
 

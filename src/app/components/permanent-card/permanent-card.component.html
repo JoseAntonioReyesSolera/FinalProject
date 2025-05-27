@@ -10,13 +10,18 @@
       <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
 
       <div class="card-info text-center">
-            @if (card.type.includes("Creature")) {
-                <div class="card-stats">{{ card.power }}/{{ card.toughness }}</div>
+            @if (getModifiedStats(card)) {
+                <div class="card-stats">{{getModifiedStats(card)}}</div>
             }
-          @if (card.type.includes("Planeswalker")) {
-            <div class="card-stats">{{ card.loyalty }}</div>
-          }
+          @if (card.loyalty) {
+           <div class="card-stats">{{card.loyalty}}</div>
+         }
         </div>
+      <div class="card-counters">
+        @for (counter of card.counters; track counter.type) {
+          <div class="counter-chip">{{ counter.amount }}×{{ counter.type }}</div>
+        }
+      </div>
     </div>
 </button>
 
@@ -28,6 +33,9 @@
     [style.left.px]="contextMenuPosition.x"
     (click)="contextMenuVisible = false">
     <ul>
+      <li>
+        <button (click)="executeAction('details')">Ver detalles</button>
+      </li>
       @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>
           <button (click)="executeAction('activate', ability.cost)">
@@ -41,7 +49,7 @@
         </li>
       }
       <li>
-        <button (click)="executeAction('details')">Ver detalles</button>
+        <button (click)="openCounterModal()">Añadir contadores</button>
       </li>
       <li>
         <button (click)="executeAction('backToHand')">Devolver a la Mano</button>
@@ -76,4 +84,28 @@
       </li>
     </ul>
   </button>
+}
+
+@if (showCounterModal) {
+    <div class="context-menu">
+      <h3>Añadir contadores a {{ card.name }}</h3>
+      <div>Tipo de contador:</div>
+      <select [(ngModel)]="selectedCounterType">
+      @for (type of counterTypes; track $index) {
+        <option [value]="type">{{ type }}</option>
+      }
+      </select>
+      <div>Cantidad:</div>
+      <div class="counter-controls">
+        <button (click)="changeCounterAmount(-1)">–</button>
+        <span>{{ counterAmount }}</span>
+        <button (click)="changeCounterAmount(1)">+</button>
+      </div>
+
+
+      <div class="modal-actions">
+        <button (click)="addCounter()">Añadir</button>
+        <button (click)="closeCounterModal()">Cancelar</button>
+      </div>
+    </div>
 }

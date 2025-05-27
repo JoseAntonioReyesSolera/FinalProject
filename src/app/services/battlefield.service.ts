@@ -31,7 +31,7 @@ export class BattlefieldService {
         toughness: card.toughness,
         loyalty: card.loyalty,
         tapped: entersTapped,
-        counters: {},
+        counters: [],
         oracle_text: card.sanitizedOracleText,
         type: card.type_line,
         originalCard: card,

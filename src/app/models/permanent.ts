@@ -9,9 +9,14 @@ export interface Permanent {
   toughness?: number;
   loyalty?:number;
   tapped: boolean;
-  counters: { [type: string]: number };
+  counters: Counter[];
   oracle_text?: any;
   type: string;
   chosenCreatureType?: string;
   originalCard: Cart;
+}
+
+export interface Counter {
+  type: string;
+  amount: number;
 }

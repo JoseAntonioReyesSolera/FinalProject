@@ -74,3 +74,51 @@
   opacity: 0.7;
   pointer-events: none;
 }
+
+.card-counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.counter-chip {
+  background: #222;
+  color: #fff;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.counter-modal {
+  padding: 1em;
+  background: #1e1e1e;
+  border-radius: 8px;
+  color: white;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0.5em 0;
+}
+
+.counter-controls button {
+  width: 2em;
+  height: 2em;
+  font-size: 1.2em;
+}
+
+.actions {
+  margin-top: 1em;
+  display: flex;
+  gap: 0.5em;
+}
