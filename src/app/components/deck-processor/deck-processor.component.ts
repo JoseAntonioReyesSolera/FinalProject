@@ -91,15 +91,45 @@ export class DeckProcessorComponent {
         const mainDeck = allCards.slice(0, unifiedMainList.length);
         const sideboard = allCards.slice(unifiedMainList.length);
 
-        // Guarda en el servicio
-        this.deckCards = mainDeck;
-        this.deckService.setDeckCards(mainDeck, sideboard);
-        this.logService.addLog("[DeckProcessorComponent.loadDeck] ", "Deck loaded")
+        // 🔍 Buscar tokens en all_parts
+        const tokenUris = allCards
+          .flatMap(card =>
+            (card.all_parts ?? [])
+              .filter((part: any) => part.component === 'token')
+              .map((part: any) => part.uri)
+          );
+
+        // 🔁 Obtener tokens desde la API
+        if (tokenUris.length > 0) {
+          forkJoin(tokenUris.map(uri => this.scryfallService.getCardByUri(uri))).subscribe({
+            next: tokenCards => {
+              const enrichedTokens = tokenCards.map(token =>
+                this.gameService.enrichCard({
+                  instanceId: `${token.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
+                  ...token,
+                  quantity: 1,
+                  zone: 'tokens',
+                  isCommander: false,
+                })
+              );
+
+              // Guarda en el servicio
+              this.deckCards = mainDeck;
+              this.deckService.setDeckCards(mainDeck, sideboard, enrichedTokens);
+              this.logService.addLog("[DeckProcessorComponent.loadDeck] ", "Deck loaded")
+
+            },
+            error: (err) => {
+              console.error('Error al cargar el mazo:', err);
+              this.loadError = 'Hubo un problema al cargar una o más cartas. Verifica que los nombres estén correctos. ' + err.error.details;
+            }
+          });
+        } else {
+          this.deckCards = mainDeck;
+          this.deckService.setDeckCards(mainDeck, sideboard, []);
+          this.logService.addLog("[DeckProcessorComponent.loadDeck]", "Deck loaded (no tokens)");
+        }
       },
-      error: (err) => {
-        console.error('Error al cargar el mazo:', err);
-        this.loadError = 'Hubo un problema al cargar una o más cartas. Verifica que los nombres estén correctos. ' + err.error.details;
-      }
-    });
+    })
   }
 }

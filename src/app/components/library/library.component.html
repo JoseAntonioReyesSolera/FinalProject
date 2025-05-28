@@ -23,6 +23,7 @@
         <div class="tabs">
           <button (click)="showMainDeck()">Mazo Principal</button>
           <button (click)="showSideboard()">Sideboard</button>
+          <button (click)="showTokens()">Tokens</button>
         </div>
         <div class="modal-header">
           <h5 class="modal-title" id="cardListModalLabel">Selecciona las cartas que deseas mover</h5>
@@ -30,9 +31,9 @@
         </div>
         <div class="modal-body">
           <app-zone-viewer
-            [zoneName]="isSideboard ? 'Sideboard' : 'Biblioteca'"
-            [zoneType]="isSideboard ? 'sideboard' : 'library'"
-            [cards]="isSideboard ? sideboardCards : deckCards">
+            [zoneName]="isSideboard ? (isTokens ? 'tokens' : 'Sideboard') : 'Biblioteca'"
+            [zoneType]="isSideboard ? (isTokens ? 'tokens' : 'sideboard') : 'library'"
+            [cards]="isSideboard ? (isTokens ? tokendCards : sideboardCards) : deckCards">
           </app-zone-viewer>
         </div>
         <div class="modal-footer">

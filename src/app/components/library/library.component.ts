@@ -18,9 +18,11 @@ export class LibraryComponent implements OnInit{
   public totalDeckCards: number = 0;
   public deckCards: Cart[] = [];
   public sideboardCards: Cart[] = [];
+  public tokendCards: Cart[] = [];
   public showContextMenu = false;
   public contextMenuPosition = { x: 0, y: 0 };
   isSideboard: boolean = false;
+  isTokens: boolean = false;
 
   constructor(private readonly deckService: DeckService) {}
 
@@ -38,6 +40,12 @@ export class LibraryComponent implements OnInit{
         this.totalDeckCards = sideboard.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
       }
     });
+    this.deckService.getZoneObservable('tokens').subscribe(token => {
+      this.tokendCards = token;
+      if (this.isTokens) {
+        this.totalDeckCards = token.reduce((sum, card) => sum + (card.quantity ?? 1), 0);
+      }
+    });
   }
 
   onRightClick(event: MouseEvent) {
@@ -52,9 +60,16 @@ export class LibraryComponent implements OnInit{
 
   showMainDeck() {
     this.isSideboard = false;
+    this.isTokens = false;
   }
 
   showSideboard() {
     this.isSideboard = true;
+    this.isTokens = false;
+  }
+
+  showTokens() {
+    this.isSideboard = true;
+    this.isTokens = true;
   }
 }

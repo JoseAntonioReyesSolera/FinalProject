@@ -5,7 +5,7 @@ import {BattlefieldService} from './battlefield.service';
 import {StackService} from './stack.service';
 import {TriggerService} from './trigger.service';
 import {LogService} from './log.service';
-type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard' | 'battlefield' | 'stack';
+type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard' | 'battlefield' | 'stack' | 'tokens';
 @Injectable({
   providedIn: 'root'
 })
@@ -17,6 +17,7 @@ export class DeckService {
     ['exile',     new BehaviorSubject<Cart[]>([])],
     ['command',   new BehaviorSubject<Cart[]>([])],
     ['sideboard', new BehaviorSubject<Cart[]>([])],
+    ['tokens', new BehaviorSubject<Cart[]>([])],
   ]);
 
   constructor(private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly triggerService: TriggerService, private readonly logService: LogService) {
@@ -35,9 +36,10 @@ export class DeckService {
     this.zones.get(zone)!.next([...cards]);
   }
 
-  setDeckCards(mainDeck: Cart[], sideboard: Cart[]) {
+  setDeckCards(mainDeck: Cart[], sideboard: Cart[], tokens: Cart[]) {
     this.setZone('library', mainDeck);
     this.setZone('sideboard', sideboard);
+    this.setZone('tokens', tokens);
   }
 
   // Mover una carta a la zona correspondiente (exilio, mano, etc.)
@@ -50,7 +52,7 @@ export class DeckService {
     if (from === to) return;
 
     // Evitar modificar directamente hasta validar tod.o
-    if (from !== 'stack' && from !== 'battlefield') {
+    if (from !== 'stack' && from !== 'battlefield' && from !== 'tokens') {
       this.removeFromZone(from as ZoneName, card, qty);
     }
 
@@ -96,6 +98,11 @@ export class DeckService {
 
     // Registrar log y disparar triggers si hay cambio de zona
     this.logService.addLog("[DeckService.moveCardToZone]", card.name, ":", from, "-->", to);
+
+    if (card.type_line?.includes('Token') && to !== 'battlefield') {
+      this.removeFromZone(to, card, qty);
+      this.logService.addLog("[DeckService.moveCardToZone]", `Eliminado token '${card.name}' de la zona ${to}`);
+    }
   }
 
   private addToZone(zone: ZoneName, card: Cart, qty: number) {
@@ -141,6 +148,7 @@ export class DeckService {
     exile: Cart[];
     commander: Cart[];
     sideboard: Cart[];
+    tokens: Cart[];
   }) {
     this.setZone('library', state.deck);
     this.setZone('hand', state.hand);
@@ -148,6 +156,7 @@ export class DeckService {
     this.setZone('exile', state.exile);
     this.setZone('command', state.commander);
     this.setZone('sideboard', state.sideboard);
+    this.setZone('tokens', state.tokens);
   }
 
   resolveTopStackCard(resolved: boolean) {

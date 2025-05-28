@@ -20,4 +20,8 @@ export class ScryfallService {
     return this.http.get<Cart>(url);
   }
 
+  getCardByUri(uri: string): Observable<Cart> {
+    return this.http.get<Cart>(uri);
+  }
+
 }

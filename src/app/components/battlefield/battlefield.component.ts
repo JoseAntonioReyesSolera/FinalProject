@@ -83,7 +83,7 @@ export class BattlefieldComponent implements OnInit {
         usedIds.add(p.instanceId);
 
         if (p.type.includes('Land')) lands.push(p);
-        else if (p.type.includes('Creature') || p.type.includes('Battle')) creatures.push(p);
+        else if (p.type.includes('Creature') || p.type.includes('Battle') || p.type.includes('Token')) creatures.push(p);
         else if (p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) all.push(p);
       }
       this.creaturesRow.next(creatures);
@@ -143,6 +143,7 @@ export class BattlefieldComponent implements OnInit {
       ...this.deckService.getZone('exile'),
       ...this.deckService.getZone('graveyard'),
       ...this.deckService.getZone('command'),
+      ...this.deckService.getZone('tokens'),
     ];
 
     const gameState: GameState = {
@@ -173,6 +174,7 @@ export class BattlefieldComponent implements OnInit {
       exile: [] as Cart[],
       command: [] as Cart[],
       library: [] as Cart[],
+      tokens: [] as Cart[],
     };
 
     for (const card of loaded.cards) {
@@ -190,6 +192,7 @@ export class BattlefieldComponent implements OnInit {
       exile: enrich(grouped.exile),
       commander: enrich(grouped.command),
       sideboard: enrich(grouped.sideboard),
+      tokens: enrich(grouped.tokens),
     };
 
 
@@ -200,6 +203,7 @@ export class BattlefieldComponent implements OnInit {
       exile: enrichedState.exile,
       commander: enrichedState.commander,
       sideboard: enrichedState.sideboard,
+      tokens: enrichedState.tokens,
     });
 
     this.bf.setPermanentsFromSnapshot(loaded.battlefield.map((p: any) => {

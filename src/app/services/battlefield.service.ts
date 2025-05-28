@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import {TriggerService} from './trigger.service';
@@ -17,11 +17,10 @@ export class BattlefieldService {
   addPermanent(card: Cart, count: number = 1, fromZone = ''): void {
     const current = this.permanentsSubject.getValue();
     const newOnes: Permanent[] = [];
-    const entersTapped =  /this [\w\s]+ enters tapped/i.test(card.oracle_text ?? '')
-
+    const entersTapped =  /this [\w\s]+ enters tapped/i.test(card.oracle_text ?? '');
 
     for (let i = 0; i < count; i++) {
-      const instanceId = `${card.id}-${Date.now()}-${Math.random().toString(36)}`;
+      const instanceId = `${card.instanceId}-${Date.now()}-${Math.random().toString(36)}`;
       newOnes.push({
         instanceId,
         cardId: card.id,
@@ -37,6 +36,7 @@ export class BattlefieldService {
         originalCard: card,
       });
     }
+
     this.permanentsSubject.next([...current, ...newOnes]);
     this.logService.addLog("[BattlefieldService.addPermanent] ", card.name, " enter the battlefield");
     // "Whenever" triggers on existing permanents:

@@ -51,6 +51,10 @@
                   <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Mover a Mano</button>
                   <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Mover al Mazo</button>
                 }
+
+                @if (isTokens()) {
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                }
               </div>
             </div>
           </div>

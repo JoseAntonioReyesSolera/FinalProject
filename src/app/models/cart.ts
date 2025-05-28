@@ -18,6 +18,7 @@ export interface Cart {
   sanitizedManaCost: any;
   sanitizedProducedMana: any;
   sanitizedOracleText: any;
+  all_parts: any;
   card_faces: any;
   currentFaceIndex: number;
   quantity: number;

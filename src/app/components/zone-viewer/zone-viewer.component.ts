@@ -14,7 +14,7 @@ import {FormsModule} from '@angular/forms';
 })
 export class ZoneViewerComponent {
   @Input() zoneName: string = '';
-  @Input() zoneType: 'library' | 'graveyard' | 'exile' | 'battlefield' | 'hand' | 'sideboard' = 'library';
+  @Input() zoneType: 'library' | 'graveyard' | 'exile' | 'battlefield' | 'hand' | 'sideboard' | 'tokens' = 'library';
   @Input() cards: Cart[] = [];
 
   @Output() action = new EventEmitter<{ card: Cart, zone: string, quantity: number }>();
@@ -53,6 +53,10 @@ export class ZoneViewerComponent {
 
   isExile(): boolean {
     return this.zoneType === 'exile';
+  }
+
+  isTokens(): boolean {
+    return this.zoneType === 'tokens';
   }
 
   isCommanderCandidate(card: Cart): boolean {
