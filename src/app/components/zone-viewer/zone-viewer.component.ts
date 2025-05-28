@@ -66,4 +66,8 @@ export class ZoneViewerComponent {
     return (typeLine.includes('legendary') && typeLine.includes('creature'))
       || oracleText.includes('can be your commander');
   }
+
+  getTotalCardCount(): number {
+    return this.cards.reduce((sum, card) => sum + (card.quantity || 1), 0);
+  }
 }
