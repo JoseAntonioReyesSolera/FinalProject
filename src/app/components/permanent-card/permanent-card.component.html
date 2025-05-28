@@ -1,6 +1,7 @@
 <button class="permanent-card"
      (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
+
     <div class="card-art-container">
       @if (card.tapped) {
         <div class="tapped-overlay">
@@ -9,12 +10,12 @@
       }
       <img [src]="card.image" alt="{{card.name}}" class="card-art"/>
 
-      <div class="card-info text-center">
+      <div class="card-info">
             @if (getModifiedStats(card)) {
                 <div class="card-stats">{{getModifiedStats(card)}}</div>
             }
           @if (card.loyalty) {
-           <div class="card-stats">{{card.loyalty}}</div>
+           <div class="card-stats loyalty">{{card.loyalty}}</div>
          }
         </div>
       <div class="card-counters">
@@ -104,8 +105,8 @@
 
 
       <div class="modal-actions">
-        <button (click)="addCounter()">Añadir</button>
-        <button (click)="closeCounterModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="addCounter()">Añadir</button>
+        <button class="btn btn-primary" (click)="closeCounterModal()">Cancelar</button>
       </div>
     </div>
 }

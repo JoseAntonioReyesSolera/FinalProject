@@ -47,8 +47,8 @@ export class PermanentCardComponent {
 
   onClick(event: MouseEvent) {
     event.preventDefault();
-    const x = event instanceof MouseEvent ? event.clientX - 450 : 100;
-    const y = event instanceof MouseEvent ? event.clientY - 75 : 100;
+    const x = event.clientX;
+    const y = event.clientY;
     this.contextMenuVisible = true;
     this.subMenuVisible = false;
     this.contextMenuPosition = { x,y};

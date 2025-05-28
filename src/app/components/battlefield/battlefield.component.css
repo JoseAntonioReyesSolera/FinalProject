@@ -1,3 +1,8 @@
+.heder {
+  background-color: #6b9eff;
+  padding: 20px;
+}
+
 .modal-dialog.modal-lg {
   max-width: 90vw;
   width: 600px;

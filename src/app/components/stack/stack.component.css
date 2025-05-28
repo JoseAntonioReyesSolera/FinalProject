@@ -1,0 +1,218 @@
+.card-in-stack {
+  background: linear-gradient(135deg, #dce7ff, #a2b9ff);
+  border: 2px solid #4a6dfc;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 8px rgba(74, 109, 252, 0.6);
+  color: #1e2a78;
+  user-select: none;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+
+/* Nombre de la carta */
+.card-in-stack > p.text-lg.font-semibold {
+  font-weight: 900;
+  font-size: 1.5rem;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Tipo de carta */
+.card-in-stack p.text-lg.font-semibold + div,
+.card-in-stack p.text-lg.font-semibold + p {
+  font-style: italic;
+  color: #334799;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+/* Texto oracle o descripción */
+.card-in-stack div.text-sm {
+  background: rgba(255 255 255 / 0.8);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  box-shadow: inset 0 0 4px rgba(74, 109, 252, 0.25);
+  color: #1a2a6c;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  white-space: pre-line;
+}
+
+/* Botones */
+button.btn-primary {
+  background-color: #4a6dfc;
+  border-color: #3352cc;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(74, 109, 252, 0.5);
+  transition: background-color 0.25s ease;
+}
+
+button.btn-primary:hover {
+  background-color: #3352cc;
+  box-shadow: 0 4px 10px rgba(51, 82, 204, 0.7);
+}
+
+/* Fondo modal oscuro */
+.fixed.inset-0.bg-black.bg-opacity-50 {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Contenedor del modal */
+.bg-white.rounded-lg.p-4.max-w-md.w-full.shadow-lg {
+  max-width: 28rem; /* 448px */
+  background: white;
+  border-radius: 0.75rem; /* 12px */
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Título */
+h2.text-xl.font-semibold.mb-4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #222;
+  user-select: none;
+}
+
+/* Info indicativa */
+.bg-white > div:first-of-type {
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: #555;
+  font-style: italic;
+  user-select: none;
+}
+
+/* Lista de triggers */
+ul {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-left: 0;
+  margin: 0;
+}
+
+/* Item lista trigger */
+ul > li.flex.justify-between.items-center.mb-2.p-2.bg-gray-100.rounded {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f3f4f6;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 5px #d1d5db;
+  user-select: none;
+}
+
+/* Nombre y descripción del trigger */
+ul > li > span:first-child {
+  flex: 1 1 auto;
+  font-weight: 600;
+  color: #1f2937;
+  padding-right: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Línea horizontal pequeña para separar */
+ul > li > hr {
+  border: none;
+  border-left: 1px solid #cbd5e1;
+  margin: 0 0.5rem;
+  height: 1.5rem;
+  opacity: 0.6;
+}
+
+/* Texto pequeño de descripción */
+ul > li > span.text-sm {
+  flex: 2 1 auto;
+  font-size: 0.85rem;
+  color: #374151;
+  overflow-wrap: anywhere;
+  padding-left: 0.5rem;
+}
+
+/* Contenedor botones de subir/bajar */
+ul > li > div.flex.gap-1 {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Botones pequeños de flecha */
+button.btn.btn-xs.btn-outline {
+  border: 1px solid #4b5563;
+  background-color: transparent;
+  color: #4b5563;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+button.btn.btn-xs.btn-outline:hover:not(:disabled) {
+  background-color: #4b5563;
+  color: white;
+}
+
+button.btn.btn-xs.btn-outline:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Contenedor botones inferiores */
+.flex.justify-end.mt-4.gap-2 {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+/* Botón guardar orden (primario) */
+button.btn.btn-sm.btn-primary {
+  background-color: #2563eb;
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgb(37 99 235 / 0.5);
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+button.btn.btn-sm.btn-primary:hover {
+  background-color: #1d4ed8;
+  box-shadow: 0 6px 15px rgb(29 78 216 / 0.6);
+}
+
+/* Botón cerrar modal (secundario) */
+button.btn.btn-sm.btn-secondary {
+  background-color: #e5e7eb;
+  border: none;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+button.btn.btn-sm.btn-secondary:hover {
+  background-color: #d1d5db;
+}

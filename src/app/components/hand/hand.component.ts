@@ -30,7 +30,7 @@ export class HandComponent implements OnInit {
 
   onCardClick(event: MouseEvent, card: any) {
     event.preventDefault(); // Evita el menú del navegador
-    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    this.contextMenuPosition = { x: event.clientX, y: event.clientY-170 };
     this.selectedCard = card;
     this.contextMenuVisible = true;
   }

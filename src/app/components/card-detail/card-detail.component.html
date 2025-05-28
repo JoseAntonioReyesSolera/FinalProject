@@ -1,16 +1,15 @@
 @if (visible) {
   <div class="modal-backdrop" (click)="close()"></div>
-  <div class="modal-content">
-    <button class="close-btn" (click)="close()">×</button>
-    <div class="card-info">
-      <img [src]="(activeFace?.image_uris?.normal || card.image_uris?.normal)" alt="{{ activeFace?.name }}" class="img-fluid mb-3" />
+  <div class="modal-content card-detail-modal">
+    <div class="card card-body shadow">
+      <img [src]="(activeFace?.image_uris?.normal || card.image_uris?.normal)" alt="{{ activeFace?.name }}" class="card-img-top mb-3 rounded" />
       @if (card.card_faces?.length > 1 && card.card_faces[0]?.image_uris) {
-        <button (click)="toggleCardFace()" class="btn btn-secondary mt-2">
+        <button (click)="toggleCardFace()" class="btn btn-outline-primary btn-sm mb-3">
           Cambiar cara
         </button>
       }
-      <h3>{{ card.name }}</h3>
-      <p><strong>Tipo: </strong> {{ card.type_line }}</p>
+      <h3 class="card-title">{{ card.name }}</h3>
+      <p class="card-subtitle mb-2 text-muted">{{ card.type_line }}</p>
       <p><strong>Texto: </strong><span [innerHTML]="activeFace.sanitizedOracleText"></span></p>
       <p><strong>Coste de maná: </strong><span [innerHTML]="activeFace.sanitizedManaCost"></span></p>
       <p><strong>CMC: </strong> <span [innerHTML]="activeFace.cmc"></span></p>

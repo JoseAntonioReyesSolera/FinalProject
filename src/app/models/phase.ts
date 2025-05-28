@@ -1,4 +1,5 @@
 export interface Phase {
   name: string;
-  steps?: string[];
+  label: string;
+  steps?: { name: string; label: string }[];
 }

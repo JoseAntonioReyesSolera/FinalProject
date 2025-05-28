@@ -1,124 +1,259 @@
+/* Contenedor principal de la carta */
 .permanent-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 150px;
-  margin: 5px;
-  padding: 5px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-.card-art-container {
   position: relative;
-  width: 100%;
+  width: 160px;
+  aspect-ratio: 1 / 1;
+  margin: 24px 8px 8px 8px; /* margen superior más grande */
+  padding: 0;
+  background: linear-gradient(135deg, #1b1b2f 0%, #283046 100%);
+  border: 2px solid #4b6cb7;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(75, 108, 183, 0.8);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
 }
 
+.permanent-card:hover {
+  z-index: 1000;
+  transform: scale(1.05);
+  box-shadow:
+    0 0 15px rgba(75, 108, 183, 1),
+    0 0 10px rgba(255, 215, 0, 0.7);
+  border-color: #ffd700;
+}
+
+/* Contenedor de la imagen y overlays */
+.card-art-container {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+  background-color: #111;
+  z-index: 1;
+}
+
+/* Imagen principal de la carta */
 .card-art {
   width: 100%;
-  border-radius: 5px;
+  height: 85%;
+  object-fit: scale-down;
+  display: block;
+  border-radius: 12px;
+  transition: filter 0.3s ease;
 }
 
-.card-info {
-  margin-top: 5px;
-  text-align: center;
+/* Overlay para mostrar cuando está girada (tapped) */
+.tapped-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 3;
 }
 
+/* Icono del símbolo tapped */
+.tap-icon {
+  width: 80px;
+  height: 80px;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 2px #ffd700);
+}
+
+/* Nombre de la carta arriba */
 .card-name {
-  font-weight: bold;
-  color: black;
-  font-size: 10px;
+  background-color: #1a1f35dd; /* un poco translúcido para no ocultar totalmente */
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffd700;
+  text-shadow: 0 0 5px #c0a000;
+  text-align: center;
+  padding: 4px 0;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  user-select: none;
+  z-index: 5;
 }
 
+/* Información de stats o lealtad */
+.card-info {
+  position: absolute;
+  bottom: 38px;
+  left: 8px;
+  right: 8px;
+  color: #ddd;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  user-select: none;
+  z-index: 5;
+  font-size: 12px;
+}
+
+/* Stats modificados o lealtad */
 .card-stats {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  color: black;
-  background: lightgray;
-  border-radius: 5px;
-  border: 1px solid black;
+  bottom: 8px;
+  right: 8px;
+  background: #222a44cc;
+  border-radius: 6px;
+  border: 1px solid #4b6cb7;
+  padding: 2px 6px;
+  font-weight: 600;
+  color: #aad4ff;
+  font-size: 13px;
+  user-select: none;
+  z-index: 5;
+  box-shadow: 0 0 6px #4b6cb7aa;
 }
 
-.context-menu {
+/* Contadores en la carta */
+.card-counters {
   position: absolute;
-  background-color: white;
-  border: 1px solid #ccc;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-  z-index: 9999;
-  padding: 0.5rem;
-  border-radius: 6px;
+  top: 40px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  user-select: none;
+  z-index: 5;
 }
+
+/* Chips de contadores */
+.counter-chip {
+  background: #33395d;
+  color: #f0e68c;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #666f9e;
+  box-shadow: inset 0 0 3px #ffff9c88;
+  user-select: none;
+  font-weight: 600;
+  text-shadow: 0 0 2px #666f9e;
+}
+
+/* Menú contextual principal */
+.context-menu {
+  position: fixed;
+  background-color: #1b1b2f;
+  border: 1px solid #4b6cb7;
+  box-shadow: 0 0 10px rgba(75,108,183,0.8);
+  z-index: 9999;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: #c8d7ff;
+  user-select: none;
+  min-width: 180px;
+}
+
+/* Lista sin estilo */
 .context-menu ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
+/* Elementos de lista */
 .context-menu ul li {
-  padding: 0.25rem 0.75rem;
+  margin: 0.3rem 0;
+}
+
+/* Botones dentro del menú */
+.context-menu ul li button {
+  background: transparent;
+  border: none;
+  color: #aad4ff;
+  font-weight: 600;
   cursor: pointer;
-}
-.context-menu ul li:hover {
-  background-color: #eee;
-}
-
-.tap-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  transform: translate(-50%, -50%);
-  opacity: 0.7;
-  pointer-events: none;
+  width: 100%;
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
-.card-counters {
+.context-menu ul li button:hover {
+  background-color: #4b6cb7;
+  color: #ffd700;
+  box-shadow: 0 0 6px #ffd700;
+}
+
+/* Controles para añadir contadores */
+.counter-controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  justify-content: center;
-  margin-top: 4px;
-}
-.counter-chip {
-  background: #222;
-  color: #fff;
-  padding: 2px 6px;
-  font-size: 0.7rem;
-  border-radius: 8px;
-  border: 1px solid #444;
+  align-items: center;
+  gap: 0.8em;
+  margin: 0.7em 0;
 }
 
+.counter-controls button {
+  width: 2.3em;
+  height: 2.3em;
+  font-size: 1.3em;
+  font-weight: 700;
+  background-color: #4b6cb7;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 6px #4b6cb7aa;
+  transition: background-color 0.3s ease;
+}
+
+.counter-controls button:hover {
+  background-color: #324a9e;
+  box-shadow: 0 0 10px #ffd700;
+}
+
+/* Botones de acción en el modal */
 .modal-actions {
-  margin-top: 1rem;
+  margin-top: 1.2rem;
   display: flex;
   justify-content: space-between;
 }
 
+/* Modal para añadir contadores */
 .counter-modal {
-  padding: 1em;
-  background: #1e1e1e;
-  border-radius: 8px;
-  color: white;
+  padding: 1em 1.5em;
+  background: linear-gradient(145deg, #1a1f35, #283046);
+  border-radius: 12px;
+  color: #c8d7ff;
+  box-shadow: 0 0 12px #4b6cb7;
+  width: 220px;
 }
 
-.counter-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  margin: 0.5em 0;
+/* Select estilizado */
+select {
+  width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #4b6cb7;
+  background-color: #222a44;
+  color: #aad4ff;
+  font-weight: 600;
+  box-shadow: inset 0 0 8px #1a2a5b;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
 }
 
-.counter-controls button {
-  width: 2em;
-  height: 2em;
-  font-size: 1.2em;
-}
-
-.actions {
-  margin-top: 1em;
-  display: flex;
-  gap: 0.5em;
+select:hover,
+select:focus {
+  border-color: #ffd700;
+  outline: none;
+  box-shadow: 0 0 10px #ffd700;
 }

@@ -12,21 +12,32 @@ import {StackService} from '../../services/stack.service';
 })
 export class TurnTimelineComponent {
   phases: Phase[] = [
-    { name: 'Beginning Phase', steps: ['Untap', 'Upkeep', 'Draw'] },
-    { name: 'PreCombat Main Phase' },
     {
-      name: 'Combat Phase',
-      steps: [
-        'Beginning of Combat',
-        'Declare Attackers',
-        'Declare Blockers',
-        'Combat Damage',
-        'End of Combat'
+      name: 'Beginning Phase', label: '🔄',
+      steps: [{name: 'Untap', label: '🌀'},
+        {name: 'upkeep', label: '⚙️'},
+        {name: 'draw', label: '📥'}
       ]
     },
-    { name: 'PostCombat Main Phase' },
-    { name: 'Ending Phase', steps: ['End Step', 'Cleanup'] },
-    { name: 'Opponent Turn' }
+    { name: 'PreCombat Main Phase', label: '📜' },
+    {
+      name: 'Combat Phase', label: '⚔️',
+      steps: [
+        {name: 'Beginning of Combat', label: '🎯️'},
+        {name: 'Declare Attackers', label: '🏹'},
+        {name: 'Declare Blockers',  label: '🛡️'},
+        {name: 'Combat Damage', label: '💢'},
+        {name: 'End of Combat', label: '🕊️'}
+      ]
+    },
+    { name: 'PostCombat Main Phase', label: '📜'},
+    { name: 'Ending Phase', label: '🌙',
+      steps: [
+        {name: 'End Step', label: '🚪'},
+        {name: 'Cleanup', label: '🧹'}
+      ]
+    },
+    { name: 'Opponent Turn',  label: '👤'}
     ];
 
   phaseIndex = 0;
@@ -39,9 +50,8 @@ export class TurnTimelineComponent {
   }
 
   get currentStep(): string {
-    return this.currentPhase.steps
-      ? this.currentPhase.steps[this.stepIndex]
-      : this.currentPhase.name;
+    const current = this.currentPhase.steps?.[this.stepIndex];
+    return current ? current.name : this.currentPhase.name;
   }
 
   next(): void {

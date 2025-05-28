@@ -1,37 +1,57 @@
-.commander-image {
-  height: auto;
-  width: 100%;
-  max-width: 120px;  /* Ajusta esto según el tamaño que desees para la imagen */
-  object-fit: contain;  /* Esto asegura que la imagen no se distorsione */
-  display: block;
-  margin: 0 auto;
+.commander-container {
+  width: 100px;
+  background-color: #eef4ff;
+  border-radius: 12px;
+  padding: 2px;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.commander-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
+.commander-image {
+  width: 100px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 2px solid #6b9eff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.commander-image:hover {
+  transform: scale(1.03);
+  z-index: 20;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .context-menu {
-  position: absolute;
+  position: fixed;
   background-color: white;
   border: 1px solid #ccc;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
   z-index: 9999;
   padding: 0.5rem;
   border-radius: 6px;
+  min-width: 160px;
+  font-size: 14px;
 }
+
 .context-menu ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .context-menu ul li {
-  padding: 0.25rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
+
 .context-menu ul li:hover {
-  background-color: #eee;
+  background-color: #e3ecff;
+  color: #1a3e8d;
+  font-weight: 500;
 }

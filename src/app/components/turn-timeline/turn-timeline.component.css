@@ -1,6 +1,6 @@
 @keyframes zoomIn {
   0% {
-    transform: scale(0.8) translateY(-10px);
+    transform: scale(0.8) translateY(60px);
     opacity: 0;
   }
   100% {
@@ -17,6 +17,22 @@
   margin: 16px 0;
   flex-wrap: wrap;
 }
+
+.nav-button {
+  font-size: 1.5rem;
+  border: none;
+  background: #f0f0f0;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-button:hover {
+  transform: scale(1.1);
+  background-color: #e0e0e0;
+}
+
 .phases-wrapper {
   display: flex;
   margin-left: 20px;
@@ -34,25 +50,33 @@
 }
 
 .phase-name {
-  padding: 6px 12px;
+  font-size: 2.5rem;
+  line-height: 1;
+  padding: 8px 14px;
   border-radius: 6px;
   background-color: #eee;
   border: 1px solid #ccc;
   font-weight: bold;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  text-align: center;
 }
 
 .phase-name.active {
   background-color: #4caf50;
   color: white;
+  border-color: #4caf50;
 }
 
 .step {
-  padding: 4px 8px;
+  font-size: 1.8rem;
+  line-height: 1;
+  padding: 6px 10px;
   background-color: #f0f0f0;
   border-radius: 4px;
-  font-size: 0.85rem;
   border: 1px solid #ccc;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .steps {
@@ -70,10 +94,13 @@
   /* animación */
   animation: zoomIn 300ms ease-out;
   transform-origin: top center;
+  bottom: 100%;
+  margin-bottom: 8px;
 }
 
 .step.active {
   background-color: #2196f3;
   color: white;
   font-weight: bold;
+  border-color: #2196f3;
 }

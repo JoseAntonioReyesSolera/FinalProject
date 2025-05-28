@@ -1,14 +1,12 @@
-<div class="hand-container row">
+<div class="hand-container">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
-  <div class="col-2 col-md-1 card-item" (click)="onCardClick($event, card)">
+  <div class="card-item" (click)="onCardClick($event, card)">
     <p><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
     @if (card.card_faces && !card.isSingleImageDoubleFace) {
-      <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
-           style="width: 100%; height: auto;">
+      <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}">
     } @else {
-      <img [src]="card.image_uris?.normal" alt="{{ card.name }}" class="img-fluid"
-           style="width: 100%; height: auto;">
+      <img [src]="card.image_uris?.normal" alt="{{ card.name }}">
     }
   </div>
   }

@@ -1,26 +1,67 @@
 .modal-backdrop {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
-.modal-content {
+.modal-content.card-detail-modal {
   position: fixed;
-  top: 50%; left: 50%;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  padding: 2rem;
-  max-width: 400px;
-  z-index: 11;
-  border-radius: 10px;
+  background: #fefefe;
+  border-radius: 12px;
+  padding: 20px;
+  z-index: 1001;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 90vw;
+  max-width: 480px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.card {
+  background-color: #f0f4fa;
+  border: none;
+  border-radius: 12px;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  color: #2c3e50;
+}
+
+.card-subtitle {
+  font-size: 0.95rem;
+  color: #7f8c8d;
 }
 
 .close-btn {
   position: absolute;
-  top: 10px; right: 10px;
+  top: 10px;
+  right: 14px;
+  font-size: 20px;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+.btn-outline-primary {
+  border-color: #6b9eff;
+  color: #6b9eff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #6b9eff;
+  color: white;
 }
