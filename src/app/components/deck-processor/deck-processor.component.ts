@@ -107,7 +107,7 @@ export class DeckProcessorComponent {
                 this.gameService.enrichCard({
                   instanceId: `${token.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
                   ...token,
-                  quantity: 1,
+                  quantity: 999,
                   zone: 'tokens',
                   isCommander: false,
                 })

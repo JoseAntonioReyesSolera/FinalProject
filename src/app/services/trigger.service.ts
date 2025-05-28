@@ -56,16 +56,14 @@ export class TriggerService {
       }
     },
     dies: {
-      // Solo pedimos “dies” en la línea
-      includes: ['dies'],
+      includes: ['dies', ' is put into a graveyard from the battlefield'],
       extraCondition: (line, ctx) => {
         // ctx.source es la criatura que acaba de morir
         const src = ctx?.source as Permanent;
         if (!src) return false;
 
-        // Intentamos extraer el subtipo: “another Insect you control dies”
-        //                                ^^^^^^
-        const m = line.match(/\b(?:another|this)\s+([a-z]+)\b/);
+        // Buscar subtipo en formato "another X" o "this X"
+        const m = line.match(/\b(?:this|another)\s+([a-z]+)\b/);
         if (m) {
           const subtype = m[1].toLowerCase();
           // Solo disparamos si el type_line contiene ese subtipo
@@ -159,10 +157,14 @@ export class TriggerService {
       return;
     }
 
+    if ((event === 'dies' || event === 'leaves') && options?.source) {
+      this.checkSelfTriggers(event, options.source, pattern, `detectTriggers.${event}.self`);
+    }
+
     (battlefield).forEach(entity => {
       const card = this.stack.isPermanent(entity) ? entity.originalCard : entity;
       this.extractOracleLines(card).forEach(line => {
-        const matchesInc = pattern.includes.every(substr => line.includes(substr));
+        const matchesInc = pattern.includes.some(substr => line.includes(substr));
         const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
         const extraOk = pattern.extraCondition
           ? pattern.extraCondition(line, { source: options?.source, stepName: options?.stepName })
@@ -183,6 +185,21 @@ export class TriggerService {
   }
 
   // Utilidades
+
+  private checkSelfTriggers(event: TriggerEvent, source: Cart | Permanent, pattern: TriggerPattern, context: string) {
+    const lines = this.extractOracleLines(this.stack.isPermanent(source) ? source.originalCard : source);
+    lines.forEach(line => {
+      const matchesInc = pattern.includes.some(substr => line.includes(substr));
+      const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
+      const extraOk = pattern.extraCondition
+        ? pattern.extraCondition(line, { source })
+        : true;
+      if (matchesInc && matchesStart && extraOk) {
+        this.pushTrigger(source, line, context);
+      }
+    });
+  }
+
   private extractOracleLines(card: Cart): string[] {
     return (card?.oracle_text || '')
       .toLowerCase()

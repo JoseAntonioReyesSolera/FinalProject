@@ -20,7 +20,7 @@ export class BattlefieldService {
     const entersTapped =  /this [\w\s]+ enters tapped/i.test(card.oracle_text ?? '');
 
     for (let i = 0; i < count; i++) {
-      const instanceId = `${card.instanceId}-${Date.now()}-${Math.random().toString(36)}`;
+      const instanceId = `${card.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       newOnes.push({
         instanceId,
         cardId: card.id,

@@ -83,8 +83,8 @@ export class BattlefieldComponent implements OnInit {
         usedIds.add(p.instanceId);
 
         if (p.type.includes('Land')) lands.push(p);
-        else if (p.type.includes('Creature') || p.type.includes('Battle') || p.type.includes('Token')) creatures.push(p);
         else if (p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) all.push(p);
+        else if (p.type.includes('Creature') || p.type.includes('Battle') || p.type.includes('Token')) creatures.push(p);
       }
       this.creaturesRow.next(creatures);
       this.allRow.next(all);
@@ -253,12 +253,6 @@ export class BattlefieldComponent implements OnInit {
     colorless: 0,
   };
 
-// Recursos extra
-  lifePoints: number = 20;
-  energyCounters: number = 0;
-  poisonCounters: number = 0;
-  experienceCounters: number = 0;
-
   addMana(color: string) {
     if (!this.manaPool[color]) {
       this.manaPool[color] = 0;
@@ -276,20 +270,4 @@ export class BattlefieldComponent implements OnInit {
   clearManaPool() {
     Object.keys(this.manaPool).forEach(color => this.manaPool[color] = 0);
   }
-
-// Vida
-  addLife() { this.lifePoints++; }
-  removeLife() { if (this.lifePoints>0) this.lifePoints--; }
-
-// Energía
-  addEnergy() { this.energyCounters++; }
-  removeEnergy() { if (this.energyCounters>0) this.energyCounters--; }
-
-// Veneno
-  addPoison() { this.poisonCounters++; }
-  removePoison() { if (this.poisonCounters>0) this.poisonCounters--; }
-
-// Experiencia
-  addXp() { this.experienceCounters++; }
-  removeXp() { if (this.experienceCounters>0) this.experienceCounters--; }
 }

@@ -52,7 +52,7 @@ export class DeckService {
     if (from === to) return;
 
     // Evitar modificar directamente hasta validar tod.o
-    if (from !== 'stack' && from !== 'battlefield' && from !== 'tokens') {
+    if (from !== 'stack' && from !== 'battlefield') {
       this.removeFromZone(from as ZoneName, card, qty);
     }
 

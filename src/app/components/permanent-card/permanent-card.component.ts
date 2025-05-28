@@ -31,7 +31,7 @@ export class PermanentCardComponent {
   counterAmount = 1;
 
   counterTypes = [
-    '+1/+1', '-1/-1', 'Flying', 'Menace',
+    'counter', '+1/+1', '-1/-1', 'Flying', 'Menace',
     'Shield', 'Deathtouch', 'Charge', 'Energy', 'Oil'
 
   ];
@@ -194,7 +194,7 @@ export class PermanentCardComponent {
   openCounterModal() {
     this.selectedCard = this.card;
     this.counterAmount = 1;
-    this.selectedCounterType = '+1/+1';
+    this.selectedCounterType = 'counter';
     this.showCounterModal = true;
     this.contextMenuVisible = false;
   }
