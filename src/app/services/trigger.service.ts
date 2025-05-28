@@ -98,7 +98,7 @@ export class TriggerService {
       }
     },
     attack: {
-      includes: ['whenever you attack'],
+      includes: ['whenever you attack', "attacks"],/*separarlo en la fase de declarar atacantes, si hay por lo menos uno, whenever atacks dispara*/
     },
     beginStep: {
       includes: ['at the beginning of'],

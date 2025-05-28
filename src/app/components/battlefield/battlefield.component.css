@@ -21,8 +21,7 @@
 .battlefield-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  min-height: 110px;
+  gap: 4px;
 }
 
 .mana-colors {
