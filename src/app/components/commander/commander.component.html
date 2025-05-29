@@ -1,8 +1,10 @@
 <div class="commander-container">
     @for (commander of getCommanderCards() | async; track commander.instanceId) {
-    <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="commander-image card"
+    <button>
+      <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="commander-image card"
          (click)="onCardClick($event, commander)">
-    }
+    </button>
+      }
 </div>
 
 @if (selectedCardForDetails) {

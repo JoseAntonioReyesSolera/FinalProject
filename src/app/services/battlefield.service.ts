@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import { Cart } from '../models/cart';
 import { Permanent } from '../models/permanent';
 import {TriggerService} from './trigger.service';
@@ -119,7 +119,7 @@ export class BattlefieldService {
       const text = permanent.originalCard?.oracle_text?.toLowerCase() || '';
 
       // Patrón para detectar lords tribales: "Other Zombie creatures you control get +1/+1"
-      const tribalMatch = text.match(/(other )?([a-z]+) creatures you control get \+(\d+)\/\+(\d+)/);
+      const tribalMatch = RegExp(/(other )?([a-z]+) creatures you control get \+(\d+)\/\+(\d+)/).exec(text);
       if (tribalMatch) {
         const [ , other, type, pow, tough ] = tribalMatch;
         const appliesToSelf = !other; // solo se aplica a sí mismo si NO contiene "other"

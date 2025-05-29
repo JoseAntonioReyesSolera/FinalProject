@@ -4,8 +4,8 @@ import {ScryfallService} from '../../services/scryfall.service';
 import {DeckService} from '../../services/deck.service';
 import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
-import {GameStorageService} from '../../services/game-storage.service';
 import {LogService} from '../../services/log.service';
+import {EnrichService} from '../../services/enrich.service';
 
 @Component({
   selector: 'app-deck-processor',
@@ -23,8 +23,8 @@ export class DeckProcessorComponent {
   constructor(
               private readonly scryfallService: ScryfallService,
               private readonly deckService: DeckService,
-              private readonly gameService: GameStorageService,
-              private readonly logService: LogService
+              private readonly logService: LogService,
+              private readonly enrichService: EnrichService
     ) {}
 
   processDeckInput() {
@@ -78,7 +78,7 @@ export class DeckProcessorComponent {
             : unifiedMainList[index].quantity;
 
           // Enriquecemos cada carta, sin llamar a toggleCardFace aquí
-          return this.gameService.enrichCard({
+          return this.enrichService.enrichCard({
             instanceId: `${card.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
             ...card,
             quantity,
@@ -104,7 +104,7 @@ export class DeckProcessorComponent {
           forkJoin(tokenUris.map(uri => this.scryfallService.getCardByUri(uri))).subscribe({
             next: tokenCards => {
               const enrichedTokens = tokenCards.map(token =>
-                this.gameService.enrichCard({
+                this.enrichService.enrichCard({
                   instanceId: `${token.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
                   ...token,
                   quantity: 999,

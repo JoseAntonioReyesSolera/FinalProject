@@ -20,6 +20,7 @@ import {StackService} from '../../services/stack.service';
 import {FormsModule} from '@angular/forms';
 import {HelpperComponent} from '../helpper/helpper.component';
 import {TurnTimelineComponent} from '../turn-timeline/turn-timeline.component';
+import {EnrichService} from '../../services/enrich.service';
 
 @Component({
   selector: 'app-battlefield',
@@ -57,7 +58,12 @@ export class BattlefieldComponent implements OnInit {
   savedGames: { id: string; date: string }[] = [];
   selectedSaveId: string | null = null;
 
-  constructor(private readonly deckService: DeckService, private readonly bf: BattlefieldService, private readonly stack: StackService, private readonly log: LogService, private readonly game: GameStorageService) {}
+  constructor(private readonly deckService: DeckService,
+              private readonly bf: BattlefieldService,
+              private readonly stack: StackService,
+              private readonly log: LogService,
+              private readonly game: GameStorageService,
+              private readonly enrichService: EnrichService) {}
 
   ngOnInit() {
     this.deckService.getZoneObservable('library').subscribe(cards => {
@@ -183,7 +189,7 @@ export class BattlefieldComponent implements OnInit {
       }
     }
 
-    const enrich = (arr: Cart[]) => arr.map(c => this.game.enrichCard(c));
+    const enrich = (arr: Cart[]) => arr.map(c => this.enrichService.enrichCard(c));
 
     const enrichedState = {
       deck: enrich(grouped.library),
@@ -209,7 +215,7 @@ export class BattlefieldComponent implements OnInit {
     this.bf.setPermanentsFromSnapshot(loaded.battlefield.map((p: any) => {
       const enrichedPermanent: Permanent = {
         ...p,
-        originalCard: this.game.enrichCard(p.originalCard), // Enriquecer la carta original asociada al permanente
+        originalCard: this.enrichService.enrichCard(p.originalCard), // Enriquecer la carta original asociada al permanente
       };
       return enrichedPermanent;
     }));

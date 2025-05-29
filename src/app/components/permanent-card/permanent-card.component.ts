@@ -4,12 +4,12 @@ import {StackItem} from '../../models/stack-item';
 import {StackService} from '../../services/stack.service';
 import {BattlefieldService} from '../../services/battlefield.service';
 import {LogService} from '../../services/log.service';
-import {GameStorageService} from '../../services/game-storage.service';
 import {SafeHtml} from '@angular/platform-browser';
 import {FormsModule} from '@angular/forms';
 import {TurnService} from '../../services/turn.service';
 import {AsyncPipe} from '@angular/common';
 import {TriggerService} from '../../services/trigger.service';
+import {EnrichService} from '../../services/enrich.service';
 
 @Component({
   selector: 'app-permanent-card',
@@ -47,8 +47,8 @@ export class PermanentCardComponent {
     private readonly bf: BattlefieldService,
     private readonly triggerService: TriggerService,
     private readonly logService: LogService,
-    private readonly gameStorage: GameStorageService,
-    public readonly turnService: TurnService
+    public readonly turnService: TurnService,
+    private readonly enrichService: EnrichService
   ) {}
 
   onClick(event: MouseEvent) {
@@ -123,8 +123,8 @@ export class PermanentCardComponent {
       if (!this.applyLoyaltyCost(cost)) return;
     }
 
-    const sanitizedEfecto = this.gameStorage['sanitizeHtml'](
-      this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](efecto)
+    const sanitizedEfecto = this.enrichService['sanitizeHtml'](
+      this.enrichService['replaceManaSymbolsAndHighlightTriggers'](efecto)
     );
 
     const item: StackItem = {
@@ -186,7 +186,7 @@ export class PermanentCardComponent {
 
     if (choice === 'commander') {
       this.card.originalCard.mana_cost = "{2}" + this.card.originalCard.mana_cost
-      this.card.originalCard.sanitizedManaCost = this.gameStorage.sanitizeHtml(this.gameStorage.replaceManaSymbolsAndHighlightTriggers(this.card.originalCard.mana_cost));
+      this.card.originalCard.sanitizedManaCost = this.enrichService.sanitizeHtml(this.enrichService.replaceManaSymbolsAndHighlightTriggers(this.card.originalCard.mana_cost));
       this.emitAction('commander', this.selectedCard);
     } else {
       this.emitAction(this.pendingAction, this.selectedCard);
@@ -202,8 +202,8 @@ export class PermanentCardComponent {
       const colonIndex = line.indexOf(':');
       if (colonIndex > 0) {
         const cost = line.substring(0, colonIndex).trim();
-        const sanitized = this.gameStorage['sanitizeHtml'](
-          this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](cost));
+        const sanitized = this.enrichService['sanitizeHtml'](
+          this.enrichService['replaceManaSymbolsAndHighlightTriggers'](cost));
 
           abilities.push({cost, sanitized});
         }

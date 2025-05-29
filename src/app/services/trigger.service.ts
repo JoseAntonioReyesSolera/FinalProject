@@ -3,7 +3,7 @@ import {Permanent} from '../models/permanent';
 import {Injectable} from '@angular/core';
 import {StackService} from './stack.service';
 import {LogService} from './log.service';
-import {GameStorageService} from './game-storage.service';
+import {EnrichService} from './enrich.service';
 
 type TriggerEvent =
   | 'cast'
@@ -27,7 +27,7 @@ export class TriggerService {
   constructor(
     private readonly stack: StackService,
     private readonly logService: LogService,
-    private readonly gameStorage: GameStorageService
+    private readonly enrichService: EnrichService
   ) {}
 
   private readonly triggerPatterns: Record<TriggerEvent, TriggerPattern> = {
@@ -262,8 +262,8 @@ export class TriggerService {
   private pushTrigger(source: Cart | Permanent, text: string, context = '') {
     this.stack.pushToStack({
       source,
-      description: this.gameStorage['sanitizeHtml'](
-        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](text)
+      description: this.enrichService['sanitizeHtml'](
+        this.enrichService['replaceManaSymbolsAndHighlightTriggers'](text)
       ),
       type: 'TriggeredAbility',
     });
