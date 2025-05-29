@@ -1,17 +1,45 @@
-.heder {
+/* ---------- HEADER ----------- */
+.header-bar {
   background-color: #6b9eff;
   padding: 20px;
+  border-bottom: 2px solid #4b7fd6;
 }
 
-.modal-dialog.modal-lg {
-  max-width: 90vw;
-  width: 600px;
+/* ---------- MODALES ----------- */
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background-color: #4c6ef5;
+  color: white;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.btn-close {
+  filter: invert(1);
+}
+
+/* ---------- BATTLEFIELD ----------- */
+.backfield {
+  height: 600px;
+  background: linear-gradient(145deg, #f1f3f5, #e9ecef);
+  border: 2px solid #ced4da;
+  border-radius: 10px;
 }
 
 .battlefield-container {
   max-height: 60vh;
-  height: auto;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -21,17 +49,50 @@
 .battlefield-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+}
+
+/* ---------- MANA POOL ----------- */
+.mana-pool {
+  background-color: #ffffff;
+  border: 2px solid #dee2e6;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .mana-colors {
   display: grid;
-  grid-template-columns: repeat(2, max-content); /* 2 columnas iguales */
-  gap: 8px 12px; /* espacio entre filas y columnas */
-  justify-items: center; /* centrar botones horizontalmente */
-  align-items: center;
+  grid-template-columns: repeat(2, max-content);
+  gap: 10px;
+  justify-items: center;
 }
 
+.split-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 6px;
+}
+
+.split-btn {
+  font-weight: bold;
+  color: #ffd700;
+  border-width: 2px;
+  padding: 0 6px;
+  height: 34px;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #1a1f35dd;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
+.split-btn:hover {
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}
+
+/* Colores de maná más suaves */
 .mana-white { background-color: #f8f8e8; border: 1px solid #ddd; }
 .mana-blue { background-color: #a6c8ff; border: 1px solid #6b9eff; }
 .mana-black { background-color: #333; color: white; }
@@ -39,125 +100,14 @@
 .mana-green { background-color: #66bb66; border: 1px solid #449944; }
 .mana-colorless { background-color: #cccccc; border: 1px solid #999999; }
 
-.counter-item {
-  margin-top: 5px;
-  font-weight: 600;
-}
-
-.split-button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-width: 2px;
-  border-style: solid;
-  padding: 0 4px;
-  height: 32px;
-  box-shadow: 0 0 3px rgba(0,0,0,0.15);
-  user-select: none;
-  cursor: default;
-  border-radius: 6px;
-  transition: border-color 0.2s ease;
-  /* ancho automático para ajustarse al contenido */
-  width: max-content;
-  max-width: 100%;
-}
-
-/* Mantén tus estilos de botones (+ y -) tal cual */
-.split-btn {
-  width: 24px;
-  height: 100%;
-  border: none;
-  background: transparent;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  user-select: none;
-  color: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.split-btn.left {
-  border-right: 1px solid rgba(0,0,0,0.15);
-}
-
-.split-btn.right {
-  border-left: 1px solid rgba(0,0,0,0.15);
-}
-
-
-/* Icono y cantidad de mana */
 .mana-icon {
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
+  width: 20px;
+  height: 20px;
 }
 
 .mana-amount {
   font-weight: bold;
-  min-width: 18px;
-  text-align: center;
-  margin: 0 2px;
-}
-
-.res-colors {
-  display: grid;
-  grid-template-columns: repeat(2, max-content);
-  gap: 8px 12px;
-  justify-content: center;
-  align-items: center;
-}
-
-.res-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: max-content;
-  padding: 2px 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f8f8f8;
-  box-shadow: 0 0 2px rgba(0,0,0,0.1);
-}
-
-.res-control.res-life {
-  border-color: #e74c3c;
-}
-.res-control.res-energy {
-  border-color: #f1c40f;
-}
-.res-control.res-poison {
-  border-color: #2c3e50;
-}
-.res-control.res-xp {
-  border-color: #8e44ad;
-}
-
-.res-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  user-select: none;
-  transition: filter 0.2s;
-}
-
-.res-btn:hover {
-  filter: brightness(1.2);
-}
-
-.res-icon {
-  width: 18px;
-  font-size: 18px;
-  margin: 0 2px;
-}
-
-.res-amount {
-  font-weight: bold;
+  margin: 0 4px;
   min-width: 20px;
   text-align: center;
 }

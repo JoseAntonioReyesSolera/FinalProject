@@ -1,108 +1,119 @@
-<div class="modal-content" style="z-index: 10">
-  <div class="modal-header">
+<div class="modal-content z-10">
+  <div class="modal-header text-white">
     <h5 class="modal-title" id="deckProcessorModalLabel">Help & Guide</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
   <div class="modal-body">
-    <nav>
-      <ul>
-        <li><a href="#turno">🔄 Estructura del turno</a></li>
-        <li><a href="#zonas">📦 Zonas del juego</a></li>
-        <li><a href="#tipos">🧩 Tipos de cartas y permanentes</a></li>
-        <li><a href="#habilidades">⚙️ Habilidades clave</a></li>
-        <li><a href="#pila">🌀 La pila</a></li>
-        <li><a href="#activar">⚡ Activar habilidades</a></li>
-        <li><a href="#triggers">🎯 Triggers</a></li>
-        <li><a href="#ayuda">🧭 Ayuda dentro de la app</a></li>
+    <nav class="mb-3">
+      <ul class="list-unstyled d-flex flex-wrap gap-2">
+        <li><a class="btn btn-outline-secondary btn-sm" href="#turno">🔄 Estructura del turno</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#zonas">📦 Zonas del juego</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#tipos">🧩 Tipos de cartas y permanentes</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#habilidades">⚙️ Habilidades clave</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#pila">🌀 La pila</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#activar">⚡ Activar habilidades</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#triggers">🎯 Triggers</a></li>
+        <li><a class="btn btn-outline-secondary btn-sm" href="#ayuda">🧭 Ayuda dentro de la app</a></li>
       </ul>
     </nav>
 
     <hr>
 
-    <section id="turno">
-      <h5>🔄 Estructura del turno</h5>
-      <ol>
-        <li><strong>Inicio:</strong> Enderezar → Mantenimiento → Robar.</li>
-        <li><strong>Main Phase:</strong> Puedes lanzar hechizos y jugar tierras.</li>
-        <li><strong>Combate:</strong> Atacantes → Bloqueadores → Daño.</li>
-        <li><strong>Segunda Main Phase</strong> Puedes lanzar hechizos y jugar tierras.</li>
-        <li><strong>Final:</strong> Efectos “al final del turno”, descartes.</li>
+    <section id="turno" class="mb-4">
+      <h5 class="fw-bold">🔄 Estructura del turno</h5>
+      <p>Un turno en Magic: The Gathering se divide en fases que definen lo que puedes hacer. La app no fuerza el orden, pero te ayuda a seguirlo de forma visual y funcional:</p>
+      <ol class="ps-3">
+        <li><strong>Inicio:</strong> Endereza tus permanentes, resuelve habilidades de mantenimiento y roba carta.</li>
+        <li><strong>Main Phase 1:</strong> Puedes jugar una tierra (si no lo has hecho), lanzar criaturas, encantamientos, conjuros, etc.</li>
+        <li><strong>Fase de combate:</strong> Declara atacantes, luego el oponente bloquea. Se asigna y resuelve el daño.</li>
+        <li><strong>Main Phase 2:</strong> Igual que la primera, útil para lanzar hechizos tras el combate.</li>
+        <li><strong>Final del turno:</strong> Se activan efectos de “al final del turno”, descartas si tienes más de 7 cartas.</li>
       </ol>
+      <p class="text-muted"><em>💡 La app permite realizar acciones en cualquier momento, para ajustarse a partidas físicas o casuales.</em></p>
     </section>
 
-    <section id="zonas">
-      <h5>📦 Zonas del juego</h5>
-      <ul>
-        <li><strong>Biblioteca:</strong> Mazo. Robas y buscas aquí.</li>
-        <li><strong>Mano:</strong> Cartas jugables.</li>
-        <li><strong>Campo de batalla:</strong> Donde están los permanentes.</li>
-        <li><strong>Cementerio:</strong> Cartas usadas o destruidas.</li>
-        <li><strong>Exilio:</strong> Zona fuera del juego.</li>
-        <li><strong>Pila:</strong> Donde esperan hechizos y habilidades para ser resueltos.</li>
+    <section id="zonas" class="mb-4">
+      <h5 class="fw-bold">📦 Zonas del juego</h5>
+      <ul class="ps-3">
+        <li><strong>Biblioteca:</strong> Tu mazo. Robas de aquí al comienzo del turno o con efectos. También puedes buscar cartas desde aquí.</li>
+        <li><strong>Mano:</strong> Cartas ocultas al oponente. Puedes jugarlas si el coste y momento lo permiten.</li>
+        <li><strong>Campo de batalla:</strong> Donde están las cartas en juego. La app las organiza por tipo (criaturas, tierras, etc.).</li>
+        <li><strong>Cementerio:</strong> Cartas usadas, destruidas o descartadas. Algunas habilidades interactúan con esta zona.</li>
+        <li><strong>Exilio:</strong> Fuera del juego de forma temporal o permanente, aunque algunos efectos permiten regresar.</li>
+        <li><strong>Pila:</strong> Representa hechizos y habilidades pendientes de resolverse. La app lo visualiza en orden claro.</li>
       </ul>
-      <p><em>💡 La app gestiona zonas y detecta triggers relacionados automáticamente.</em></p>
+      <p class="text-muted"><em>💡 Todas las zonas están sincronizadas y actualizadas automáticamente. Puedes mover cartas entre ellas según efectos de cartas.</em></p>
     </section>
 
-    <section id="tipos">
-      <h5>🧩 Tipos de cartas y permanentes</h5>
-      <ul>
-        <li><strong>Tierra:</strong> Una por turno. Produce maná.</li>
-        <li><strong>Criatura:</strong> Puede atacar y bloquear.</li>
-        <li><strong>Encantamiento / Artefacto:</strong> Efectos permanentes.</li>
-        <li><strong>Planeswalker:</strong> Usa contadores de lealtad.</li>
-        <li><strong>Instantáneo:</strong> Se lanza en cualquier momento.</li>
-        <li><strong>Conjuro:</strong> Solo en tu fase principal.</li>
-      </ul>
-    </section>
-
-    <section id="habilidades">
-      <h5>⚙️ Habilidades clave</h5>
-      <ul>
-        <li><strong>Activadas:</strong> <code>coste: efecto</code> – pueden activarse si puedes pagar el coste.</li>
-        <li><strong>Disparadas:</strong> <code>When / Whenever / At</code> – la app las detecta automáticamente.</li>
-        <li><strong>De maná:</strong> Añaden maná, no usan la pila.</li>
+    <section id="tipos" class="mb-4">
+      <h5 class="fw-bold">🧩 Tipos de cartas y permanentes</h5>
+      <p>Las cartas pueden ser hechizos o permanentes. Algunos ejemplos:</p>
+      <ul class="ps-3">
+        <li><strong>Tierra:</strong> Solo una por turno. Produce maná para pagar otros hechizos.</li>
+        <li><strong>Criatura:</strong> Ataca, bloquea, y puede tener habilidades activadas o disparadas.</li>
+        <li><strong>Encantamiento / Artefacto:</strong> Efectos continuos en el campo. A veces tienen habilidades activables.</li>
+        <li><strong>Planeswalker:</strong> Entran con contadores de lealtad. Puedes usar una habilidad por turno.</li>
+        <li><strong>Conjuro:</strong> Hechizo que se lanza solo en tu fase principal con la pila vacía.</li>
+        <li><strong>Instantáneo:</strong> Puede lanzarse en cualquier momento, incluso en el turno del oponente.</li>
       </ul>
     </section>
 
-    <section id="pila">
-      <h5>🌀 La pila</h5>
-      <p>La pila contiene hechizos y habilidades esperando resolución.</p>
-      <ul>
-        <li>Se resuelve en orden inverso: último en entrar, primero en salir.</li>
-        <li>Los jugadores pueden responder antes de que algo se resuelva.</li>
-      </ul>
-      <p><em>💡 La app te muestra visualmente la pila y sus elementos.</em></p>
-    </section>
-
-    <section id="activar">
-      <h5>⚡ Activar habilidades</h5>
-      <p>Haz clic izquierdo sobre una carta permanente para ver sus habilidades activadas.</p>
-      <ul>
-        <li>Si es habilidad de maná → se ejecuta directamente.</li>
-        <li>Si no lo es → se añade a la pila.</li>
+    <section id="habilidades" class="mb-4">
+      <h5 class="fw-bold">⚙️ Habilidades clave</h5>
+      <p>Las habilidades son efectos que puede tener una carta:</p>
+      <ul class="ps-3">
+        <li><strong>Activadas:</strong> Tienen el formato <code>coste: efecto</code>. Debes pagar el coste para activar el efecto.<br> Por ejemplo, <code><img src="https://svgs.scryfall.io/card-symbols/T.svg" alt="Tap ico">: Añade <img src="https://svgs.scryfall.io/card-symbols/G.svg" alt="mana_green ico"></code>.</li>
+        <li><strong>Disparadas:</strong> Comienzan con “When”, “Whenever” o “At”. Se activan automáticamente por eventos como entrar al campo de batalla, lanzar un hechizo, etc.</li>
+        <li><strong>De maná:</strong> Habilidades que generan maná. No usan la pila y se resuelven inmediatamente.</li>
       </ul>
     </section>
 
-    <section id="triggers">
-      <h5>🎯 Triggers</h5>
-      <p>La app detecta habilidades disparadas automáticamente:</p>
-      <ul>
-        <li>“<strong>When this enters the battlefield</strong>” → ETB</li>
-        <li>“<strong>Whenever you cast a spell</strong>”</li>
-        <li>“<strong>When it dies</strong>”</li>
+    <section id="pila" class="mb-4">
+      <h5 class="fw-bold">🌀 La pila</h5>
+      <p>La pila es donde van los hechizos y habilidades antes de resolverse:</p>
+      <ul class="ps-3">
+        <li>Se resuelve en orden LIFO (último en entrar, primero en salir).</li>
+        <li>Los jugadores pueden responder con instantáneos o habilidades antes de que se resuelva lo que hay en la pila.</li>
+      </ul>
+      <p class="text-muted"><em>💡 La app te muestra visualmente el orden de resolución de la pila y permite resolver paso a paso.</em></p>
+    </section>
+
+    <section id="activar" class="mb-4">
+      <h5 class="fw-bold">⚡ Activar habilidades</h5>
+      <p>Haz clic sobre una carta en el campo de batalla para acceder a sus habilidades activadas:</p>
+      <ul class="ps-3">
+        <li>Si es una <strong>habilidad de maná</strong>, se ejecuta directamente.</li>
+        <li>Si es una <strong>habilidad activada</strong> normal, se añade a la pila y puedes responder antes de resolverla.</li>
+      </ul>
+      <p class="text-muted"><em>🔍 La app identifica automáticamente qué habilidades están disponibles y cuándo se pueden usar.</em></p>
+    </section>
+
+    <section id="triggers" class="mb-4">
+      <h5 class="fw-bold">🎯 Triggers</h5>
+      <p>Los triggers o habilidades disparadas se detectan automáticamente según los eventos:</p>
+      <ul class="ps-3">
+        <li>“<strong>When this enters the battlefield</strong>” → Al entrar (ETB)</li>
+        <li>“<strong>Whenever you cast a spell</strong>” → Al lanzar hechizos</li>
+        <li>“<strong>When it dies</strong>” → Cuando una criatura muere (va al cementerio desde el campo)</li>
+        <li>“<strong>When it leaves the battlefield</strong>” → Cuando un permanente deja el campo</li>
+      </ul>
+      <p class="text-muted"><em>💡 Puedes resolver los triggers en el orden que elijas si varios se disparan a la vez.</em></p>
+    </section>
+
+    <section id="ayuda" class="mb-4">
+      <h5 class="fw-bold">🧭 Ayuda dentro de la app</h5>
+      <ul class="ps-3">
+        <li>Mueve cartas entre zonas con acciones como robar, exiliar, buscar, o descartar.</li>
+        <li>Activa habilidades directamente desde las cartas en el campo.</li>
+        <li>Visualiza y resuelve la pila de forma clara y controlada.</li>
+        <li>Guarda y recupera el estado completo de una partida (mazo, zonas, pila, permanentes y log).</li>
+        <li>Usa las vistas para consultar fácilmente el mazo, el cementerio, el exilio y el campo de batalla.</li>
+        <li>La app detecta y muestra triggers y habilidades de forma automática, facilitando el seguimiento del juego.</li>
       </ul>
     </section>
 
-    <section id="ayuda">
-      <h5>🧭 Ayuda dentro de la app</h5>
-      <ul>
-        <li>Mueve cartas entre zonas (robar, exiliar, buscar, moler, etc.).</li>
-        <li>Activa habilidades y resuelve la pila.</li>
-        <li>Guarda y carga partidas con estado completo.</li>
-        <li>Usa vistas para biblioteca, cementerio, exilio y campo.</li>
-        <li>El sistema detecta y muestra triggers al cambiar zonas o lanzar hechizos.</li>
-      </ul>
-    </section>
-    <h1>RECUERDA LEER LAS CARTAS</h1>
+    <div class="alert alert-warning text-center mt-4 fw-bold">
+      ⚠️ RECUERDA LEER LAS CARTAS. La app te asiste, pero el jugador es quien toma las decisiones finales.
+    </div>
   </div>
 </div>

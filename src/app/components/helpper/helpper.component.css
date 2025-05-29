@@ -1,0 +1,100 @@
+/* ---------- CONTENEDOR DEL MODAL ---------- */
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* ---------- CABECERA DEL MODAL ---------- */
+.modal-header {
+  background-color: #4c6ef5;
+  color: #ffffff;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.btn-close {
+  filter: invert(1);
+}
+
+/* ---------- NAVEGACIÓN ---------- */
+.modal-body nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-left: 0;
+  margin-bottom: 1rem;
+}
+
+.modal-body nav a {
+  text-decoration: none;
+  background-color: #e7f0ff;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-weight: 500;
+  color: #1c3faa;
+  transition: background-color 0.2s;
+  display: inline-block;
+}
+
+.modal-body nav a:hover {
+  background-color: #d0e2ff;
+}
+
+/* ---------- SECCIONES DE AYUDA ---------- */
+.modal-body section {
+  margin-bottom: 1.5rem;
+}
+
+.modal-body section h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #343a40;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-body p,
+.modal-body ul,
+.modal-body ol {
+  color: #343a40;
+  font-size: 0.95rem;
+}
+
+.modal-body ul,
+.modal-body ol {
+  padding-left: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-body code {
+  background-color: #f1f3f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.modal-body em {
+  color: #6c757d;
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+/* ---------- ALERTA FINAL ---------- */
+.alert-warning {
+  font-weight: bold;
+  text-align: center;
+}
+
+img {
+  width: 20px;
+  height: 20px;
+}
