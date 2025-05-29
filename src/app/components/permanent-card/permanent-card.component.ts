@@ -159,6 +159,8 @@ export class PermanentCardComponent {
     if (!this.selectedCard || !this.pendingAction) return;
 
     if (choice === 'commander') {
+      this.card.originalCard.mana_cost = "{2}" + this.card.originalCard.mana_cost
+      this.card.originalCard.sanitizedManaCost = this.gameStorage.sanitizeHtml(this.gameStorage.replaceManaSymbolsAndHighlightTriggers(this.card.originalCard.mana_cost));
       this.emitAction('commander', this.selectedCard);
     } else {
       this.emitAction(this.pendingAction, this.selectedCard);
@@ -276,6 +278,7 @@ export class PermanentCardComponent {
     if (!target.closest('.context-menu') && !target.closest('.permanent-card')) {
       this.contextMenuVisible = false;
       this.subMenuVisible = false;
+      this.showCounterModal = false;
     }
   }
 }

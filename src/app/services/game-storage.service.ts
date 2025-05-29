@@ -3,6 +3,7 @@ import { GameState } from '../models/game-state';
 import {Cart} from '../models/cart';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {Permanent} from '../models/permanent';
+import keywordExplanations from '../../assets/keywordExplanations.json';
 
 @Injectable({ providedIn: 'root' })
 export class GameStorageService {
@@ -79,27 +80,8 @@ export class GameStorageService {
 
   // ——— Métodos de enrich ———
   // en teoria esto va en otro servicio... pero: ¯\_(ツ)_/¯
-  keywordExplanations: { [key: string]: string } = {
-    "Haste": "Permite a una criatura eludir el mareo de invocación. Puede atacar o girarse el mismo turno en que entra.",
-    "Flying": "Solo puede ser bloqueada por criaturas con alcance o volar.",
-    "First strike": "Asigna daño de combate antes que las criaturas sin esta habilidad.",
-    "Vigilance": "Atacar no hace que la criatura se gire.",
-    "Trample": "El exceso de daño de combate al bloqueador se asigna al jugador o planeswalker defensor.",
-    "Lifelink": "El daño que hace también gana vida a su controlador.",
-    // Agrega más keywords según necesites
-  };
 
-  sanitizeOracleWithTooltips(oracle: string): string {
-    const keywords = Object.keys(this.keywordExplanations);
-    const regex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
-
-    return oracle.replace(regex, (match) => {
-      const description = this.keywordExplanations[match];
-      return `<span title="${description}">${match}</span>`;
-    });
-  }
-
-
+  keywordExplanations: { [key: string]: string } = keywordExplanations;
   enrichCard(card: Cart): Cart {
     const enrichFace = (face: any): any => ({
       ...face,
@@ -147,14 +129,6 @@ export class GameStorageService {
   replaceManaSymbolsAndHighlightTriggers(text?: string, keywords: string[] = []): string {
     if (!text) return '';
 
-    // Primero aplicar los tooltips a las palabras clave conocidas
-    const keywordsWithTooltips = Object.keys(this.keywordExplanations);
-    const keywordRegex = new RegExp(`\\b(${keywordsWithTooltips.join('|')})\\b`, 'gi');
-    text = text.replace(keywordRegex, (match) => {
-      const description = this.keywordExplanations[match];
-      return `<span title="${description}" class="text-primary">${match}</span>`;
-    });
-
     // Resaltar triggers de habilidades (When, Whenever, etc.)
     text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
@@ -165,11 +139,19 @@ export class GameStorageService {
       return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 
+    // Aplicar los tooltips a las palabras clave conocidas
+    const keywordsWithTooltips = Object.keys(this.keywordExplanations);
+    const keywordRegex = new RegExp(`\\b(${keywordsWithTooltips.join('|')})\\b`, 'gi');
+    text = text.replace(keywordRegex, (match) => {
+      const description = this.keywordExplanations[match];
+      return `<span title="${description}" class="text-primary">${match}</span>`;
+    });
+
     // Reemplazo de símbolos de maná por imagen SVG
     return text.replace(/\{([^}]+)}/g, (_, symbol) => {
       const cleanSymbol = symbol.replace('/', '').toUpperCase();
       return `<img src="https://svgs.scryfall.io/card-symbols/${cleanSymbol}.svg"
-                 alt="${symbol}"
+                 alt="{${symbol}}"
                  style="width: 20px; height: auto; vertical-align: middle;">`;
     });
   }

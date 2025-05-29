@@ -119,10 +119,6 @@ export class DeckProcessorComponent {
               this.logService.addLog("[DeckProcessorComponent.loadDeck] ", "Deck loaded")
 
             },
-            error: (err) => {
-              console.error('Error al cargar el mazo:', err);
-              this.loadError = 'Hubo un problema al cargar una o más cartas. Verifica que los nombres estén correctos. ' + err.error.details;
-            }
           });
         } else {
           this.deckCards = mainDeck;
@@ -130,6 +126,10 @@ export class DeckProcessorComponent {
           this.logService.addLog("[DeckProcessorComponent.loadDeck]", "Deck loaded (no tokens)");
         }
       },
+      error: (err) => {
+        console.error('Error al cargar el mazo:', err);
+        this.loadError = 'Hubo un problema al cargar una o más cartas. Verifica que los nombres estén correctos. ' + err.error.details;
+      }
     })
   }
 }

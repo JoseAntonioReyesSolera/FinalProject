@@ -2,10 +2,17 @@
   <h5>{{ zoneName }} ({{ getTotalCardCount() }})</h5>
 
   <div class="mb-3">
-    <span class="input-group-text">
+    <span class="input-group-text position-relative">
       <i class="bi bi-search"></i>
       <input type="text" class="form-control" placeholder="Buscar por nombre..." [(ngModel)]="searchTerm">
-    </span>
+       <button
+         type="button"
+         class="btn btn-sm btn-outline-danger"
+         (click)="searchTerm = ''"
+         title="Borrar búsqueda">
+      X
+    </button>
+     </span>
   </div>
 
   <div class="card-list row g-3">
