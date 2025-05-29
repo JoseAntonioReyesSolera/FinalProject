@@ -3,6 +3,7 @@ import {Phase} from '../../models/phase';
 import {TriggerService} from '../../services/trigger.service';
 import {BattlefieldService} from '../../services/battlefield.service';
 import {StackService} from '../../services/stack.service';
+import {TurnService} from '../../services/turn.service';
 
 @Component({
   selector: 'app-turn-timeline',
@@ -43,7 +44,11 @@ export class TurnTimelineComponent {
   phaseIndex = 0;
   stepIndex = 0;
 
-  constructor(private readonly triggerService: TriggerService, private readonly battlefieldService: BattlefieldService, private readonly stackService: StackService) {}
+  constructor(private readonly triggerService: TriggerService,
+              private readonly battlefieldService: BattlefieldService,
+              private readonly stackService: StackService,
+              private readonly turnService: TurnService
+  ) {}
 
   get currentPhase(): Phase {
     return this.phases[this.phaseIndex];
@@ -64,6 +69,7 @@ export class TurnTimelineComponent {
       this.phaseIndex = (this.phaseIndex + 1) % this.phases.length;
       this.stepIndex = 0;
     }
+    this.turnService.setCurrentStep(this.currentStep);
     this.triggerService.detectTriggers('beginStep', this.battlefieldService.getPermanentsSnapshot(), {
       stepName: this.currentStep,
     });
@@ -91,6 +97,7 @@ export class TurnTimelineComponent {
         ? this.phases[this.phaseIndex].steps!.length - 1
         : 0;
     }
+    this.turnService.setCurrentStep(this.currentStep);
     this.triggerService.detectTriggers('beginStep', this.battlefieldService.getPermanentsSnapshot(), {
       stepName: this.currentStep,
     });

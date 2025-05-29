@@ -7,12 +7,16 @@ import {LogService} from '../../services/log.service';
 import {GameStorageService} from '../../services/game-storage.service';
 import {SafeHtml} from '@angular/platform-browser';
 import {FormsModule} from '@angular/forms';
+import {TurnService} from '../../services/turn.service';
+import {AsyncPipe} from '@angular/common';
+import {TriggerService} from '../../services/trigger.service';
 
 @Component({
   selector: 'app-permanent-card',
   templateUrl: './permanent-card.component.html',
   imports: [
-    FormsModule
+    FormsModule,
+    AsyncPipe
   ],
   styleUrls: ['./permanent-card.component.css']
 })
@@ -24,11 +28,11 @@ export class PermanentCardComponent {
   contextMenuVisible = false;
   subMenuVisible = false;
   contextMenuPosition = { x: 0, y: 0 };
-  isFrontFaceShown = true;
 
   showCounterModal = false;
   selectedCounterType = '';
   counterAmount = 1;
+  isAttacking = false;
 
   counterTypes = [
     'counter', '+1/+1', '-1/-1', 'Flying', 'Menace',
@@ -41,8 +45,10 @@ export class PermanentCardComponent {
   constructor(
     private readonly stackService: StackService,
     private readonly bf: BattlefieldService,
+    private readonly triggerService: TriggerService,
     private readonly logService: LogService,
-    private readonly gameStorage: GameStorageService
+    private readonly gameStorage: GameStorageService,
+    public readonly turnService: TurnService
   ) {}
 
   onClick(event: MouseEvent) {
@@ -189,6 +195,9 @@ export class PermanentCardComponent {
   toggleTap() {
     this.card.tapped = !this.card.tapped;
     this.logService.addLog("[PermanentCardComponent.toggleTap]", this.card.name, this.card.tapped ? "girada" : "enderezada");
+    if (!this.card.tapped) {
+      this.isAttacking = false;
+    }
     this.contextMenuVisible = false;
     this.subMenuVisible = false;
   }
@@ -271,6 +280,26 @@ export class PermanentCardComponent {
     return null;
   }
 
+  isCreature(): boolean {
+    return this.card.type.toLowerCase().includes('creature');
+  }
+
+  /** acción especial al pulsar el botón */
+  onAttackPhaseAction() {
+    this.isAttacking = !this.isAttacking;
+
+    if (this.isAttacking)
+      this.triggerService.detectTriggers('attackDeclare', this.bf.getPermanentsSnapshot(), {source: this.card});
+
+    const hasVigilance = this.card.originalCard.keywords
+      ?.map(k => k.toLowerCase())
+      .includes('vigilance');
+    if (!hasVigilance) {
+      this.card.tapped = true;
+    }
+
+    this.contextMenuVisible = false;
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {

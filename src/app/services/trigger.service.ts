@@ -14,7 +14,8 @@ type TriggerEvent =
   | 'discard'
   | 'attack'
   | 'beginStep'
-  | 'endStep';
+  | 'endStep'
+  | 'attackDeclare';
 
 interface TriggerPattern {
   includes: string[];
@@ -98,7 +99,7 @@ export class TriggerService {
       }
     },
     attack: {
-      includes: ['whenever you attack', "attacks"],/*separarlo en la fase de declarar atacantes, si hay por lo menos uno, whenever atacks dispara*/
+      includes: ['whenever you attack'],
     },
     beginStep: {
       includes: ['at the beginning of'],
@@ -119,6 +120,12 @@ export class TriggerService {
     endStep: {
       includes: ['at the beginning of the end step'],
     },
+    attackDeclare: {
+      includes: ['attacks'],
+      extraCondition: (_line, ctx) => {
+        return !!ctx?.source;
+      },
+    }
   };
 
   detectTriggers(
@@ -154,6 +161,28 @@ export class TriggerService {
             }
           });
       });
+      return;
+    }
+
+    if (event === 'attackDeclare' && options?.source) {
+      const perm = options.source as Permanent;
+      const shortName = perm.name.split(',')[0].toLowerCase();
+
+      this.extractOracleLines(perm.originalCard)
+        .filter(line => {
+
+          if (!/\battacks\b/.test(line)) return false;
+
+          if (/\bthis creature attacks\b/.test(line))     return true;
+
+          // 3) disparadores con nombre propio (“Whenever voja attacks”)
+          return new RegExp(`\\b${shortName}\\s+attacks\\b`).test(line);
+
+
+        })
+        .forEach(line =>
+          this.pushTrigger(perm, line, 'detectTriggers.attackDeclare')
+        );
       return;
     }
 

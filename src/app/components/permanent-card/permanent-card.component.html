@@ -1,4 +1,5 @@
 <button class="permanent-card"
+        [class.attacking]="isAttacking"
      (click)="onClick($event)">
     <div class="card-name">{{ card.name }}</div>
 
@@ -37,6 +38,13 @@
       <li>
         <button (click)="executeAction('details')">Ver detalles</button>
       </li>
+      @if ((turnService.currentStep$ | async) === 'Declare Attackers' && isCreature()) {
+      <li>
+        <button (click)="onAttackPhaseAction()">
+          Declarar como atacante
+        </button>
+      </li>
+      }
       @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>
           <button (click)="executeAction('activate', ability.cost)">

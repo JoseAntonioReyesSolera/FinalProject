@@ -8,7 +8,7 @@
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(75, 108, 183, 0.8);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease, border-color 0.3s ease;
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -16,7 +16,15 @@
   user-select: none;
 }
 
-.permanent-card:hover {
+.permanent-card.attacking {
+  transform: translateY(-10px);
+}
+
+.permanent-card.attacking:hover {
+  transform: translateY(-10px) scale(1.05);
+}
+
+.permanent-card:hover:not(.attacking) {
   z-index: 1000;
   transform: scale(1.05);
   box-shadow:
