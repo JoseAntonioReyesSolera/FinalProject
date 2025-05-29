@@ -110,4 +110,39 @@ export class BattlefieldService {
     this.permanentsSubject.next(updated);
     this.logService.addLog('[BattlefieldService.untapAll]', 'All permanents untapped');
   }
+
+  getGlobalPowerToughnessBuffs(target: Permanent): { power: number; toughness: number } {
+    let bonus = { power: 0, toughness: 0 };
+    const permanents = this.getPermanentsSnapshot();
+
+    for (const permanent of permanents) {
+      const text = permanent.originalCard?.oracle_text?.toLowerCase() || '';
+
+      // Patrón para detectar lords tribales: "Other Zombie creatures you control get +1/+1"
+      const tribalMatch = text.match(/(other )?([a-z]+) creatures you control get \+(\d+)\/\+(\d+)/);
+      if (tribalMatch) {
+        const [ , other, type, pow, tough ] = tribalMatch;
+        const appliesToSelf = !other; // solo se aplica a sí mismo si NO contiene "other"
+        const creatureType = type.charAt(0).toUpperCase() + type.slice(1); // capitalizar
+
+        // Verificamos si el target tiene ese tipo de criatura
+        if (target.type?.includes(creatureType)) {
+          if (appliesToSelf || target.instanceId !== permanent.instanceId) {
+            bonus.power += parseInt(pow);
+            bonus.toughness += parseInt(tough);
+          }
+        }
+
+        continue; // evita que entre en el siguiente if
+      }
+
+      // Global buffs tipo "Creatures you control get +1/+1"
+      if (text.includes('creatures you control get +1/+1')) {
+        bonus.power += 1;
+        bonus.toughness += 1;
+      }
+    }
+
+    return bonus;
+  }
 }

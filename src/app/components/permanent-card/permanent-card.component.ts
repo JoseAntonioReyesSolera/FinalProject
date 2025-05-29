@@ -275,6 +275,12 @@ export class PermanentCardComponent {
           toughness -= counter.amount;
         }
       }
+
+      // Aplicar bonos globales
+      const buffs = this.bf.getGlobalPowerToughnessBuffs(card);
+      power += buffs.power;
+      toughness += buffs.toughness;
+
       return `${power}/${toughness}`;
     }
     return null;

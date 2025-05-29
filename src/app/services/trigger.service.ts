@@ -47,13 +47,23 @@ export class TriggerService {
         // Solo requerimos 'enters'; el cuándo lo validamos abajo
       includes: ['enters'],
       extraCondition: (line, ctx) => {
-        // 1) Landfall (no empieza con 'when' ni 'whenever')
-        if (line.startsWith('landfall')) {
-          const src = ctx?.source as Permanent;
+        const src = ctx?.source as Permanent;
+        const isLandfall = line.startsWith('landfall');
+
+        if (isLandfall) {
           return !!src && src.originalCard.type_line.toLowerCase().includes('land');
         }
-        // 2) Para el resto, solo líneas que empiecen con 'when ' o 'whenever '
-        return line.startsWith('when ') || line.startsWith('whenever ');
+
+        const startsCorrectly = line.startsWith('when ') || line.startsWith('whenever ');
+        if (!startsCorrectly) return false;
+
+        const mentionsCreature = /\ba creature\b|\banother creature\b/.test(line);
+        if (mentionsCreature) {
+          return !!src && src.originalCard.type_line.toLowerCase().includes('creature');
+        }
+
+        // Si no menciona "a creature", dejamos pasar para efectos genéricos (como "whenever a permanent enters")
+        return true;
       }
     },
     dies: {
