@@ -5,6 +5,7 @@ import {BattlefieldService} from './battlefield.service';
 import {StackService} from './stack.service';
 import {TriggerService} from './trigger.service';
 import {LogService} from './log.service';
+import {Permanent} from '../models/permanent';
 type ZoneName = 'library' | 'hand' | 'graveyard' | 'exile' | 'command' | 'sideboard' | 'battlefield' | 'stack' | 'tokens';
 @Injectable({
   providedIn: 'root'
@@ -46,57 +47,39 @@ export class DeckService {
   // Mover carta de una zona a otra
   moveCardToZone(card: Cart, to: ZoneName, qty = 1) {
     const from = card.zone;
-    const originalFrom = from;
-
-    // No hacer nada si la carta ya está en la zona de destino
     if (from === to) return;
 
-    // Evitar modificar directamente hasta validar tod.o
-    if (from !== 'stack' && from !== 'battlefield') {
+    const isLeavingStackOrBattlefield = from !== 'stack' && from !== 'battlefield';
+    const battlefield = this.bf.getPermanentsSnapshot();
+
+    if (isLeavingStackOrBattlefield) {
       this.removeFromZone(from as ZoneName, card, qty);
     }
 
-    // Split Second evita que se pongan cartas en la pila
     if (to === 'stack' && this.stack.isSplitSecondActive()) {
-      this.addToZone(originalFrom as ZoneName, card, qty);
+      this.addToZone(from as ZoneName, card, qty);
       return;
     }
 
-    // Ahora sí podemos cambiar la zona
     card.zone = to;
+    this.handleCommanderStatus(card, from, to);
 
-    // Control de comandante
-    if (to === 'command') {
-      card.isCommander = true;
-    } else if (from === 'command' && to === 'library') {
-      card.isCommander = false;
-    }
+    switch (to) {
+      case 'stack':
+        this.stack.castSpell({ type: 'Spell', source: card, description: `${card.name} cast.` });
+        this.triggerService.detectTriggers('cast', battlefield, { source: card });
+        break;
 
-    // Acción según zona de destino
-    if (to === 'stack') {
-      const battlefield = this.bf.getPermanentsSnapshot();
-      this.stack.castSpell({ type: 'Spell', source: card, description: `${card.name} cast.` });
-      this.triggerService.detectTriggers('cast', battlefield, { source: card });
-    }
-    else if (to === 'battlefield') {
-      this.bf.addPermanent(card, qty, from);
-    }
-    else {
-      this.addToZone(to, card, qty);
-    }
-    if (from === 'library' && to === 'hand') {
-      const battlefield = this.bf.getPermanentsSnapshot();
-      this.logService.addLog("[DeckService.drawCard]", card.name);
-      this.triggerService.detectTriggers('draw', battlefield, { source: card });
+      case 'battlefield':
+        this.bf.addPermanent(card, qty, from);
+        break;
+
+      default:
+        this.addToZone(to, card, qty);
     }
 
-    if (from === 'hand' && to === 'graveyard') {
-      const battlefield = this.bf.getPermanentsSnapshot();
-      this.logService.addLog("[DeckService.discardCard]", card.name);
-      this.triggerService.detectTriggers('discard', battlefield, { source: card });
-    }
+    this.handleDrawOrDiscardTriggers(from, to, card, battlefield);
 
-    // Registrar log y disparar triggers si hay cambio de zona
     this.logService.addLog("[DeckService.moveCardToZone]", card.name, ":", from, "-->", to);
 
     if (card.type_line?.includes('Token') && to !== 'battlefield') {
@@ -104,6 +87,25 @@ export class DeckService {
       this.logService.addLog("[DeckService.moveCardToZone]", `Eliminado token '${card.name}' de la zona ${to}`);
     }
   }
+
+  private handleCommanderStatus(card: Cart, from: string, to: ZoneName) {
+    if (to === 'command') {
+      card.isCommander = true;
+    } else if (from === 'command' && to === 'library') {
+      card.isCommander = false;
+    }
+  }
+
+  private handleDrawOrDiscardTriggers(from: string, to: ZoneName, card: Cart, battlefield: Permanent[]) {
+    if (from === 'library' && to === 'hand') {
+      this.logService.addLog("[DeckService.drawCard]", card.name);
+      this.triggerService.detectTriggers('draw', battlefield, { source: card });
+    } else if (from === 'hand' && to === 'graveyard') {
+      this.logService.addLog("[DeckService.discardCard]", card.name);
+      this.triggerService.detectTriggers('discard', battlefield, { source: card });
+    }
+  }
+
 
   private addToZone(zone: ZoneName, card: Cart, qty: number) {
     const list = this.getZone(zone);
