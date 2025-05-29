@@ -60,9 +60,6 @@ export class TurnTimelineComponent {
   }
 
   next(): void {
-    this.triggerService.detectTriggers('endStep', this.battlefieldService.getPermanentsSnapshot(), {
-      stepName: this.currentStep,
-    });
     if (this.currentPhase.steps && this.stepIndex < this.currentPhase.steps.length - 1) {
       this.stepIndex++;
     } else {
@@ -70,6 +67,7 @@ export class TurnTimelineComponent {
       this.stepIndex = 0;
     }
     this.turnService.setCurrentStep(this.currentStep);
+
     this.triggerService.detectTriggers('beginStep', this.battlefieldService.getPermanentsSnapshot(), {
       stepName: this.currentStep,
     });
@@ -85,9 +83,6 @@ export class TurnTimelineComponent {
   }
 
   prev(): void {
-    this.triggerService.detectTriggers('endStep', this.battlefieldService.getPermanentsSnapshot(), {
-      stepName: this.currentStep,
-    });
     if (this.currentPhase.steps && this.stepIndex > 0) {
       this.stepIndex--;
     } else {

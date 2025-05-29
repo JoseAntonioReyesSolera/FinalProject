@@ -14,7 +14,6 @@ type TriggerEvent =
   | 'discard'
   | 'attack'
   | 'beginStep'
-  | 'endStep'
   | 'attackDeclare';
 
 interface TriggerPattern {
@@ -116,19 +115,33 @@ export class TriggerService {
       extraCondition: (line, ctx) => {
         const s = ctx?.stepName?.toLowerCase();
         // upkeep
-        if (line.includes('at the beginning of your upkeep')) {
+        if (line.includes('upkeep')) {
           return s === 'upkeep';
         }
         // combat
-        if (line.includes('at the beginning of combat on your turn')) {
+        if (line.includes('combat on your turn')) {
           return s === 'beginning of combat';
         }
+        // end step
+        if (line.includes('end step')) {
+          return s === 'end step';
+        }
+        // draw
+        if (line.includes('draw step')) {
+          return s === 'draw';
+        }
+        // pre.comb main
+        if (line.includes('first main phase')) {
+          return s === 'PreCombat Main Phase';
+        }
+        // post.comb main
+        if (line.includes('postcombat main phase')) {
+          return s === 'PostCombat Main Phase';
+        }
+
         // otras fases siguen disparando normalmente
-        return !/(upkeep|combat)/.test(line);
+        return false;
       }
-    },
-    endStep: {
-      includes: ['at the beginning of the end step'],
     },
     attackDeclare: {
       includes: ['attacks'],
