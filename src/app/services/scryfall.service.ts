@@ -21,6 +21,7 @@ export class ScryfallService {
   }
 
   getCardByUri(uri: string): Observable<Cart> {
+    delay(100);
     return this.http.get<Cart>(uri);
   }
 
