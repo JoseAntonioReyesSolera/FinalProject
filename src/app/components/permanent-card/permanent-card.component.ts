@@ -61,98 +61,118 @@ export class PermanentCardComponent {
     this.selectedCard = this.card;
   }
 
-  executeAction(action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate' | 'transform', cost?: string) {
+  executeAction(
+    action: 'cast' | 'details' | 'destroy' | 'backToHand' | 'exile' | 'activate' | 'transform',
+    cost?: string
+  ) {
     if (!this.selectedCard) return;
 
-    if (['destroy', 'backToHand', 'exile'].includes(action) && this.selectedCard.originalCard?.isCommander) {
-      this.pendingAction = action as 'destroy' | 'backToHand' | 'exile';
-      this.contextMenuVisible = false;
-      this.subMenuVisible = true;
+    if (this.isCommanderZoneAction(action)) {
+      this.prepareCommanderSubmenu(action);
       return;
     }
 
-    if (action === 'transform') {
-      this.bf.transformPermanent(this.card.instanceId);
+    switch (action) {
+      case 'transform':
+        this.bf.transformPermanent(this.card.instanceId);
+        break;
+      case 'activate':
+        this.handleActivatedAbility(cost);
+        break;
+      default:
+        this.emitAction(action, this.selectedCard);
     }
+  }
 
-    if (action === 'activate') {
-      if (!cost) return; // Asegura que se pase el coste de la habilidad
+  private isCommanderZoneAction(action: string): boolean | undefined {
+    return ['destroy', 'backToHand', 'exile'].includes(action) &&
+      this.selectedCard?.originalCard?.isCommander;
+  }
 
-      const oracleText = this.selectedCard.originalCard?.oracle_text || '';
+  private prepareCommanderSubmenu(action: string) {
+    this.pendingAction = action as 'destroy' | 'backToHand' | 'exile';
+    this.contextMenuVisible = false;
+    this.subMenuVisible = true;
+  }
 
-// Busca líneas que empiecen exactamente con el coste (por ejemplo, '{1}{T}:')
-      const line = oracleText
-        .split('\n')
-        .map(l => l.trim())
-        .find(l => l.startsWith(cost + ':'));
-
-      const efecto = line?.split(':')[1]?.trim() ?? '';
-
-      const isManaAbility = /Add\s+\{|\bany color\b/i.test(efecto);
-
-      if (cost.includes('{T}')) {
-        this.card.tapped = true;
-        this.logService.addLog("[PermanentCardComponent.executeAction]", this.card.name, "girada al activar", cost);
-      }
-
-      if (isManaAbility) {
-        // Ejecutar directamente la habilidad de maná (puedes ajustar esta lógica si usas otra forma de aplicar el efecto)
-        this.logService.addLog("[PermanentCardComponent.executeAction] ", "mana ability ", this.card.name, ": ", cost);
-        // Aquí podrías agregar lógica para modificar la reserva de maná si la implementas
-        this.contextMenuVisible = false;
-        this.subMenuVisible = false;
-        return;
-      }
-
-      // Detectar si es una habilidad de lealtad
-      const loyaltyCostMatch = cost.match(/^([+\u2212]?)(\d+)$/);
-      if (loyaltyCostMatch && this.card.type.includes('Planeswalker')) {
-        const sign = loyaltyCostMatch[1]; // '+' | '-' | ''
-        const amount = parseInt(loyaltyCostMatch[2], 10);
-
-        const change = sign === '\u2212' ? -amount : amount;
-        const currentLoyalty = Number(this.card.loyalty ?? 0);
-
-        if (change < 0 && Math.abs(change) > currentLoyalty) {
-          this.logService.addLog(
-            "[PermanentCardComponent]",
-            `${this.card.name} no tiene suficiente lealtad para usar ${cost}`
-          );
-          return;
-        }
-
-        const newLoyalty = currentLoyalty + change;
-        this.card.loyalty = newLoyalty;
-        this.logService.addLog(
-          "[PermanentCardComponent]",
-          `${this.card.name} ahora tiene ${newLoyalty} lealtad tras activar ${cost}`
-        );
-      }
-
-      const sanitizedEfecto = this.gameStorage['sanitizeHtml'](
-        this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](efecto));
-        const item: StackItem = {
-          type: 'ActivatedAbility',
-          source: this.selectedCard,
-          description: `Activate an ability:`,
-          cost: cost,
-          efecto: sanitizedEfecto,
-        };
+  private handleActivatedAbility(cost?: string) {
+    if (!cost || this.stackService.isSplitSecondActive()) {
       if (this.stackService.isSplitSecondActive()) {
         this.card.tapped = false;
         this.logService.addLog("[PermanentCardComponent.executeAction]", "No se puede activar habilidad por Split Second activo.");
-        return;
       }
-
-      this.stackService.pushToStack(item);
-      this.logService.addLog("[PermanentCardComponent.executeAction] ", "no-mana ability ", this.card.name, ": ", cost)
-      this.contextMenuVisible = false;
-      this.subMenuVisible = false;
       return;
     }
 
-    this.emitAction(action, this.selectedCard);
+    const oracleText = this.selectedCard?.originalCard?.oracle_text ?? '';
+    const line = oracleText.split('\n').map(l => l.trim()).find(l => l.startsWith(cost + ':'));
+    const efecto = line?.split(':')[1]?.trim() ?? '';
+
+    if (cost.includes('{T}')) {
+      this.card.tapped = true;
+      this.logService.addLog("[PermanentCardComponent.executeAction]", this.card.name, "girada al activar", cost);
+    }
+
+    if (this.isManaAbility(efecto)) {
+      this.logService.addLog("[PermanentCardComponent.executeAction]", "mana ability", this.card.name, ": ", cost);
+      this.closeMenus();
+      return;
+    }
+
+    if (this.card.type.includes('Planeswalker') && this.isLoyaltyAbility(cost)) {
+      if (!this.applyLoyaltyCost(cost)) return;
+    }
+
+    const sanitizedEfecto = this.gameStorage['sanitizeHtml'](
+      this.gameStorage['replaceManaSymbolsAndHighlightTriggers'](efecto)
+    );
+
+    const item: StackItem = {
+      type: 'ActivatedAbility',
+      source: this.selectedCard!,
+      description: `Activate an ability:`,
+      cost: cost,
+      efecto: sanitizedEfecto,
+    };
+
+    this.stackService.pushToStack(item);
+    this.logService.addLog("[PermanentCardComponent.executeAction]", "no-mana ability", this.card.name, ": ", cost);
+    this.closeMenus();
   }
+
+  private isManaAbility(efecto: string): boolean {
+    return /Add\s+\{|\bany color\b/i.test(efecto);
+  }
+
+  private isLoyaltyAbility(cost: string): boolean {
+    return /^([+\u2212]?)(\d+)$/.test(cost);
+  }
+
+  private applyLoyaltyCost(cost: string): boolean {
+    const match = RegExp(/^([+\u2212]?)(\d+)$/).exec(cost);
+    if (!match) return false;
+
+    const sign = match[1];
+    const amount = parseInt(match[2], 10);
+    const currentLoyalty = Number(this.card.loyalty ?? 0);
+    const change = sign === '\u2212' ? -amount : amount;
+
+    if (change < 0 && Math.abs(change) > currentLoyalty) {
+      this.logService.addLog("[PermanentCardComponent]", `${this.card.name} no tiene suficiente lealtad para usar ${cost}`);
+      return false;
+    }
+
+    const newLoyalty = currentLoyalty + change;
+    this.card.loyalty = newLoyalty;
+    this.logService.addLog("[PermanentCardComponent]", `${this.card.name} ahora tiene ${newLoyalty} lealtad tras activar ${cost}`);
+    return true;
+  }
+
+  private closeMenus() {
+    this.contextMenuVisible = false;
+    this.subMenuVisible = false;
+  }
+
 
   emitAction(action: string, card: Permanent) {
     this.cardAction.emit({ action, card });
@@ -233,23 +253,21 @@ export class PermanentCardComponent {
           `Actualizado contador de ${this.selectedCounterType} a ${existing.amount} en ${this.selectedCard.name}`
         );
       }
+    } else if (this.counterAmount > 0) {
+      if (!this.selectedCard.counters) this.selectedCard.counters = [];
+      this.selectedCard.counters.push({
+        type: this.selectedCounterType,
+        amount: this.counterAmount
+      });
+      this.logService.addLog(
+        "[PermanentCardComponent.addCounter]",
+        `Añadido ${this.counterAmount} contador(es) de ${this.selectedCounterType} a ${this.selectedCard.name}`
+      );
     } else {
-      if (this.counterAmount > 0) {
-        if (!this.selectedCard.counters) this.selectedCard.counters = [];
-        this.selectedCard.counters.push({
-          type: this.selectedCounterType,
-          amount: this.counterAmount
-        });
-        this.logService.addLog(
-          "[PermanentCardComponent.addCounter]",
-          `Añadido ${this.counterAmount} contador(es) de ${this.selectedCounterType} a ${this.selectedCard.name}`
-        );
-      } else {
-        this.logService.addLog(
-          "[PermanentCardComponent.addCounter]",
-          `No se puede quitar contadores de tipo ${this.selectedCounterType} porque no hay ninguno`
-        );
-      }
+      this.logService.addLog(
+        "[PermanentCardComponent.addCounter]",
+        `No se puede quitar contadores de tipo ${this.selectedCounterType} porque no hay ninguno`
+      );
     }
     this.showCounterModal = false;
   }
