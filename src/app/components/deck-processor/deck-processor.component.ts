@@ -5,7 +5,7 @@ import {DeckService} from '../../services/deck.service';
 import {forkJoin} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 import {LogService} from '../../services/log.service';
-import {EnrichService} from '../../services/enrich.service';
+import {CardEnrichmentService} from '../../services/enrich.service';
 
 @Component({
   selector: 'app-deck-processor',
@@ -24,7 +24,7 @@ export class DeckProcessorComponent {
               private readonly scryfallService: ScryfallService,
               private readonly deckService: DeckService,
               private readonly logService: LogService,
-              private readonly enrichService: EnrichService
+              private readonly enrichService: CardEnrichmentService
     ) {}
 
   processDeckInput() {
@@ -68,7 +68,6 @@ export class DeckProcessorComponent {
     const mainRequests = unifiedMainList.map(card => this.scryfallService.getCardByName(card.name.replace(/\s*\(.*$/, '').trim()));
 
     const sideRequests = this.deckSideboardList.map(card => this.scryfallService.getCardByName(card.name.replace(/\s*\(.*$/, '').trim()));
-
     forkJoin([...mainRequests, ...sideRequests]).subscribe({
       next: cards => {
         const allCards: Cart[] = cards.map((card, index) => {
@@ -78,15 +77,15 @@ export class DeckProcessorComponent {
             : unifiedMainList[index].quantity;
 
           // Enriquecemos cada carta, sin llamar a toggleCardFace aquí
-          return this.enrichService.enrichCard({
+          const enriched = this.enrichService.enrichCard({
             instanceId: `${card.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
             ...card,
             quantity,
             zone: isSide ? 'sideboard' : 'library',
             isCommander: false,
           });
+          return enriched;
         });
-
         // Separa otra vez main y side según la longitud original
         const mainDeck = allCards.slice(0, unifiedMainList.length);
         const sideboard = allCards.slice(unifiedMainList.length);
@@ -112,7 +111,6 @@ export class DeckProcessorComponent {
                   isCommander: false,
                 })
               );
-
               // Guarda en el servicio
               this.deckCards = mainDeck;
               this.deckService.setDeckCards(mainDeck, sideboard, enrichedTokens);

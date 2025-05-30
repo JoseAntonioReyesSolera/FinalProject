@@ -1,13 +1,15 @@
-import {Injectable} from '@angular/core';
-import {GameState} from '../models/game-state';
-import {Cart} from '../models/cart';
-import {Permanent} from '../models/permanent';
+import { Injectable } from '@angular/core';
+import { GameState } from '../models/game-state';
+import { Cart } from '../models/cart';
+import { Permanent } from '../models/permanent';
 
 @Injectable({ providedIn: 'root' })
 export class GameStorageService {
   private readonly STORAGE_KEY = 'mtg_saved_games';
+
   saveGame(state: GameState) {
     const allGames = this.getAllGames();
+
     const stripCard = (c: Cart): Cart => {
       const {
         sanitizedManaCost,
@@ -34,7 +36,7 @@ export class GameStorageService {
       };
     };
 
-    allGames[state.id] = {
+    const strippedState: GameState = {
       ...state,
       cards: state.cards.map(stripCard),
       battlefield: state.battlefield.map(stripPermanent),
@@ -48,6 +50,8 @@ export class GameStorageService {
           : stripCard(item.source as Cart)
       })),
     };
+
+    allGames[state.id] = strippedState;
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allGames));
   }
 

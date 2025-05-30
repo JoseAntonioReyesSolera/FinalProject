@@ -9,7 +9,7 @@ import {FormsModule} from '@angular/forms';
 import {TurnService} from '../../services/turn.service';
 import {AsyncPipe} from '@angular/common';
 import {TriggerService} from '../../services/trigger.service';
-import {EnrichService} from '../../services/enrich.service';
+import {CardEnrichmentService} from '../../services/enrich.service';
 
 @Component({
   selector: 'app-permanent-card',
@@ -48,7 +48,7 @@ export class PermanentCardComponent {
     private readonly triggerService: TriggerService,
     private readonly logService: LogService,
     public readonly turnService: TurnService,
-    private readonly enrichService: EnrichService
+    private readonly enrichService: CardEnrichmentService
   ) {}
 
   onClick(event: MouseEvent) {

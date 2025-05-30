@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import {Cart} from '../models/cart';
-import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Cart } from '../models/cart';
 import keywordExplanations from '../../assets/keywordExplanations.json';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class EnrichService {
+@Injectable({ providedIn: 'root' })
+export class CardEnrichmentService {
   private readonly manaOrder = ['W', 'U', 'B', 'R', 'G'];
   keywordExplanations: { [key: string]: string } = keywordExplanations;
 
@@ -23,15 +21,14 @@ export class EnrichService {
 
     const enriched: Cart = {
       ...card,
-      currentFaceIndex: card.card_faces ? 0 : 1,  // Comienza en la cara frontal si existe
+      currentFaceIndex: card.card_faces ? 0 : 1,
       isSingleImageDoubleFace: this.isSingleImageDoubleFace(card),
       sanitizedManaCost: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(card.mana_cost)),
       sanitizedOracleText: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.getOracleText(card))),
       sanitizedProducedMana: this.sanitizeHtml(this.replaceManaSymbolsAndHighlightTriggers(this.formatProducedMana(card.produced_mana))),
-      card_faces: card.card_faces?.map(enrichFace),  // Enriquecemos todas las caras si existen
+      card_faces: card.card_faces?.map(enrichFace),
     };
 
-    // Si es una carta de doble cara y no usa una imagen única para ambas caras
     if (enriched.card_faces && !enriched.isSingleImageDoubleFace) {
       this.toggleCardFace(enriched);
     }
@@ -59,17 +56,14 @@ export class EnrichService {
   replaceManaSymbolsAndHighlightTriggers(text?: string): string {
     if (!text) return '';
 
-    // Resaltar triggers de habilidades (When, Whenever, etc.)
     text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
     });
 
-    // Habilidades activadas (costo: efecto)
-    text = text.replace(/((?:<img [^>]+>|[−+A-Za-z0-9\s,']+)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
+    text = text.replace(/((?:<img [^>]+>|[−+A-Za-z0-9\s,']?)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
       return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 
-    // Aplicar los tooltips a las palabras clave conocidas
     const keywordsWithTooltips = Object.keys(this.keywordExplanations);
     const keywordRegex = new RegExp(`\\b(${keywordsWithTooltips.join('|')})\\b`, 'gi');
 
@@ -83,7 +77,6 @@ export class EnrichService {
       return match;
     });
 
-    // Reemplazo de símbolos de maná por imagen SVG
     return text.replace(/\{([^}]+)}/g, (_, symbol) => {
       const cleanSymbol = symbol.replace('/', '').toUpperCase();
       return `<img src="https://svgs.scryfall.io/card-symbols/${cleanSymbol}.svg"

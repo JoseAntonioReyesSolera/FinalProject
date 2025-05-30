@@ -3,7 +3,7 @@ import {Permanent} from '../models/permanent';
 import {Injectable} from '@angular/core';
 import {StackService} from './stack.service';
 import {LogService} from './log.service';
-import {EnrichService} from './enrich.service';
+import {CardEnrichmentService} from './enrich.service';
 
 type TriggerEvent =
   | 'cast'
@@ -27,7 +27,7 @@ export class TriggerService {
   constructor(
     private readonly stack: StackService,
     private readonly logService: LogService,
-    private readonly enrichService: EnrichService
+    private readonly enrichService: CardEnrichmentService
   ) {}
 
   private readonly triggerPatterns: Record<TriggerEvent, TriggerPattern> = {
