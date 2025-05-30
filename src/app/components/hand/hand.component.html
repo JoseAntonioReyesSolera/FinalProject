@@ -30,11 +30,11 @@
      [style.top.px]="contextMenuPosition.y"
      [style.left.px]="contextMenuPosition.x">
   <ul>
-    <li (click)="castSpell(selectedCard)">Lanzar hechizo</li>
-    <li (click)="viewDetails(selectedCard)">Ver detalles</li>
-    <li (click)="moveToLibrary(selectedCard)">Mover a la biblioteca</li>
-    <li (click)="moveToGraveyard(selectedCard)">Descartar</li>
-    <li (click)="moveToExile(selectedCard)">Exiliar</li>
+    <li><button (click)="castSpell(selectedCard)" style="border: transparent; background-color: transparent">Lanzar hechizo</button></li>
+    <li><button (click)="viewDetails(selectedCard)" style="border: transparent; background-color: transparent">Ver detalles</button></li>
+    <li><button (click)="moveToLibrary(selectedCard)" style="border: transparent; background-color: transparent">Mover a la biblioteca</button></li>
+    <li><button (click)="moveToGraveyard(selectedCard)" style="border: transparent; background-color: transparent">Descartar</button></li>
+    <li><button (click)="moveToExile(selectedCard)" style="border: transparent; background-color: transparent">Exiliar</button></li>
   </ul>
 </div>
   </button>

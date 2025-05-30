@@ -22,10 +22,10 @@
     [style.left.px]="contextMenuPosition.x"
   >
     <ul>
-      <li (click)="castSpell(selectedCard!)">Lanzar hechizo</li>
-      <li (click)="viewDetails(selectedCard)">Ver detalles</li>
-      <li (click)="moveToHand(selectedCard!)">Mover a la mano</li>
-      <li (click)="unassignCommander(selectedCard!)">Desmarcar como comandante</li>
+      <li><button (click)="castSpell(selectedCard!)" style="border: transparent; background-color: transparent">Lanzar hechizo</button></li>
+      <li><button (click)="viewDetails(selectedCard)" style="border: transparent; background-color: transparent">Ver detalles</button></li>
+      <li><button (click)="moveToHand(selectedCard!)" style="border: transparent; background-color: transparent">Mover a la mano</button></li>
+      <li><button (click)="unassignCommander(selectedCard!)" style="border: transparent; background-color: transparent">Desmarcar como comandante</button></li>
     </ul>
   </div>
   </button>
