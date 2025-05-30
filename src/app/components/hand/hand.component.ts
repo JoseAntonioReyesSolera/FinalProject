@@ -190,7 +190,7 @@ export class HandComponent implements OnInit {
 
 
   private extractManaSymbols(manaCost: string): string[] {
-    const matches = manaCost.match(/\{([^\}]+)\}/g);
+    const matches = manaCost.match(/\{([^}]+)}/g);
     return matches ? matches.map(s => s.replace(/[{}]/g, '')) : [];
   }
 

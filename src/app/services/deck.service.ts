@@ -175,9 +175,13 @@ export class DeckService {
     const typeLine = top.source.type_line;
     const isInstantOrSorcery = /Instant|Sorcery/.test(typeLine);
 
-    const destination = resolved
-      ? (isInstantOrSorcery ? 'graveyard' : 'battlefield')
-      : 'graveyard';
+    let destination: ZoneName;
+
+    if (resolved) {
+      destination = isInstantOrSorcery ? 'graveyard' : 'battlefield';
+    } else {
+      destination = 'graveyard';
+    }
 
     this.moveCardToZone(top.source, destination, 1);
   }

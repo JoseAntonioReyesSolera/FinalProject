@@ -77,14 +77,13 @@ export class DeckProcessorComponent {
             : unifiedMainList[index].quantity;
 
           // Enriquecemos cada carta, sin llamar a toggleCardFace aquí
-          const enriched = this.enrichService.enrichCard({
+          return this.enrichService.enrichCard({
             instanceId: `${card.id}-${crypto.randomUUID?.() ?? Math.random().toString(36).substring(2)}`,
             ...card,
             quantity,
             zone: isSide ? 'sideboard' : 'library',
             isCommander: false,
           });
-          return enriched;
         });
         // Separa otra vez main y side según la longitud original
         const mainDeck = allCards.slice(0, unifiedMainList.length);

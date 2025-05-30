@@ -73,7 +73,7 @@ export class TriggerService {
         if (!src) return false;
 
         // Buscar subtipo en formato "another X" o "this X"
-        const m = line.match(/\b(?:this|another)\s+([a-z]+)\b/);
+        const m = RegExp(/\b(?:this|another)\s+([a-z]+)\b/).exec(line);
         if (m) {
           const subtype = m[1].toLowerCase();
           // Solo disparamos si el type_line contiene ese subtipo

@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { GameState } from '../models/game-state';
-import { Cart } from '../models/cart';
-import { Permanent } from '../models/permanent';
+import {Injectable} from '@angular/core';
+import {GameState} from '../models/game-state';
+import {Cart} from '../models/cart';
+import {Permanent} from '../models/permanent';
 
 @Injectable({ providedIn: 'root' })
 export class GameStorageService {
@@ -36,7 +36,7 @@ export class GameStorageService {
       };
     };
 
-    const strippedState: GameState = {
+    allGames[state.id] = {
       ...state,
       cards: state.cards.map(stripCard),
       battlefield: state.battlefield.map(stripPermanent),
@@ -45,13 +45,11 @@ export class GameStorageService {
         source: 'originalCard' in item.source
           ? {
             ...item.source,
-            originalCard: stripCard((item.source as Permanent).originalCard)
+            originalCard: stripCard((item.source).originalCard)
           }
-          : stripCard(item.source as Cart)
+          : stripCard(item.source)
       })),
     };
-
-    allGames[state.id] = strippedState;
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allGames));
   }
 
