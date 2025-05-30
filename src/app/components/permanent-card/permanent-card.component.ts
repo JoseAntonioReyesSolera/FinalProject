@@ -49,7 +49,14 @@ export class PermanentCardComponent {
     private readonly logService: LogService,
     public readonly turnService: TurnService,
     private readonly enrichService: CardEnrichmentService
-  ) {}
+  ) {
+    this.turnService.currentStep$.subscribe(step => {
+      if (step === 'End of Combat' && this.isAttacking) {
+        this.isAttacking = false;
+        this.logService.addLog("[PermanentCardComponent]", `${this.card.name} deja de estar atacando.`);
+      }
+    });
+  }
 
   onClick(event: MouseEvent) {
     event.preventDefault();
