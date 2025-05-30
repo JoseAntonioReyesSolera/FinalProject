@@ -60,7 +60,7 @@ export class CardEnrichmentService {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
     });
 
-    text = text.replace(/((?:<img [^>]+>|[−+A-Za-z0-9\s,']+)+:\s*)(.*?)(\.)/gm, (match, cost, effect) => {
+    text = text.replace(/(((?:<img [^>]+>|\w|[−+,'\s])+):\s*)(.*?)(\.)/gm, (match, cost, effect) => {
       return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
     });
 
@@ -87,8 +87,7 @@ export class CardEnrichmentService {
 
   private formatProducedMana(manaList?: string[]): string {
     if (!manaList) return '';
-    const compareByManaOrder = (a: string, b: string) => this.manaOrder.indexOf(a) - this.manaOrder.indexOf(b);
-    const sorted = manaList.toSorted(compareByManaOrder);
+    const sorted = manaList.toSorted((a, b) => this.manaOrder.indexOf(a) - this.manaOrder.indexOf(b));
     return sorted.map(mana => `{${mana}}`).join(', ');
   }
 

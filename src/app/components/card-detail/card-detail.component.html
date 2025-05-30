@@ -1,5 +1,7 @@
 @if (visible) {
-  <div class="modal-backdrop" (click)="close()"></div>
+  <button (click)="close()" style="background-color: transparent; border-color: transparent">
+  <div class="modal-backdrop"></div>
+  </button>
   <div class="modal-content card-detail-modal">
     <div class="card card-body shadow">
       <img [src]="(activeFace?.image_uris?.normal || card.image_uris?.normal)" alt="{{ activeFace?.name }}" class="card-img-top mb-3 rounded" />

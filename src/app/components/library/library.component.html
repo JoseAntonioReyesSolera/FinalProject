@@ -10,10 +10,11 @@
          [style.z-index]="$index"/>
     }
   }
+  <button (click)="onRightClick($event)" style="background-color: transparent; border-color: transparent">
   <img src="images/backcard.png"
        alt="Library"
-       class="library-image"
-       (click)="onRightClick($event)">
+       class="library-image">
+  </button>
 </div>
 
   <div class="modal fade" id="cardListModal" tabindex="-1" aria-labelledby="cardListModalLabel" aria-hidden="true" style="display: none">

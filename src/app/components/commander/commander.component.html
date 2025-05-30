@@ -15,11 +15,11 @@
 }
 
 @if (contextMenuVisible) {
+  <button (click)="contextMenuVisible = false" style="background-color: transparent; border-color: transparent">
   <div
     class="context-menu"
     [style.top.px]="contextMenuPosition.y"
     [style.left.px]="contextMenuPosition.x"
-    (click)="contextMenuVisible = false"
   >
     <ul>
       <li (click)="castSpell(selectedCard!)">Lanzar hechizo</li>
@@ -28,4 +28,5 @@
       <li (click)="unassignCommander(selectedCard!)">Desmarcar como comandante</li>
     </ul>
   </div>
+  </button>
 }

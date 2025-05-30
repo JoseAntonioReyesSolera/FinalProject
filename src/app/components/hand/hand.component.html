@@ -1,7 +1,8 @@
 <div class="hand-container">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
-  <div class="card-item" (click)="onCardClick($event, card)" [class.can-cast]="canCast(card)">
+  <button (click)="onCardClick($event, card)" style="background-color: transparent; border-color: transparent">
+  <div class="card-item" [class.can-cast]="canCast(card)">
     <p><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
     @if (card.card_faces && !card.isSingleImageDoubleFace) {
       <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}">
@@ -9,6 +10,7 @@
       <img [src]="card.image_uris?.normal" alt="{{ card.name }}">
     }
   </div>
+  </button>
   }
   }
 </div>
@@ -22,11 +24,11 @@
 }
 <!-- Menú contextual -->
 @if (contextMenuVisible) {
+  <button (click)="contextMenuVisible = false" style="background-color: transparent; border-color: transparent">
 <div
      class="context-menu"
      [style.top.px]="contextMenuPosition.y"
-     [style.left.px]="contextMenuPosition.x"
-     (click)="contextMenuVisible = false">
+     [style.left.px]="contextMenuPosition.x">
   <ul>
     <li (click)="castSpell(selectedCard)">Lanzar hechizo</li>
     <li (click)="viewDetails(selectedCard)">Ver detalles</li>
@@ -35,4 +37,5 @@
     <li (click)="moveToExile(selectedCard)">Exiliar</li>
   </ul>
 </div>
+  </button>
 }
