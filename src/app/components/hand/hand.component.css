@@ -1,13 +1,17 @@
 .hand-container {
   position: sticky;
   bottom: 0;
-  z-index: 50;       /* para que esté encima */
+  z-index: 50;
+  max-width: 75%;
+  margin-right: auto;
+  margin-left: 0;
   width: 100%;
   display: flex;
   overflow-x: auto;
   padding: 0.5rem;
   background-color: rgba(255, 255, 255, 0.95);
   border-top: 1px solid #ccc;
+  border-right: 1px solid #ccc;
   gap: 0.75rem;
   scroll-snap-type: x mandatory;
 }
@@ -22,6 +26,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-align: center;
   cursor: pointer;
+}
+
+.card-item.can-cast {
+  border: 3px solid limegreen;
+  box-shadow: 0 0 10px limegreen;
+  transition: box-shadow 0.3s ease;
 }
 
 .card-item:hover {

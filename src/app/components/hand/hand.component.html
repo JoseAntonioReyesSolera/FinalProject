@@ -1,7 +1,7 @@
 <div class="hand-container">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
-  <div class="card-item" (click)="onCardClick($event, card)">
+  <div class="card-item" (click)="onCardClick($event, card)" [class.can-cast]="canCast(card)">
     <p><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
     @if (card.card_faces && !card.isSingleImageDoubleFace) {
       <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}">

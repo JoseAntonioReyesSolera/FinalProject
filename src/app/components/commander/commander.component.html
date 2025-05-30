@@ -1,8 +1,7 @@
 <div class="commander-container">
     @for (commander of getCommanderCards() | async; track commander.instanceId) {
-    <button>
-      <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="commander-image card"
-         (click)="onCardClick($event, commander)">
+    <button (click)="onCardClick($event, commander)" style="border: transparent; background-color: transparent">
+      <img [src]="commander?.image_uris?.normal" alt="{{ commander?.name }}" class="commander-image card">
     </button>
       }
 </div>

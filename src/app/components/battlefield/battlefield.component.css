@@ -65,6 +65,7 @@
   grid-template-columns: repeat(2, max-content);
   gap: 10px;
   justify-items: center;
+  justify-self: center;
 }
 
 .split-button {

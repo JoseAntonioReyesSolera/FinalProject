@@ -181,4 +181,31 @@ export class DeckService {
 
     this.moveCardToZone(top.source, destination, 1);
   }
+
+  private manaPool: Record<string, number> = {
+    white: 0,
+    blue: 0,
+    black: 0,
+    red: 0,
+    green: 0,
+    colorless: 0,
+  };
+
+  getManaPool(): Record<string, number> {
+    return this.manaPool;
+  }
+
+  addMana(color: string) {
+    if (!this.manaPool[color]) this.manaPool[color] = 0;
+    this.manaPool[color]++;
+  }
+
+  removeMana(color: string) {
+    if (this.manaPool[color] > 0) this.manaPool[color]--;
+  }
+
+  clearManaPool() {
+    Object.keys(this.manaPool).forEach(color => this.manaPool[color] = 0);
+  }
+
 }

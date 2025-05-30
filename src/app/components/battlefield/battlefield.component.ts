@@ -249,31 +249,20 @@ export class BattlefieldComponent implements OnInit {
     { type: 'colorless', colorClass: 'mana-colorless', icon: 'https://svgs.scryfall.io/card-symbols/C.svg' }
   ];
 
-// Estado de mana pool, cantidad por tipo
-  manaPool: Record<string, number> = {
-    white: 0,
-    blue: 0,
-    black: 0,
-    red: 0,
-    green: 0,
-    colorless: 0,
-  };
-
   addMana(color: string) {
-    if (!this.manaPool[color]) {
-      this.manaPool[color] = 0;
-    }
-    this.manaPool[color]++;
+    this.deckService.addMana(color);
   }
 
   removeMana(color: string) {
-    if (this.manaPool[color] > 0) {
-      this.manaPool[color]--;
-    }
+    this.deckService.removeMana(color);
   }
 
 // Limpiar toda la mana pool
   clearManaPool() {
-    Object.keys(this.manaPool).forEach(color => this.manaPool[color] = 0);
+   this.deckService.clearManaPool();
+  }
+
+  get manaPool() {
+    return this.deckService.getManaPool();
   }
 }
