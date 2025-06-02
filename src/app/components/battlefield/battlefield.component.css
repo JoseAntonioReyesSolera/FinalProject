@@ -49,7 +49,7 @@
 .battlefield-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 3px;
 }
 
 /* ---------- MANA POOL ----------- */
