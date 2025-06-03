@@ -89,8 +89,8 @@ export class BattlefieldComponent implements OnInit {
         usedIds.add(p.instanceId);
 
         if (p.type.includes('Land')) lands.push(p);
-        else if (p.type.includes('Creature') || p.type.includes('Battle') || p.type.includes('Token')) creatures.push(p);
-        else if (p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker')) all.push(p);
+        else if (p.type.includes('Creature') || p.type.includes('Battle')) creatures.push(p);
+        else if (p.type.includes('Artifact') || p.type.includes('Enchantment') || p.type.includes('Planeswalker') || p.type.includes('Token')) all.push(p);
       }
       this.creaturesRow.next(creatures);
       this.allRow.next(all);
