@@ -4,12 +4,12 @@
   <div class="mb-3">
     <span class="input-group-text position-relative">
       <i class="bi bi-search"></i>
-      <input type="text" class="form-control" placeholder="Buscar por nombre..." [(ngModel)]="searchTerm">
+      <input type="text" class="form-control" placeholder="Search by name..." [(ngModel)]="searchTerm">
        <button
          type="button"
          class="btn btn-sm btn-outline-danger"
          (click)="searchTerm = ''"
-         title="Borrar búsqueda">
+         title="Clear search">
       X
     </button>
      </span>
@@ -27,7 +27,7 @@
               @if (!isExile() && !isGraveyard() || isLibrary()) {
                 @if (isCommanderCandidate(card)) {
                   <button class="btn btn-outline-dark btn-sm mt-2" (click)="moveToZone(card, 'command')">
-                    Marcar como comandante
+                    Mark as commander
                   </button>
                 }
               }
@@ -35,39 +35,39 @@
 
                 <!-- Botones para zona Graveyard -->
                 @if (isGraveyard()) {
-                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
-                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
-                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
-                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">At hand</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">To the deck</button>
+                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exile</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">To the Battlefield</button>
                 }
 
                 <!-- Botones para zona Exile -->
                 @if (isExile()) {
-                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">A la Mano</button>
-                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Al Mazo</button>
-                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'stack')">Lanzar Hechizo</button>
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">At hand</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">To the deck</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'stack')">Cast Spell</button>
                 }
 
                 <!-- Botones para zona Library -->
                 @if (isLibrary()) {
-                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Robar</button>
-                  <button class="btn btn-danger btn-sm"  (click)="moveToZone(card, 'graveyard')">Moler</button>
-                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exiliar</button>
-                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Draw</button>
+                  <button class="btn btn-danger btn-sm"  (click)="moveToZone(card, 'graveyard')">Mill</button>
+                  <button class="btn btn-dark btn-sm" (click)="moveToZone(card, 'exile')">Exile</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">To the Battlefield</button>
                 } @else if (card.zone === 'sideboard') {
-                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">Mover a Mano</button>
-                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">Mover al Mazo</button>
+                  <button class="btn btn-success btn-sm" (click)="moveToZone(card, 'hand')">At hand</button>
+                  <button class="btn btn-warning btn-sm" (click)="moveToZone(card, 'library')">To the deck</button>
                 }
 
                 @if (isTokens()) {
-                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">Al Campo</button>
+                  <button class="btn btn-info btn-sm" (click)="moveToZone(card, 'battlefield')">To the Battlefield</button>
                 }
               </div>
             </div>
           </div>
         </div>
       } @placeholder {
-        <p>Cargando carta...</p>
+        <p>Loading card...</p>
       }
     }
   </div>

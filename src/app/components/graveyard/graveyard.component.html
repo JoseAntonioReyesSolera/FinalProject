@@ -11,22 +11,22 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="tabs">
-        <button (click)="showMainDeck()">Cementerio</button>
-        <button (click)="showSideboard()">Exilio</button>
+        <button (click)="showMainDeck()">Graveyard</button>
+        <button (click)="showSideboard()">Exile</button>
       </div>
       <div class="modal-header">
-        <h5 class="modal-title" id="graveyardModalLabel">Selecciona las cartas que deseas mover</h5>
+        <h5 class="modal-title" id="graveyardModalLabel">Select the cards you want to move</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <app-zone-viewer
-          [zoneName]="isExile ? 'Exilo' : 'Cementerio'"
+          [zoneName]="isExile ? 'Exile' : 'Graveyard'"
           [zoneType]="isExile ? 'exile' : 'graveyard'"
           [cards]="isExile ? exileCards : graveyardCards">
         </app-zone-viewer>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-danger" type="button" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>

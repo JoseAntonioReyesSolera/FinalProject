@@ -4,17 +4,17 @@
     name="task"
     rows="3"
     [(ngModel)]="deckInput"
-    placeholder="Pega tu mazo aquí... (Formato MTGO)
+    placeholder="Paste your cards here... (Format MTGO)
 1 sol ring
 4 Forest"></textarea>
   <button
     type="button"
     class="btn btn-sm btn-outline-danger position-absolute"
     (click)="deckInput = ''"
-    title="Borrar contenido">
+    title="Clear content">
     X
   </button>
-  <button type="button" (click)="processDeckInput()"><i class="bi bi-box-arrow-down"></i>Cargar Mazo</button>
+  <button type="button" (click)="processDeckInput()"><i class="bi bi-box-arrow-down"></i>Load Cards</button>
 </div>
 @if (loadError) {
 <div class="error-message">
@@ -42,7 +42,7 @@
         </div>
       }
       @placeholder {
-        <p>Carta por cargar</p>
+        <p>Loading card...</p>
       }
     }
   </div>

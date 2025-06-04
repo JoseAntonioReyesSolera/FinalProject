@@ -36,42 +36,42 @@
     (click)="contextMenuVisible = false">
     <ul>
       <li>
-        <button (click)="executeAction('details')">Ver detalles</button>
+        <button (click)="executeAction('details')">See details</button>
       </li>
       @if ((turnService.currentStep$ | async) === 'Declare Attackers' && isCreature()) {
       <li>
         <button (click)="onAttackPhaseAction()">
-          Declarar como atacante
+          Declare as attacker
         </button>
       </li>
       }
       @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>
           <button (click)="executeAction('activate', ability.cost)">
-            Activar <span [innerHTML]="ability.sanitized"></span>
+            Activate <span [innerHTML]="ability.sanitized"></span>
           </button>
         </li>
       }
       @if (card.originalCard.card_faces?.length > 1) {
         <li>
-          <button (click)="executeAction('transform')">Transformar</button>
+          <button (click)="executeAction('transform')">Transform</button>
         </li>
       }
       <li>
-        <button (click)="openCounterModal()">Añadir contadores</button>
+        <button (click)="openCounterModal()">Add counters</button>
       </li>
       <li>
-        <button (click)="executeAction('backToHand')">Devolver a la Mano</button>
+        <button (click)="executeAction('backToHand')">Return to hand</button>
       </li>
       <li>
-        <button (click)="executeAction('destroy')">Destruir</button>
+        <button (click)="executeAction('destroy')">Destroy</button>
       </li>
       <li>
-        <button (click)="executeAction('exile')">Exiliar</button>
+        <button (click)="executeAction('exile')">Exile</button>
       </li>
       <li>
         <button (click)="toggleTap()">
-          {{ card.tapped ? 'Enderezar' : 'Girar' }}
+          {{ card.tapped ? 'Untap' : 'Tap' }}
         </button>
       </li>
     </ul>
@@ -86,10 +86,10 @@
     (click)="subMenuVisible = false">
     <ul>
       <li>
-        <button (click)="resolveCommanderZone('normal')">Zona normal</button>
+        <button (click)="resolveCommanderZone('normal')">Default</button>
       </li>
       <li>
-        <button (click)="resolveCommanderZone('commander')">Zona de comandante</button>
+        <button (click)="resolveCommanderZone('commander')">Commander zone</button>
       </li>
     </ul>
   </button>
@@ -97,14 +97,14 @@
 
 @if (showCounterModal) {
     <div class="context-menu">
-      <h3>Añadir contadores a {{ card.name }}</h3>
-      <div>Tipo de contador:</div>
+      <h3>Add counters to {{ card.name }}</h3>
+      <div>Counter type:</div>
       <select [(ngModel)]="selectedCounterType">
       @for (type of counterTypes; track $index) {
         <option [value]="type">{{ type }}</option>
       }
       </select>
-      <div>Cantidad:</div>
+      <div>Amount:</div>
       <div class="counter-controls">
         <button (click)="changeCounterAmount(-1)">–</button>
         <span>{{ counterAmount }}</span>
@@ -113,8 +113,8 @@
 
 
       <div class="modal-actions">
-        <button class="btn btn-primary" (click)="addCounter()">Añadir</button>
-        <button class="btn btn-primary" (click)="closeCounterModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="addCounter()">Add</button>
+        <button class="btn btn-primary" (click)="closeCounterModal()">Cancel</button>
       </div>
     </div>
 }
