@@ -18,6 +18,27 @@
 
 ---
 
+## 🔗 Try It Online – No Installation Required
+You can test and explore AsistenteMagic right away, without any setup or installation.
+
+Simply visit:
+
+👉 http://worldgames.es/mtgAsist/
+
+This online version includes all the core features:
+
+Load and parse decks directly in your browser.
+
+Interact with the battlefield, stack, and all other zones.
+
+Track triggered abilities and game events in real time.
+
+Save and reload your game sessions using your local browser storage.
+
+This version is fully functional and ideal for trying out the tool during physical Magic: The Gathering games or evaluating the app before installing it locally.
+
+> No account, download, or configuration needed – just open the link and start playing!
+
 ## Installation
 
 Clone the repository and install dependencies:
