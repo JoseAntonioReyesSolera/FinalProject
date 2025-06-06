@@ -1,20 +1,19 @@
+/* Contenedor mano */
+
 .hand-container {
+  max-width: 100%;
+  /* En desktop, mano fija abajo */
   position: sticky;
   bottom: 0;
   z-index: 50;
-  max-width: 75%;
-  margin-right: auto;
-  margin-left: 0;
-  width: 100%;
-  display: flex;
-  overflow-x: auto;
-  padding: 0.5rem;
   background-color: rgba(255, 255, 255, 0.95);
-  border-top: 1px solid #ccc;
   border-right: 1px solid #ccc;
   gap: 0.75rem;
   scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
 }
+
+/* Cartas */
 
 .card-item {
   flex: 0 0 auto;
@@ -26,6 +25,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-align: center;
   cursor: pointer;
+  width: 100px; /* para que las imágenes tengan tamaño fijo */
 }
 
 .card-item.can-cast {
@@ -40,10 +40,12 @@
 }
 
 .card-item img {
-  width: 100px;
+  width: 100%;
   height: auto;
   border-radius: 0.5rem;
 }
+
+/* Menú contextual */
 
 .context-menu {
   position: fixed;
@@ -55,17 +57,58 @@
   border-radius: 0.5rem;
   min-width: 180px;
 }
+
 .context-menu ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .context-menu ul li {
   padding: 0.25rem 0.75rem;
   cursor: pointer;
   color: #333;
   transition: background-color 0.2s ease;
 }
+
 .context-menu ul li:hover {
   background-color: #eee;
+}
+
+/* Media queries para responsive */
+
+/* En móviles (max-width 767px) */
+
+@media (max-width: 767px) {
+
+  .hand-container {
+    position: relative; /* no sticky en móvil */
+    flex-wrap: wrap !important;
+    max-height: 40vh; /* máximo 40% pantalla vertical */
+    overflow-x: hidden !important; /* nada de scroll horizontal */
+    overflow-y: auto !important; /* solo scroll vertical */
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .hand-container button {
+    flex: 1 1 45%; /* dos cartas por fila aprox */
+    max-width: 45%;
+  }
+
+  .card-item {
+    width: 100%; /* que rellene el contenedor del botón */
+  }
+}
+
+/* En pantallas grandes > 768px */
+
+@media (min-width: 768px) {
+  .hand-container {
+    max-height: 140px;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    flex-wrap: nowrap !important;
+    padding: 0.5rem;
+  }
 }

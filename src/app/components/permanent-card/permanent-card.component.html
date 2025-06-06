@@ -1,11 +1,11 @@
-<button class="permanent-card"
+<button class="permanent-card btn p-0 position-relative"
         [class.attacking]="isAttacking"
      (click)="onClick($event)">
-    <div class="card-name">{{ card.name }}</div>
+    <div class="card-name text-center text-truncate">{{ card.name }}</div>
 
-    <div class="card-art-container">
+    <div class="card-art-container position-relative mx-auto">
       @if (card.tapped) {
-        <div class="tapped-overlay">
+        <div class="tapped-overlay d-flex justify-content-center align-items-center">
           <img src="https://svgs.scryfall.io/card-symbols/T.svg" alt="Tapped" class="tap-icon"/>
         </div>
       }
@@ -19,7 +19,7 @@
            <div class="card-stats loyalty">{{card.loyalty}}</div>
          }
         </div>
-      <div class="card-counters">
+      <div class="card-counters d-flex flex-wrap justify-content-center">
         @for (counter of card.counters; track counter.type) {
           <div class="counter-chip">{{ counter.amount }}×{{ counter.type }}</div>
         }
@@ -30,47 +30,47 @@
 <!-- Menú contextual -->
 @if (contextMenuVisible) {
   <button
-    class="context-menu"
+    class="context-menu position-fixed"
     [style.top.px]="contextMenuPosition.y"
     [style.left.px]="contextMenuPosition.x"
     (click)="contextMenuVisible = false">
     <ul>
       <li>
-        <button (click)="executeAction('details')">See details</button>
+        <button (click)="executeAction('details')" class="btn btn-link text-start w-100">See details</button>
       </li>
       @if ((turnService.currentStep$ | async) === 'Declare Attackers' && isCreature()) {
       <li>
-        <button (click)="onAttackPhaseAction()">
+        <button (click)="onAttackPhaseAction()" class="btn btn-link text-start w-100">
           Declare as attacker
         </button>
       </li>
       }
       @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>
-          <button (click)="executeAction('activate', ability.cost)">
+          <button (click)="executeAction('activate', ability.cost)" class="btn btn-link text-start w-100">
             Activate <span [innerHTML]="ability.sanitized"></span>
           </button>
         </li>
       }
       @if (card.originalCard.card_faces?.length > 1) {
         <li>
-          <button (click)="executeAction('transform')">Transform</button>
+          <button (click)="executeAction('transform')" class="btn btn-link text-start w-100">Transform</button>
         </li>
       }
       <li>
         <button (click)="openCounterModal()">Add counters</button>
       </li>
       <li>
-        <button (click)="executeAction('backToHand')">Return to hand</button>
+        <button (click)="executeAction('backToHand')" class="btn btn-link text-start w-100">Return to hand</button>
       </li>
       <li>
-        <button (click)="executeAction('destroy')">Destroy</button>
+        <button (click)="executeAction('destroy')" class="btn btn-link text-start w-100">Destroy</button>
       </li>
       <li>
-        <button (click)="executeAction('exile')">Exile</button>
+        <button (click)="executeAction('exile')" class="btn btn-link text-start w-100">Exile</button>
       </li>
       <li>
-        <button (click)="toggleTap()">
+        <button (click)="toggleTap()" class="btn btn-link text-start w-100">
           {{ card.tapped ? 'Untap' : 'Tap' }}
         </button>
       </li>
@@ -80,35 +80,35 @@
 
 @if (subMenuVisible) {
   <button
-    class="context-menu"
+    class="context-menu position-fixed"
     [style.top.px]="contextMenuPosition.y+75"
     [style.left.px]="contextMenuPosition.x+75"
     (click)="subMenuVisible = false">
     <ul>
       <li>
-        <button (click)="resolveCommanderZone('normal')">Default</button>
+        <button (click)="resolveCommanderZone('normal')" class="btn btn-link text-start w-100">Default</button>
       </li>
       <li>
-        <button (click)="resolveCommanderZone('commander')">Commander zone</button>
+        <button (click)="resolveCommanderZone('commander')" class="btn btn-link text-start w-100">Commander zone</button>
       </li>
     </ul>
   </button>
 }
 
 @if (showCounterModal) {
-    <div class="context-menu">
+    <div class="context-menu counter-modal mx-auto">
       <h3>Add counters to {{ card.name }}</h3>
       <div>Counter type:</div>
-      <select [(ngModel)]="selectedCounterType">
+      <select [(ngModel)]="selectedCounterType" class="form-select mb-3">
       @for (type of counterTypes; track $index) {
         <option [value]="type">{{ type }}</option>
       }
       </select>
       <div>Amount:</div>
-      <div class="counter-controls">
-        <button (click)="changeCounterAmount(-1)">–</button>
+      <div class="counter-controls justify-content-center d-flex mb-3">
+        <button (click)="changeCounterAmount(-1)" class="btn btn-primary">–</button>
         <span>{{ counterAmount }}</span>
-        <button (click)="changeCounterAmount(1)">+</button>
+        <button (click)="changeCounterAmount(1)" class="btn btn-primary">+</button>
       </div>
 
 

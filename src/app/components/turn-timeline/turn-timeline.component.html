@@ -1,11 +1,11 @@
-<div class="turn-timeline-container">
-  <button class="nav-button" (click)="prev()">⬅️</button>
+<div class="turn-timeline-container d-flex flex-wrap justify-content-center align-items-start mx-0">
+  <button class="nav-button btn btn-light d-flex align-items-center justify-content-center" (click)="prev()">⬅️</button>
 
-  <div class="phases-wrapper">
+  <div class="phases-wrapper d-flex flex-wrap justify-content-center mx-3">
     @for (phase of phases; track $index) {
-      <div class="phase-item">
+      <div class="phase-item d-flex flex-column align-items-center position-relative mx-2 my-2">
         <div
-          class="phase-name"
+          class="phase-name px-3 py-2 rounded fw-bold text-center"
           [class.active]="$index === phaseIndex"
           title="{{phase.name}}"
         >
@@ -13,10 +13,10 @@
         </div>
 
         @if ($index === phaseIndex && phase.steps) {
-          <div class="steps">
+          <div class="steps d-flex position-absolute bg-white p-2 rounded shadow-sm z-3" style="top: 100%; overflow-x: auto; white-space: nowrap;">
             @for (step of phase.steps; track $index) {
               <span
-                class="step"
+                class="step px-2 py-1 rounded border mx-1 text-nowrap"
                 [class.active]="$index === stepIndex"
                 title="{{step.name}}"
               >
@@ -29,5 +29,5 @@
     }
   </div>
 
-  <button class="nav-button" (click)="next()">➡️</button>
+  <button class="nav-button btn btn-light d-flex align-items-center justify-content-center" (click)="next()">➡️</button>
 </div>

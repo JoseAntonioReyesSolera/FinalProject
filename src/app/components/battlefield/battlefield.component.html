@@ -4,10 +4,10 @@
   Import Deck
 </button>
   <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#helpModal">
-    <i class="bi bi-info-circle">Help</i>
-
+    <i class="bi bi-info-circle"></i>
+    Help
   </button>
-  <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#saveGameModal">
+  <button class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#saveGameModal" aria-label="Save or Load Game">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2-fill" viewBox="0 0 16 16">
       <path d="M12 2h-2v3h2z"/>
       <path d="M1.5 0A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13a1.5 1.5 0 0 0 1.5-1.5V2.914a1.5 1.5 0 0 0-.44-1.06L14.147.439A1.5 1.5 0 0 0 13.086 0zM4 6a1 1 0 0 1-1-1V1h10v4a1 1 0 0 1-1 1zM3 9h10a1 1 0 0 1 1 1v5H2v-5a1 1 0 0 1 1-1"/>
@@ -19,7 +19,7 @@
 <div class="modal fade" id="deckProcessorModal" tabindex="-1" aria-labelledby="deckProcessorModalLabel"
      aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content" style="z-index: 10">
+    <div class="modal-content modal-z10">
       <div class="modal-header">
         <h5 class="modal-title" id="deckProcessorModalLabel">Import Deck</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -42,7 +42,7 @@
       <app-stack></app-stack>
     </div>
     <div class="col-12 col-md-8 mb-4">
-      <div class="ratio ratio-1x4 backfield">
+      <div class="ratio backfield">
         <div class="d-flex">
 
           <div class="battlefield-container">
@@ -79,14 +79,6 @@
 
       </div>
     </div>
-
-    @if (selectedCardForDetails && modalVisible) {
-      <app-card-detail
-        [card]="selectedCardForDetails"
-        [visible]="modalVisible"
-        (closed)="modalVisible = false">
-      </app-card-detail>
-    }
 
     <div class="col-12 col-md-1 mt-4 d-flex flex-column justify-content-start gap-3">
 
@@ -125,7 +117,7 @@
 <!-- Save Game Modal -->
 <div class="modal fade" id="saveGameModal" tabindex="-1" aria-labelledby="saveGameModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content" style="z-index: 10">
+    <div class="modal-content modal-z10">
       <div class="modal-header">
         <h5 class="modal-title" id="saveGameModalLabel">Save or Load Game</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -138,15 +130,16 @@
           <strong>Saved Games</strong>
           <ul class="list-group mt-2">
             @for (game of savedGames; track $index) {
-            <button
-                (click)="selectSavedGame(game)"
-                class="list-group-item list-group-item-action"
-                [class.active]="selectedSaveId === game.id">
-              {{ game.id }} <small class="text-muted">({{ game.date }})</small>
-              <button class="btn btn-outline-danger" style="margin-left: 20px" (click)="deleteGame(game.id)" data-bs-dismiss="modal">
-                X
-              </button>
-            </button>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  [class.active]="selectedSaveId === game.id">
+                <button (click)="selectSavedGame(game)" class="btn btn-link p-0 text-start flex-grow-1">
+                  {{ game.id }} <small class="text-muted">({{ game.date }})</small>
+                </button>
+                <button class="btn btn-outline-danger btn-sm ms-2"
+                        (click)="deleteGame(game.id)" data-bs-dismiss="modal">
+                  X
+                </button>
+              </li>
             }
           </ul>
         </div>
@@ -171,3 +164,11 @@
     <app-helpper></app-helpper>
   </div>
 </div>
+
+@if (selectedCardForDetails && modalVisible) {
+  <app-card-detail
+    [card]="selectedCardForDetails"
+    [visible]="modalVisible"
+    (closed)="modalVisible = false">
+  </app-card-detail>
+}

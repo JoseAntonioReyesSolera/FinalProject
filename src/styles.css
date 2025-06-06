@@ -13,3 +13,45 @@
   --bs-body-font-family: 'Beleren', serif !important;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  font-family: var(--bs-body-font-family), serif;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Asegura que battlefield y hand se distribuyen bien en vertical */
+app-battlefield {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+app-hand {
+  flex: 0 0 auto;
+}
+
+/* Responsive layout tweaks si algún componente lo requiere */
+@media (max-width: 768px) {
+  app-root {
+    flex-direction: column;
+  }
+
+  app-hand {
+    /* Hacer que la mano ocupe menos espacio */
+    max-height: 25vh;
+    overflow-y: auto;
+  }
+
+  app-battlefield {
+    max-height: 75vh;
+  }
+}

@@ -1,9 +1,10 @@
-<div class="hand-container">
+<div class="hand-container bg-light border-top border-secondary d-flex flex-row flex-nowrap overflow-auto p-2">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
-  <button (click)="onCardClick($event, card)" style="background-color: transparent; border-color: transparent">
-  <div class="card-item" [class.can-cast]="canCast(card)">
-    <p><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
+  <button (click)="onCardClick($event, card)" class="btn btn-link p-0 m-1"
+          style="background-color: transparent; border-color: transparent; scroll-snap-align: start;">
+  <div class="card-item d-flex flex-column align-items-center" [class.can-cast]="canCast(card)">
+    <p  class="mb-1 text-center"><span [innerHTML]="card.sanitizedManaCost"></span><br></p>
     @if (card.card_faces && !card.isSingleImageDoubleFace) {
       <img [src]="card.card_faces[card.currentFaceIndex]?.image_uris?.normal" alt="{{ card.name }}">
     } @else {
@@ -24,17 +25,18 @@
 }
 <!-- Menú contextual -->
 @if (contextMenuVisible) {
-  <button (click)="contextMenuVisible = false" style="background-color: transparent; border-color: transparent">
+  <button (click)="contextMenuVisible = false" class="btn btn-link p-0 m-0"
+          style="background-color: transparent; border-color: transparent;">
 <div
      class="context-menu"
      [style.top.px]="contextMenuPosition.y"
      [style.left.px]="contextMenuPosition.x">
   <ul>
-    <li><button (click)="castSpell(selectedCard)" style="border: transparent; background-color: transparent">Cast Spell</button></li>
-    <li><button (click)="viewDetails(selectedCard)" style="border: transparent; background-color: transparent">See details</button></li>
-    <li><button (click)="moveToLibrary(selectedCard)" style="border: transparent; background-color: transparent">Move to library</button></li>
-    <li><button (click)="moveToGraveyard(selectedCard)" style="border: transparent; background-color: transparent">Discard</button></li>
-    <li><button (click)="moveToExile(selectedCard)" style="border: transparent; background-color: transparent">Exile</button></li>
+    <li><button (click)="castSpell(selectedCard)" class="btn btn-link text-decoration-none">Cast Spell</button></li>
+    <li><button (click)="viewDetails(selectedCard)" class="btn btn-link text-decoration-none">See details</button></li>
+    <li><button (click)="moveToLibrary(selectedCard)" class="btn btn-link text-decoration-none">Move to library</button></li>
+    <li><button (click)="moveToGraveyard(selectedCard)" class="btn btn-link text-decoration-none">Discard</button></li>
+    <li><button (click)="moveToExile(selectedCard)" class="btn btn-link text-decoration-none">Exile</button></li>
   </ul>
 </div>
   </button>
