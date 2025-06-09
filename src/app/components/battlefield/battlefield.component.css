@@ -37,6 +37,7 @@
   background: linear-gradient(145deg, #f1f3f5, #e9ecef);
   border: 2px solid #ced4da;
   border-radius: 10px;
+  overflow: auto;
 }
 
 .battlefield-container {
@@ -50,7 +51,7 @@
 .battlefield-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 3px;
   justify-content: start;
 }
 

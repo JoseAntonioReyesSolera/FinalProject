@@ -15,14 +15,12 @@ export class ScryfallService {
     }
 
   getCardByName(cartName: string): Observable<Cart> {
-      console.log("[servicioScryfall]Cargando carta: "+cartName);
       delay(100);
     const url = `${this.baseUrl}?exact=${cartName}`;
     return this.http.get<Cart>(url);
   }
 
   getCardByUri(uri: string): Observable<Cart> {
-      console.log("[servicioScryfall] Cargando token:" + uri)
     delay(100);
     return this.http.get<Cart>(uri);
   }
