@@ -35,9 +35,10 @@ export class PermanentCardComponent {
   isAttacking = false;
 
   counterTypes = [
-    'counter', '+1/+1', '-1/-1', 'Flying', 'Menace',
-    'Shield', 'Deathtouch', 'Charge', 'Energy', 'Oil'
-
+    'Generic',
+    '+1/+1','-1/-1','Charge','Defense','Energy','Finality','Lore','Oil','Poison','Stun','Time',
+    'Deathtouch','Double strike','First strike','Flying','Haste','Hexproof','Indestructible',
+    'Lifelink','Menace','Reach','Shadow','Trample','Vigilance'
   ];
   selectedCard: Permanent | null = null;
   pendingAction: 'destroy' | 'backToHand' | 'exile' | null = null;
