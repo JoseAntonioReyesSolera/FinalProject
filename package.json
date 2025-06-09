@@ -1,6 +1,6 @@
 {
   "name": "asistente-magic",
-  "version": "1.2.2",
+  "version": "1.2.2.1",
   "scripts": {
     "ng": "ng",
     "start": "npx serve -s dist/asistente-magic/browser",

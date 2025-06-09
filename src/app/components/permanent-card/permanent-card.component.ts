@@ -233,7 +233,7 @@ export class PermanentCardComponent {
   openCounterModal() {
     this.selectedCard = this.card;
     this.counterAmount = 1;
-    this.selectedCounterType = 'counter';
+    this.selectedCounterType = 'Generic';
     this.showCounterModal = true;
     this.contextMenuVisible = false;
   }
