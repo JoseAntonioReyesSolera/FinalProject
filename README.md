@@ -83,4 +83,4 @@ The main goal of AsistenteMagic is to support Magic: The Gathering players durin
 * Multi-language support
 
 ## 🤝 Contributing
-Contributions are welcome! If you’d like to report a bug, suggest a feature, or submit a pull request, feel free to do so. Let’s build a better assistant together.
+Contributions are welcome! If you’d like to report a bug, suggest a feature, or submit a pull request, feel free to do so.

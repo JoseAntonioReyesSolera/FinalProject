@@ -56,13 +56,24 @@ export class CardEnrichmentService {
   replaceManaSymbolsAndHighlightTriggers(text?: string): string {
     if (!text) return '';
 
-    text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (match, trigger, rest, comma, after, period) => {
+    text = text.replace(/(Whenever|At|When|As|If)([^,]*)(,)([^.]+)(\.)?/g, (_match, trigger, rest, comma, after, period) => {
       return `<span class="text-warning fw-bold">${trigger}${rest}${comma}</span><span class="text-success">${after}${period ?? ''}</span>`;
     });
 
-    text = text.replace(/(((?:<img [^>]+>|\w|[−+,'\s])+):\s*)(.*?)(\.)/gm, (match, cost, effect) => {
-      return `<span class="text-info fw-bold">${cost}</span> <span class="text-success">${effect}.</span>`;
-    });
+    text = text.replace(
+      // 1) <img ...>    → símbolos SVG ya inyectados
+      // 2) \{[^}]+\}    → bloque de llaves entero ({T}, {3}{G}, …)
+      // 3) [\p{L}\d_−+,'\s] → letras Unicode, dígitos, guión bajo y tus símbolos
+      //
+      // A) Captura todo eso hasta ':'  → grupo 1 = coste + ': '
+      // B) Captura el efecto (.*?), hasta el primer punto
+      //
+      /(((?:<img [^>]+>|\{[^}]+\}|[\p{L}\d_−+,'\s])+):\s*)(.*?)(\.)/gmu,
+      (_match, costWithColon, _unused, effectText) => {
+        return `<span class="text-info fw-bold">${costWithColon}</span> ` +
+          `<span class="text-success">${effectText}.</span><br>`;
+      }
+    );
 
     const keywordsWithTooltips = Object.keys(this.keywordExplanations);
     const keywordRegex = new RegExp(`\\b(${keywordsWithTooltips.join('|')})\\b`, 'gi');

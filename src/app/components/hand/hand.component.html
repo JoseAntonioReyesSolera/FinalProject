@@ -1,3 +1,30 @@
+
+@if (selectedCardForDetails) {
+  <app-card-detail
+    [card]="selectedCardForDetails"
+    [visible]="modalVisible"
+    (closed)="modalVisible = false">
+  </app-card-detail>
+}
+<!-- Menú contextual -->
+@if (contextMenuVisible) {
+  <button (click)="contextMenuVisible = false" class="btn btn-link p-0 m-0"
+          style="background-color: transparent; border-color: transparent;">
+    <div
+      class="context-menu"
+      [style.top.px]="contextMenuPosition.y"
+      [style.left.px]="contextMenuPosition.x">
+      <ul>
+        <li><button (click)="castSpell(selectedCard)" class="btn btn-link text-decoration-none">Cast Spell</button></li>
+        <li><button (click)="viewDetails(selectedCard)" class="btn btn-link text-decoration-none">See details</button></li>
+        <li><button (click)="moveToLibrary(selectedCard)" class="btn btn-link text-decoration-none">Move to library</button></li>
+        <li><button (click)="moveToGraveyard(selectedCard)" class="btn btn-link text-decoration-none">Discard</button></li>
+        <li><button (click)="moveToExile(selectedCard)" class="btn btn-link text-decoration-none">Exile</button></li>
+      </ul>
+    </div>
+  </button>
+}
+
 <div class="hand-container bg-light border-top border-secondary d-flex flex-row flex-nowrap overflow-auto p-2">
   @for (card of handCards; track card.instanceId) {
     @for (i of getCopies(card.quantity); track i) {
@@ -15,29 +42,3 @@
   }
   }
 </div>
-
-@if (selectedCardForDetails) {
-<app-card-detail
-  [card]="selectedCardForDetails"
-  [visible]="modalVisible"
-  (closed)="modalVisible = false">
-</app-card-detail>
-}
-<!-- Menú contextual -->
-@if (contextMenuVisible) {
-  <button (click)="contextMenuVisible = false" class="btn btn-link p-0 m-0"
-          style="background-color: transparent; border-color: transparent;">
-<div
-     class="context-menu"
-     [style.top.px]="contextMenuPosition.y"
-     [style.left.px]="contextMenuPosition.x">
-  <ul>
-    <li><button (click)="castSpell(selectedCard)" class="btn btn-link text-decoration-none">Cast Spell</button></li>
-    <li><button (click)="viewDetails(selectedCard)" class="btn btn-link text-decoration-none">See details</button></li>
-    <li><button (click)="moveToLibrary(selectedCard)" class="btn btn-link text-decoration-none">Move to library</button></li>
-    <li><button (click)="moveToGraveyard(selectedCard)" class="btn btn-link text-decoration-none">Discard</button></li>
-    <li><button (click)="moveToExile(selectedCard)" class="btn btn-link text-decoration-none">Exile</button></li>
-  </ul>
-</div>
-  </button>
-}

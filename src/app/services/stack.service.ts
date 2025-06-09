@@ -56,7 +56,7 @@ export class StackService {
       for (let i = 0; i < copies; i++) {
         const copy: StackItem = {
           ...spell,
-          efecto: `${spell.description} (Storm copy ${i + 1})`,
+          efecto: `${spell.source.oracle_text} (Storm copy ${i + 1})`,
           source: { ...sourceCard }, // puede marcarse como copia si quieres
           type: 'TriggeredAbility'
         };

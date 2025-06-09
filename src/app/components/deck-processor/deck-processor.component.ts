@@ -89,7 +89,7 @@ export class DeckProcessorComponent {
         const mainDeck = allCards.slice(0, unifiedMainList.length);
         const sideboard = allCards.slice(unifiedMainList.length);
 
-        // 🔍 Buscar tokens en all_parts
+        // Buscar tokens en all_parts
         const tokenUris = allCards
           .flatMap(card =>
             (card.all_parts ?? [])
@@ -97,7 +97,7 @@ export class DeckProcessorComponent {
               .map((part: any) => part.uri)
           );
 
-        // 🔁 Obtener tokens desde la API
+        // Obtener tokens desde la API
         if (tokenUris.length > 0) {
           forkJoin(tokenUris.map(uri => this.scryfallService.getCardByUri(uri))).subscribe({
             next: tokenCards => {
