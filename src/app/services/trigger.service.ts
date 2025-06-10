@@ -4,6 +4,7 @@ import {Injectable} from '@angular/core';
 import {StackService} from './stack.service';
 import {LogService} from './log.service';
 import {CardEnrichmentService} from './enrich.service';
+import {identity} from 'rxjs';
 
 type TriggerEvent =
   | 'cast'
@@ -115,11 +116,13 @@ export class TriggerService {
       extraCondition: (line, ctx) => {
         const s = ctx?.stepName?.toLowerCase();
         // upkeep
-        if (line.includes('upkeep')) {
-          return s === 'upkeep';
+        if (s === 'upkeep') {
+          return line.includes('upkeep') ||
+            line.includes('turn') ||
+            line.includes('untap step');
         }
         // combat
-        if (line.includes('combat on your turn')) {
+        if (line.includes('combat') ||line.includes('combat on your turn')) {
           return s === 'beginning of combat';
         }
         // end step
@@ -133,6 +136,11 @@ export class TriggerService {
         // pre.comb main
         if (line.includes('first main phase')) {
           return s === 'PreCombat Main Phase';
+        }
+        //
+        if (line.includes('combat damage step')) {
+          return s === 'First Combat Damage' ||
+            s === 'Combat Damage';
         }
         // post.comb main
         if (line.includes('postcombat main phase')) {
@@ -223,12 +231,16 @@ export class TriggerService {
           : true;
 
         if (matchesInc && matchesStart && extraOk) {
-          // Caso especial para 'enters':
-          if (event === 'enters' && line.startsWith('when ')) {
-            // Líneas "when X enters..." solo para el propio X:
-            const src = options?.source as Permanent;
-            // si entity !== src, no disparamos
-            if (entity !== src) return;
+          if (event === 'enters') {
+            // Filtrar "another" cuando el permanente entrante es el mismo que tiene la habilidad
+            if (line.includes('another') && entity === options?.source) {
+              return;
+            }
+            // Filtrar cuando la habilidad requiere criatura pero el permanente no lo es
+            if (/\b(?:a|another) creature\b/.test(line)) {
+              const isCreature = entity.originalCard.type_line.toLowerCase().includes('creature');
+              if (!isCreature) return;
+            }
           }
           this.pushTrigger(entity, line, `detectTriggers.${event}`);
           }

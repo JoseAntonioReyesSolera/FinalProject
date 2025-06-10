@@ -27,6 +27,7 @@ export class TurnTimelineComponent {
         {name: 'Beginning of Combat', label: '🎯️'},
         {name: 'Declare Attackers', label: '🏹'},
         {name: 'Declare Blockers',  label: '🛡️'},
+        {name: 'First Combat Damage', label: '⚡'},
         {name: 'Combat Damage', label: '💢'},
         {name: 'End of Combat', label: '🕊️'}
       ]
