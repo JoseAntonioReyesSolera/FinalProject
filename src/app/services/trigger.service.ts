@@ -4,7 +4,6 @@ import {Injectable} from '@angular/core';
 import {StackService} from './stack.service';
 import {LogService} from './log.service';
 import {CardEnrichmentService} from './enrich.service';
-import {identity} from 'rxjs';
 
 type TriggerEvent =
   | 'cast'
@@ -20,7 +19,11 @@ type TriggerEvent =
 interface TriggerPattern {
   includes: string[];
   startsWith?: string;
-  extraCondition?: (line: string, context?: { source?: Cart | Permanent; stepName?: string }) => boolean;
+  extraCondition?: (line: string, context?: {
+    source?: Cart | Permanent; // Quién causó el evento
+    stepName?: string;
+    abilityHolder?: Cart | Permanent;  // Quién tiene la habilidad
+  }) => boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -35,7 +38,6 @@ export class TriggerService {
     cast: {
       includes: ['whenever you cast'],
       extraCondition: (line, ctx) => {
-        // “Whenever you cast a historic spell…”
         if (line.includes('historic spell')) {
           const src = ctx?.source as Cart;
           return src ? this.isHistoric(src) : false;
@@ -44,56 +46,115 @@ export class TriggerService {
       }
     },
     enters: {
-        // Solo requerimos 'enters'; el cuándo lo validamos abajo
       includes: ['enters'],
       extraCondition: (line, ctx) => {
         const src = ctx?.source as Permanent;
-        const isLandfall = line.startsWith('landfall');
+        const abilityHolder = ctx?.abilityHolder as Permanent;
 
+        // Handle "this" keyword - only match if source is the ability holder
+        if (/\bthis\b/.test(line)) {
+          return abilityHolder === src;
+        }
+
+        // Handle landfall
+        const isLandfall = line.includes('landfall') && line.includes('enters');
         if (isLandfall) {
           return !!src && src.originalCard.type_line.toLowerCase().includes('land');
         }
 
+        // Must start with "when" or "whenever"
         const startsCorrectly = line.startsWith('when ') || line.startsWith('whenever ');
         if (!startsCorrectly) return false;
 
-        const mentionsCreature = /\ba creature\b|\banother creature\b/.test(line);
-        if (mentionsCreature) {
-          return !!src && src.originalCard.type_line.toLowerCase().includes('creature');
+        // Handle cases like "whenever an artifact enters"
+        if (line.includes('an artifact enters') || line.includes('a artifact enters')) {
+          return !!src && src.originalCard.type_line.toLowerCase().includes('artifact');
         }
 
-        // Si no menciona "a creature", dejamos pasar para efectos genéricos (como "whenever a permanent enters")
+        // Handle general cases with specific types
+        const typeMatch = RegExp(/\b(?:an?|another|this|that)\s+([a-z\s]+?)\s+enters/).exec(line);
+        if (typeMatch) {
+          const requiredType = typeMatch[1].toLowerCase().trim();
+          return !!src && src.originalCard.type_line.toLowerCase().includes(requiredType);
+        }
+
         return true;
       }
     },
+    // En la definición de los patrones:
     dies: {
-      includes: ['dies', ' is put into a graveyard from the battlefield'],
+      includes: [
+        'dies',
+        'is put into a graveyard from the battlefield',
+        'is put into your graveyard from the battlefield'
+      ],
       extraCondition: (line, ctx) => {
-        // ctx.source es la criatura que acaba de morir
         const src = ctx?.source as Permanent;
+        const abilityHolder = ctx?.abilityHolder as Permanent;
+
+        // 1. Handle "this" keyword
+        if (/\bthis\b/.test(line)) {
+          return abilityHolder === src;
+        }
+
         if (!src) return false;
 
-        // Buscar subtipo en formato "another X" o "this X"
-        const m = RegExp(/\b(?:this|another)\s+([a-z]+)\b/).exec(line);
-        if (m) {
-          const subtype = m[1].toLowerCase();
-          // Solo disparamos si el type_line contiene ese subtipo
+        // 2. Match by name if specified
+        const lowerName = src.name.toLowerCase();
+        if (line.includes(lowerName)) {
+          return true;
+        }
+
+        // 3. Improved "another" and "this or another" handling
+        const anotherMatch = line.match(/\b(this or another|another)\s+([a-z]+)?/i);
+        if (anotherMatch) {
+          const [_, keyword, type] = anotherMatch;
+          const isCreature = src.originalCard.type_line.toLowerCase().includes('creature');
+
+          // For "this or another" - trigger for any matching type (including self)
+          if (keyword.includes('or')) {
+            if (type) {
+              return src.originalCard.type_line.toLowerCase().includes(type);
+            }
+            return isCreature; // Default to creature if no type specified
+          }
+          // For "another" - trigger only for other permanents
+          else {
+            if (abilityHolder === src) return false; // Skip if it's the same permanent
+            if (type) {
+              return src.originalCard.type_line.toLowerCase().includes(type);
+            }
+            return isCreature; // Default to creature if no type specified
+          }
+        }
+
+        // 4. Match by type (e.g., "whenever an artifact dies")
+        const typeMatch = RegExp(/\b(?:this|that|another|a)\s+([a-z\s]+?)\s+(?:dies|is put)/i).exec(line);
+        if (typeMatch) {
+          const subtype = typeMatch[1].toLowerCase().trim();
           return src.originalCard.type_line.toLowerCase().includes(subtype);
         }
-        // Si no se ajusta al formato “another X” o “this X”, dejamos pasar
-        return true;
+
+        // 5. General case - just check if it starts with when/whenever
+        return line.startsWith('when ') || line.startsWith('whenever ');
       }
     },
     leaves: {
       includes: ['leaves'],
       extraCondition: (line, ctx) => {
-        // 1) “when [this creature] leaves…”
-        if (line.startsWith('when ')) {
-          // solo dispara si la fuente es la que se va
-          const src = ctx?.source as Permanent;
-          return !!src && line.includes(src.name.toLowerCase());
+        const src = ctx?.source as Permanent;
+        const abilityHolder = ctx?.abilityHolder as Permanent;
+
+        // Handle "this" keyword
+        if (/\bthis\b/.test(line)) {
+          return abilityHolder === src;
         }
-        // 2) “whenever … leaves…” para cualquiera
+
+        if (!src) return false;
+
+        if (line.startsWith('when ')) {
+          return line.includes('this ') || line.includes(src.name.toLowerCase());
+        }
         return line.startsWith('whenever ');
       }
     },
@@ -102,8 +163,7 @@ export class TriggerService {
     },
     discard: {
       includes: ['whenever you discard a'],
-      extraCondition: (line, ctx) => {
-        // Asegurarse de que la carta descartada es criatura
+      extraCondition: (_line, ctx) => {
         const src = ctx?.source as Cart;
         return !!src && src.type_line.toLowerCase().includes('creature');
       }
@@ -115,46 +175,32 @@ export class TriggerService {
       includes: ['at the beginning of'],
       extraCondition: (line, ctx) => {
         const s = ctx?.stepName?.toLowerCase();
-        // upkeep
-        if (s === 'upkeep') {
-          return line.includes('upkeep') ||
-            line.includes('turn') ||
-            line.includes('untap step');
-        }
-        // combat
-        if (line.includes('combat') ||line.includes('combat on your turn')) {
-          return s === 'beginning of combat';
-        }
-        // end step
-        if (line.includes('end step')) {
-          return s === 'end step';
-        }
-        // draw
-        if (line.includes('draw step')) {
-          return s === 'draw';
-        }
-        // pre.comb main
-        if (line.includes('first main phase')) {
-          return s === 'PreCombat Main Phase';
-        }
-        //
-        if (line.includes('combat damage step')) {
-          return s === 'First Combat Damage' ||
-            s === 'Combat Damage';
-        }
-        // post.comb main
-        if (line.includes('postcombat main phase')) {
-          return s === 'PostCombat Main Phase';
-        }
+        if (!s) return false;
 
-        // otras fases siguen disparando normalmente
+        const stepMapping: Record<string, RegExp> = {
+          upkeep: /upkeep\b/i,
+          'beginning of combat': /\b(combat(?! damage)|beginning of combat\b)/i,
+          'end step': /end step\b/i,
+          draw: /draw step\b/i,
+          'precombat main phase': /(pre-?combat main|first main) phase\b/i,
+          'postcombat main phase': /(post-?combat main|second main) phase\b/i,
+          'combat damage': /combat damage step\b/i
+        };
+
+        for (const [step, regex] of Object.entries(stepMapping)) {
+          if (s.includes(step) && regex.test(line)) return true;
+        }
         return false;
       }
     },
     attackDeclare: {
       includes: ['attacks'],
-      extraCondition: (_line, ctx) => {
-        return !!ctx?.source;
+      extraCondition: (line, ctx) => {
+        if (!ctx?.source) return false;
+        const perm = ctx.source as Permanent;
+        const escapedName = perm.name.split(',')[0].toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b(this|that|${escapedName})\\s+attacks\\b`, 'i');
+        return regex.test(line);
       },
     }
   };
@@ -173,20 +219,23 @@ export class TriggerService {
     if (event === 'cast' && options?.source) {
       const spell = options.source as Cart;
 
-      // 1) disparadores “when you cast this spell” en la propia carta
+      // 1) Self triggers "when you cast this spell"
       this.extractOracleLines(spell)
         .filter(line => line.startsWith('when you cast'))
         .forEach(line =>
           this.pushTrigger(spell, line, `detectTriggers.cast.self`)
         );
 
-      // 2) disparadores “whenever you cast…” en permanentes en mesa
+      // 2) Battlefield triggers "whenever you cast..."
       battlefield.forEach(perm => {
         this.extractOracleLines(perm.originalCard)
           .filter(line => line.includes('whenever') && line.includes('cast'))
           .forEach(line => {
-            // aplicamos extraCondition para histórico si hace falta
-            const ok = pattern.extraCondition ? pattern.extraCondition(line, options) : true;
+            const ok = pattern.extraCondition ?
+              pattern.extraCondition(line, {
+                source: spell,
+                abilityHolder: perm  // Pasar el portador de la habilidad
+              }) : true;
             if (ok) {
               this.pushTrigger(perm, line, `detectTriggers.cast.other`);
             }
@@ -197,20 +246,11 @@ export class TriggerService {
 
     if (event === 'attackDeclare' && options?.source) {
       const perm = options.source as Permanent;
-      const shortName = perm.name.split(',')[0].toLowerCase();
-
       this.extractOracleLines(perm.originalCard)
-        .filter(line => {
-
-          if (!/\battacks\b/.test(line)) return false;
-
-          if (/\bthis creature attacks\b/.test(line))     return true;
-
-          // 3) disparadores con nombre propio (“Whenever voja attacks”)
-          return new RegExp(`\\b${shortName}\\s+attacks\\b`).test(line);
-
-
-        })
+        .filter(line => pattern.extraCondition?.(line, {
+          source: perm,
+          abilityHolder: perm  // Pasar el portador de la habilidad
+        }) ?? false)
         .forEach(line =>
           this.pushTrigger(perm, line, 'detectTriggers.attackDeclare')
         );
@@ -218,47 +258,84 @@ export class TriggerService {
     }
 
     if ((event === 'dies' || event === 'leaves') && options?.source) {
-      this.checkSelfTriggers(event, options.source, pattern, `detectTriggers.${event}.self`);
+      const source = options.source;
+
+      // Check self triggers
+      this.checkSelfTriggers(event, source, pattern, `detectTriggers.${event}.self`);
+
+      // Check for "another" triggers in all permanents
+      battlefield.forEach(entity => {
+        // Skip if it's the same permanent unless the ability says "this or another"
+        if (entity === source) return;
+
+        this.extractOracleLines(entity.originalCard).forEach(line => {
+          const context = {
+            source: source,
+            abilityHolder: entity
+          };
+
+          // Check if line cares about "another" or "this or another" things dying
+          if (line.includes('another') || line.includes('this or another')) {
+            if (this.matchesTriggerPattern(line, pattern, context)) {
+              this.pushTrigger(entity, line, `detectTriggers.${event}.other`);
+            }
+          }
+        });
+      });
     }
 
-    (battlefield).forEach(entity => {
+    battlefield.forEach(entity => {
       const card = this.stack.isPermanent(entity) ? entity.originalCard : entity;
       this.extractOracleLines(card).forEach(line => {
-        const matchesInc = pattern.includes.some(substr => line.includes(substr));
-        const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
-        const extraOk = pattern.extraCondition
-          ? pattern.extraCondition(line, { source: options?.source, stepName: options?.stepName })
-          : true;
+        const context = {
+          source: options?.source,
+          stepName: options?.stepName,
+          abilityHolder: entity  // Pasar el portador de la habilidad
+        };
 
-        if (matchesInc && matchesStart && extraOk) {
+        if (this.matchesTriggerPattern(line, pattern, context)) {
           if (event === 'enters') {
-            // Filtrar "another" cuando el permanente entrante es el mismo que tiene la habilidad
             if (line.includes('another') && entity === options?.source) {
               return;
             }
-            // Filtrar cuando la habilidad requiere criatura pero el permanente no lo es
-            if (/\b(?:a|another) creature\b/.test(line)) {
-              const isCreature = entity.originalCard.type_line.toLowerCase().includes('creature');
-              if (!isCreature) return;
-            }
           }
           this.pushTrigger(entity, line, `detectTriggers.${event}`);
-          }
+        }
       });
     });
   }
 
+  // Helper to centralize pattern matching logic
+  private matchesTriggerPattern(
+    line: string,
+    pattern: TriggerPattern,
+    context?: any
+  ): boolean {
+    const matchesInc = pattern.includes.some(substr => line.includes(substr));
+    const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
+    const extraOk = pattern.extraCondition ?
+      pattern.extraCondition(line, context) : true;
+    return matchesInc && matchesStart && extraOk;
+  }
+
   // Utilidades
 
-  private checkSelfTriggers(event: TriggerEvent, source: Cart | Permanent, pattern: TriggerPattern, context: string) {
-    const lines = this.extractOracleLines(this.stack.isPermanent(source) ? source.originalCard : source);
+  private checkSelfTriggers(
+    _event: TriggerEvent,
+    source: Cart | Permanent,
+    pattern: TriggerPattern,
+    context: string
+  ) {
+    const lines = this.extractOracleLines(
+      this.stack.isPermanent(source) ? source.originalCard : source
+    );
+
     lines.forEach(line => {
-      const matchesInc = pattern.includes.some(substr => line.includes(substr));
-      const matchesStart = pattern.startsWith ? line.startsWith(pattern.startsWith) : true;
-      const extraOk = pattern.extraCondition
-        ? pattern.extraCondition(line, { source })
-        : true;
-      if (matchesInc && matchesStart && extraOk) {
+      const ctx = {
+        source,
+        abilityHolder: source  // Pasar el portador de la habilidad
+      };
+      if (this.matchesTriggerPattern(line, pattern, ctx)) {
         this.pushTrigger(source, line, context);
       }
     });
@@ -282,7 +359,7 @@ export class TriggerService {
 
     const name = source.name;
     const zone = this.stack.isPermanent(source) ? 'Permanent' : 'Cart';
-    this.logService.addLog(`[TriggerService.${context}] Pushed trigger from ${zone} ${name}: ${text}`);
+    this.logService.addLog(`[TriggerService.${context}] Trigger from ${zone} ${name}: ${text}`);
   }
 
   reorderTriggers(newOrder: number[]): void {
@@ -293,7 +370,8 @@ export class TriggerService {
 
   private isHistoric(card: Cart): boolean {
     const typeLine = card.type_line.toLowerCase();
-    return typeLine.includes('artifact') || typeLine.includes('legendary') || typeLine.includes('saga');
+    return typeLine.includes('artifact') ||
+      typeLine.includes('legendary') ||
+      typeLine.includes('saga');
   }
-
 }
