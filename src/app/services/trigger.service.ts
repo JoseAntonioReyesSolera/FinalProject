@@ -83,60 +83,36 @@ export class TriggerService {
     },
     // En la definición de los patrones:
     dies: {
-      includes: [
-        'dies',
-        'is put into a graveyard from the battlefield',
-        'is put into your graveyard from the battlefield'
-      ],
+      includes: ['dies', 'is put into a graveyard from the battlefield'],
       extraCondition: (line, ctx) => {
         const src = ctx?.source as Permanent;
         const abilityHolder = ctx?.abilityHolder as Permanent;
 
-        // 1. Handle "this" keyword
-        if (/\bthis\b/.test(line)) {
-          return abilityHolder === src;
-        }
-
         if (!src) return false;
 
-        // 2. Match by name if specified
-        const lowerName = src.name.toLowerCase();
-        if (line.includes(lowerName)) {
-          return true;
+        // 0. CASO ESPECIAL PRIMERO: "whenever this creature or another creature dies"
+        if (/this creature or another creature dies/i.test(line)) {
+          return src.originalCard.type_line?.toLowerCase().includes('creature') || false;
         }
 
-        // 3. Improved "another" and "this or another" handling
-        const anotherMatch = line.match(/\b(this or another|another)\s+([a-z]+)?/i);
-        if (anotherMatch) {
-          const [_, keyword, type] = anotherMatch;
-          const isCreature = src.originalCard.type_line.toLowerCase().includes('creature');
-
-          // For "this or another" - trigger for any matching type (including self)
-          if (keyword.includes('or')) {
-            if (type) {
-              return src.originalCard.type_line.toLowerCase().includes(type);
-            }
-            return isCreature; // Default to creature if no type specified
-          }
-          // For "another" - trigger only for other permanents
-          else {
-            if (abilityHolder === src) return false; // Skip if it's the same permanent
-            if (type) {
-              return src.originalCard.type_line.toLowerCase().includes(type);
-            }
-            return isCreature; // Default to creature if no type specified
-          }
+        // 1. Si la habilidad menciona "this", debe ser la misma carta
+        if (line.includes('this') && abilityHolder !== src) {
+          return false;
         }
 
-        // 4. Match by type (e.g., "whenever an artifact dies")
-        const typeMatch = RegExp(/\b(?:this|that|another|a)\s+([a-z\s]+?)\s+(?:dies|is put)/i).exec(line);
+        // 2. Si la habilidad menciona "another", no debe ser la misma carta
+        if (line.includes('another') && abilityHolder === src) {
+          return false;
+        }
+
+        // 3. Verificar tipos específicos si se mencionan
+        const typeMatch = RegExp(/\b(?:an?|another|this)\s+([a-z]+)\b/).exec(line);
         if (typeMatch) {
-          const subtype = typeMatch[1].toLowerCase().trim();
-          return src.originalCard.type_line.toLowerCase().includes(subtype);
+          const requiredType = typeMatch[1];
+          return src.originalCard.type_line?.toLowerCase().includes(requiredType) || false;
         }
 
-        // 5. General case - just check if it starts with when/whenever
-        return line.startsWith('when ') || line.startsWith('whenever ');
+        return true;
       }
     },
     leaves: {
@@ -257,31 +233,30 @@ export class TriggerService {
       return;
     }
 
-    if ((event === 'dies' || event === 'leaves') && options?.source) {
-      const source = options.source;
+    if (event === 'dies' && options?.source) {
+      const dyingPermanent = options.source as Permanent;
 
-      // Check self triggers
-      this.checkSelfTriggers(event, source, pattern, `detectTriggers.${event}.self`);
+      // 1. Verificar triggers en el permanente que muere
+      this.checkSelfTriggers('dies', dyingPermanent, this.triggerPatterns.dies, 'detectTriggers.dies.self');
 
-      // Check for "another" triggers in all permanents
-      battlefield.forEach(entity => {
-        // Skip if it's the same permanent unless the ability says "this or another"
-        if (entity === source) return;
+      // 2. Verificar triggers en otros permanentes
+      battlefield.forEach(permanent => {
+        if (permanent === dyingPermanent) return;
 
-        this.extractOracleLines(entity.originalCard).forEach(line => {
-          const context = {
-            source: source,
-            abilityHolder: entity
-          };
+        this.extractOracleLines(permanent.originalCard)
+          .filter(line => line.includes('dies'))
+          .forEach(line => {
+            const shouldTrigger = this.triggerPatterns.dies.extraCondition?.(line, {
+              source: dyingPermanent,
+              abilityHolder: permanent
+            }) ?? true;
 
-          // Check if line cares about "another" or "this or another" things dying
-          if (line.includes('another') || line.includes('this or another')) {
-            if (this.matchesTriggerPattern(line, pattern, context)) {
-              this.pushTrigger(entity, line, `detectTriggers.${event}.other`);
+            if (shouldTrigger) {
+              this.pushTrigger(permanent, line, 'detectTriggers.dies.other');
             }
-          }
-        });
+          });
       });
+      return;
     }
 
     battlefield.forEach(entity => {

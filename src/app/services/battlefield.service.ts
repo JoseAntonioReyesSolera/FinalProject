@@ -46,16 +46,26 @@ export class BattlefieldService {
   removePermanent(instanceId: string, toZone: string = ''): void {
     const before = this.permanentsSubject.getValue();
     const died = before.find(p => p.instanceId === instanceId)!;
-    const after = before.filter(p => p.instanceId !== instanceId);
-    this.permanentsSubject.next(after);
 
     // Solo considera "muerte" si va al cementerio
     if (toZone === 'graveyard') {
       this.logService.addLog('[Battlefield.removePermanent.died] dies →', died.name);
-      this.triggerService.detectTriggers('dies', after, { source: died });
+
+      // Verificar triggers ANTES de remover, usando el estado actual (before)
+      this.triggerService.detectTriggers('dies', before, {
+        source: died,
+        // No necesitas pasar abilityHolder aquí, ya que detectTriggers lo manejará
+      });
+
+      // Luego remover el permanente
+      const after = before.filter(p => p.instanceId !== instanceId);
+      this.permanentsSubject.next(after);
     } else {
       this.logService.addLog('[Battlefield.removePermanent.leave] leaves →', died.name);
-      this.triggerService.detectTriggers('leaves', after, {source: died});
+      this.triggerService.detectTriggers('leaves', before, { source: died });
+
+      const after = before.filter(p => p.instanceId !== instanceId);
+      this.permanentsSubject.next(after);
     }
   }
 
