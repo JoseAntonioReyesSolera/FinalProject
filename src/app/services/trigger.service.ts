@@ -23,6 +23,7 @@ interface TriggerPattern {
     source?: Cart | Permanent; // Quién causó el evento
     stepName?: string;
     abilityHolder?: Cart | Permanent;  // Quién tiene la habilidad
+    fromZone?: string;
   }) => boolean;
 }
 
@@ -116,10 +117,11 @@ export class TriggerService {
       }
     },
     leaves: {
-      includes: ['leaves'],
+      includes: ['leaves', 'leave'],
       extraCondition: (line, ctx) => {
         const src = ctx?.source as Permanent;
         const abilityHolder = ctx?.abilityHolder as Permanent;
+        const fromZone = ctx?.fromZone?.toLowerCase();
 
         // Handle "this" keyword
         if (/\bthis\b/.test(line)) {
@@ -127,6 +129,24 @@ export class TriggerService {
         }
 
         if (!src) return false;
+
+        if (fromZone === 'graveyard') {
+          // Solo dispara habilidades que hablan del cementerio.
+          return line.includes('graveyard');
+        }
+
+        if (fromZone === 'battlefield') {
+          if (line.includes('graveyard')) {
+            return false;
+          }
+          if (line.includes('battlefield')) {
+            return true;
+          }
+          if (line.startsWith('when ') || line.startsWith('whenever ')) {
+            return line.includes('this ') || line.includes(src.name.toLowerCase());
+          }
+          return false;
+        }
 
         if (line.startsWith('when ')) {
           return line.includes('this ') || line.includes(src.name.toLowerCase());
@@ -188,6 +208,7 @@ export class TriggerService {
       source?: Cart | Permanent;
       context?: string;
       stepName?: string;
+      fromZone?: string;
     }
   ) {
     const pattern = this.triggerPatterns[event];
@@ -324,12 +345,15 @@ export class TriggerService {
   }
 
   private pushTrigger(source: Cart | Permanent, text: string, context = '') {
+    const sanitizedText = this.enrichService['sanitizeHtml'](
+      this.enrichService['replaceManaSymbolsAndHighlightTriggers'](text)
+    );
+
     this.stack.pushToStack({
       source,
-      description: this.enrichService['sanitizeHtml'](
-        this.enrichService['replaceManaSymbolsAndHighlightTriggers'](text)
-      ),
       type: 'TriggeredAbility',
+      description: `Triggered ability from ${source.name}:`,
+      efecto: sanitizedText,
     });
 
     const name = source.name;

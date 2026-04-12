@@ -12,7 +12,10 @@
       }
       <h3 class="card-title">{{ card.name }}</h3>
       <p class="card-subtitle mb-2 text-muted">{{ card.type_line }}</p>
-      <p><strong>Text: </strong><span [innerHTML]="activeFace.sanitizedOracleText"></span></p>
+      @if (currentLevel != null && currentLevel >= 0 && card.type_line.toLowerCase().includes('enchantment') && /level up/i.test(card.oracle_text || '')) {
+        <p><strong>Current level:</strong> {{ currentLevel }}</p>
+      }
+      <p><strong>Text: </strong><span [innerHTML]="getDisplayedOracleText()"></span></p>
       <p><strong>Mana cost: </strong><span [innerHTML]="activeFace.sanitizedManaCost"></span></p>
       <p><strong>CMC: </strong> <span [innerHTML]="activeFace.cmc"></span></p>
       <!-- Agrega más campos si quieres -->

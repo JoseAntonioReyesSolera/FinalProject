@@ -51,6 +51,7 @@ export class BattlefieldComponent implements OnInit {
 
   contextMenuVisible = false;
   selectedCardForDetails: Cart | null = null;
+  selectedCardLevel: number | null = null;
   modalVisible = false;
   allCards: Cart[] = [];
   saveName: string = "";
@@ -113,6 +114,7 @@ export class BattlefieldComponent implements OnInit {
         const foundCard = event.card.originalCard;
         if (foundCard) {
           this.selectedCardForDetails = foundCard;
+          this.selectedCardLevel = event.card.counters?.find(c => c.type.toLowerCase() === 'level')?.amount ?? null;
           this.modalVisible = true;
         }
         break;

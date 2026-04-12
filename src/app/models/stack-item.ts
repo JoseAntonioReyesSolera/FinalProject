@@ -9,5 +9,6 @@ export interface StackItem {
   description: any;
   cost?: string;
   efecto?: any;
+  onResolve?: (resolved: boolean) => void;
 }
 

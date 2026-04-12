@@ -9,24 +9,26 @@
     @let top = stackCards[stackCards.length - 1];
     <div class="card-in-stack p-4 border rounded shadow bg-gray-100">
       <p class="text-lg font-semibold">{{ top.source.name }}</p>
-
-      <!-- Si es una carta de hechizo -->
-      @if (top.type == 'Spell') {
-      @if (stackService.isCart(top.source)) {
-        <p class="text-lg font-semibold">{{ top.source.type_line }}</p>
-        @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
-          <div
-            class="text-sm text-gray-700 whitespace-pre-line"
-            [innerHTML]="(top.source.sanitizedOracleText)"
-          ></div>
+      <p class="text-sm text-muted mb-2">
+        @if (top.type === 'Spell' && stackService.isCart(top.source)) {
+          {{ top.source.type_line }}
+        } @else if (top.type === 'ActivatedAbility') {
+          Activated ability
+        } @else if (top.type === 'TriggeredAbility') {
+          Triggered ability
         }
-      }
-      }
-      @if (top.type != 'Spell') {
-        <div
-          class="text-sm text-gray-700 whitespace-pre-line"
-          [innerHTML]="top.description"
-        ></div>
+      </p>
+
+      @if (top.type == 'Spell') {
+        @if (stackService.isCart(top.source)) {
+          @if (top.source.type_line.includes('Sorcery') || top.source.type_line.includes('Instant')) {
+            <div
+              class="text-sm text-gray-700 whitespace-pre-line"
+              [innerHTML]="top.source.sanitizedOracleText"
+            ></div>
+          }
+        }
+      } @else {
         <div
           class="text-sm text-gray-700 whitespace-pre-line"
           [innerHTML]="top.efecto"

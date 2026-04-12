@@ -18,6 +18,9 @@
           @if (card.loyalty) {
            <div class="card-stats loyalty">{{card.loyalty}}</div>
          }
+          @if (isClass(card)) {
+            <div class="card-stats loyalty">Lvl {{ getClassLevel(card) }}</div>
+          }
         </div>
       <div class="card-counters d-flex flex-wrap justify-content-center">
         @for (counter of card.counters; track counter.type) {
@@ -44,6 +47,24 @@
           Declare as attacker
         </button>
       </li>
+      }
+      @if (isClass(card)) {
+      <li>
+        <button (click)="executeAction('activate', getClassLevelUpCost(card))" class="btn btn-link text-start w-100">
+          Level up <span [innerHTML]="getClassLevelUpCost(card)"></span>
+        </button>
+      </li>
+      <li>
+        <div class="text-sm text-gray-700 whitespace-pre-line" [innerHTML]="getClassAbilityForLevel(card)"></div>
+      </li>
+      @for (ability of getClassActivatedAbilities(card); track ability.cost) {
+        <li>
+          <button (click)="executeAction('activate', ability.cost)" class="btn btn-link text-start w-100">
+            Activate <span [innerHTML]="ability.sanitized"></span>
+          </button>
+          <div class="text-sm text-gray-700 whitespace-pre-line" [innerHTML]="ability.sanitizedEffect"></div>
+        </li>
+      }
       }
       @for (ability of getActivatedAbilities(card); track ability.cost) {
         <li>

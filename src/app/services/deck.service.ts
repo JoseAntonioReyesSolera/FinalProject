@@ -56,6 +56,10 @@ export class DeckService {
       this.removeFromZone(from as ZoneName, card, qty);
     }
 
+    if (from === 'graveyard' && to !== 'graveyard') {
+      this.triggerService.detectTriggers('leaves', battlefield, { source: card, fromZone: 'graveyard' });
+    }
+
     if (to === 'stack' && this.stack.isSplitSecondActive()) {
       this.addToZone(from as ZoneName, card, qty);
       return;
@@ -166,7 +170,9 @@ export class DeckService {
     if (!top) return;
 
     if (top.type !== 'Spell') {
-      // Si no es un hechizo, no hacemos nada más.
+      if (resolved && top.onResolve) {
+        top.onResolve(resolved);
+      }
       return;
     }
 

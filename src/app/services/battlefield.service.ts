@@ -62,7 +62,7 @@ export class BattlefieldService {
       this.permanentsSubject.next(after);
     } else {
       this.logService.addLog('[Battlefield.removePermanent.leave] leaves →', died.name);
-      this.triggerService.detectTriggers('leaves', before, { source: died });
+      this.triggerService.detectTriggers('leaves', before, { source: died, fromZone: 'battlefield' });
 
       const after = before.filter(p => p.instanceId !== instanceId);
       this.permanentsSubject.next(after);

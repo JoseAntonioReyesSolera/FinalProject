@@ -112,9 +112,7 @@ export class PermanentCardComponent {
       return;
     }
 
-    const oracleText = this.selectedCard?.originalCard?.oracle_text ?? '';
-    const line = oracleText.split('\n').map(l => l.trim()).find(l => l.startsWith(cost + ':'));
-    const efecto = line?.split(':')[1]?.trim() ?? '';
+    const efecto = this.findAbilityEffect(this.selectedCard!, cost);
 
     if (cost.includes('{T}')) {
       this.card.tapped = true;
@@ -141,6 +139,12 @@ export class PermanentCardComponent {
       description: `Activate an ability:`,
       cost: cost,
       efecto: sanitizedEfecto,
+      onResolve: (resolved: boolean) => {
+        if (!resolved) return;
+        if (this.isClass(this.selectedCard!) && cost.toLowerCase().startsWith('level up')) {
+          this.levelUp(this.selectedCard!);
+        }
+      }
     };
 
     this.stackService.pushToStack(item);
@@ -148,32 +152,160 @@ export class PermanentCardComponent {
     this.closeMenus();
   }
 
-  private isManaAbility(efecto: string): boolean {
-    return /Add\s+\{|\bany color\b/i.test(efecto);
-  }
+  private findAbilityEffect(card: Permanent, cost: string): string {
+    const oracleText = card.originalCard?.oracle_text ?? '';
+    const normalizedCost = cost.trim();
 
-  private isLoyaltyAbility(cost: string): boolean {
-    return /^([+\u2212]?)(\d+)$/.test(cost);
-  }
-
-  private applyLoyaltyCost(cost: string): boolean {
-    const match = RegExp(/^([+\u2212]?)(\d+)$/).exec(cost);
-    if (!match) return false;
-
-    const sign = match[1];
-    const amount = parseInt(match[2], 10);
-    const currentLoyalty = Number(this.card.loyalty ?? 0);
-    const change = sign === '\u2212' ? -amount : amount;
-
-    if (change < 0 && Math.abs(change) > currentLoyalty) {
-      this.logService.addLog("[PermanentCardComponent]", `${this.card.name} no tiene suficiente lealtad para usar ${cost}`);
-      return false;
+    const lines = oracleText.split('\n').map(l => l.trim()).filter(l => !!l);
+    for (const line of lines) {
+      if (/^level up\b/i.test(line)) {
+        const match = /\(([^)]+)\)/.exec(line);
+        if (match) {
+          const inner = match[1];
+          const colonIndex = inner.indexOf(':');
+          if (colonIndex > 0) {
+            const currentCost = inner.substring(0, colonIndex).trim();
+            const effect = inner.substring(colonIndex + 1).trim();
+            if (currentCost === normalizedCost) return effect;
+          }
+        }
+      }
     }
 
-    const newLoyalty = currentLoyalty + change;
-    this.card.loyalty = newLoyalty;
-    this.logService.addLog("[PermanentCardComponent]", `${this.card.name} ahora tiene ${newLoyalty} lealtad tras activar ${cost}`);
-    return true;
+    const classAbility = this.getClassActivatedAbilities(card).find(a => a.cost === normalizedCost);
+    if (classAbility) {
+      return classAbility.rawEffect;
+    }
+
+    for (const line of lines) {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex <= 0) continue;
+      const currentCost = line.substring(0, colonIndex).trim();
+      const effect = line.substring(colonIndex + 1).trim();
+      if (currentCost === normalizedCost) return effect;
+    }
+
+    return '';
+  }
+
+  private isClass(card: Permanent): boolean {
+    return card.type.toLowerCase().includes('enchantment') && /level up/i.test(card.originalCard?.oracle_text || '');
+  }
+
+  private getClassLevel(card: Permanent): number {
+    const levelCounter = card.counters.find(c => c.type.toLowerCase() === 'level');
+    return levelCounter?.amount ?? 0;
+  }
+
+  private getClassLevelUpInfo(card: Permanent): { cost: string; effect: string } | null {
+    const oracleText = card.originalCard?.oracle_text ?? '';
+    const line = oracleText.split('\n').map(l => l.trim()).find(l => /^level up\b/i.test(l));
+    if (!line) return null;
+
+    const match = /\(([^)]+)\)/.exec(line);
+    if (!match) return null;
+
+    const inner = match[1];
+    const colonIndex = inner.indexOf(':');
+    if (colonIndex <= 0) return null;
+
+    return {
+      cost: inner.substring(0, colonIndex).trim(),
+      effect: inner.substring(colonIndex + 1).trim(),
+    };
+  }
+
+  private parseClassSections(card: Permanent): Array<{ min: number; max: number; text: string }> {
+    const oracleText = card.originalCard?.oracle_text ?? '';
+    const lines = oracleText.split('\n').map(l => l.trim()).filter(l => !!l);
+    const sections: Array<{ range: string; text: string }> = [];
+    let currentSection: { range: string; text: string } | null = null;
+
+    for (const line of lines) {
+      const headerMatch = /^LEVEL\s+(.+)$/i.exec(line);
+      if (headerMatch) {
+        if (currentSection) sections.push(currentSection);
+        currentSection = { range: headerMatch[1].trim(), text: '' };
+        continue;
+      }
+
+      if (currentSection) {
+        currentSection.text += (currentSection.text ? '\n' : '') + line;
+      }
+    }
+
+    if (currentSection) sections.push(currentSection);
+
+    return sections.map(section => {
+      const range = section.range.replace(/[^0-9+\-]/g, '').trim();
+      let min = 0;
+      let max = Infinity;
+
+      if (range.includes('+')) {
+        min = Number(range.replace('+', '').trim());
+      } else if (range.includes('-')) {
+        const [start, end] = range.split('-').map(v => Number(v.trim()));
+        min = start;
+        max = end;
+      } else {
+        min = Number(range);
+        max = min;
+      }
+
+      return { min, max, text: section.text };
+    });
+  }
+
+  private getClassSectionForLevel(card: Permanent) {
+    const level = this.getClassLevel(card);
+    const sections = this.parseClassSections(card);
+    return sections.find(section => level >= section.min && level <= section.max) ?? null;
+  }
+
+  getClassAbilityForLevel(card: Permanent): SafeHtml {
+    const section = this.getClassSectionForLevel(card);
+    const text = section ? section.text : (this.getClassLevel(card) > 0 ? 'No class ability is active at this level yet.' : 'No class ability yet.');
+    return this.enrichService['sanitizeHtml'](
+      this.enrichService['replaceManaSymbolsAndHighlightTriggers'](text)
+    );
+  }
+
+  getClassLevelUpCost(card: Permanent): string {
+    return this.getClassLevelUpInfo(card)?.cost ?? '';
+  }
+
+  getClassActivatedAbilities(card: Permanent): Array<{ cost: string; sanitized: SafeHtml; sanitizedEffect: SafeHtml; rawEffect: string }> {
+    const section = this.getClassSectionForLevel(card);
+    if (!section) return [];
+
+    return section.text.split('\n').map(l => l.trim()).filter(l => !!l).map(line => {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex <= 0) return null;
+      const cost = line.substring(0, colonIndex).trim();
+      const effect = line.substring(colonIndex + 1).trim();
+      return {
+        cost,
+        rawEffect: effect,
+        sanitized: this.enrichService['sanitizeHtml'](
+          this.enrichService['replaceManaSymbolsAndHighlightTriggers'](cost)
+        ),
+        sanitizedEffect: this.enrichService['sanitizeHtml'](
+          this.enrichService['replaceManaSymbolsAndHighlightTriggers'](effect)
+        ),
+      };
+    }).filter(Boolean) as Array<{ cost: string; sanitized: SafeHtml; sanitizedEffect: SafeHtml; rawEffect: string }>;
+  }
+
+  private levelUp(card: Permanent) {
+    const current = this.getClassLevel(card);
+    const existing = card.counters.find(c => c.type.toLowerCase() === 'level');
+    if (existing) {
+      existing.amount += 1;
+    } else {
+      card.counters.push({ type: 'level', amount: 1 });
+    }
+    const next = this.getClassLevel(card);
+    this.logService.addLog("[PermanentCardComponent.levelUp]", `${card.name} sube a nivel ${next}`);
   }
 
   private closeMenus() {
@@ -203,18 +335,42 @@ export class PermanentCardComponent {
 
   getActivatedAbilities(card: Permanent): { cost: string; sanitized: SafeHtml }[] {
     const oracleText = card.originalCard?.oracle_text || '';
-    const lines = oracleText.split('\n');
+    const lines = oracleText.split('\n').map(l => l.trim()).filter(l => !!l);
     const abilities: { cost: string; sanitized: SafeHtml }[] = [];
+    const isClassCard = this.isClass(card);
+    let insideClassSection = false;
 
     for (const line of lines) {
-      const colonIndex = line.indexOf(':');
-      if (colonIndex > 0) {
-        const cost = line.substring(0, colonIndex).trim();
-        const sanitized = this.enrichService['sanitizeHtml'](
-          this.enrichService['replaceManaSymbolsAndHighlightTriggers'](cost));
+      if (/^LEVEL\b/i.test(line)) {
+        insideClassSection = true;
+        continue;
+      }
 
-          abilities.push({cost, sanitized});
+      if (isClassCard && insideClassSection) {
+        continue;
+      }
+
+      if (/^level up\b/i.test(line)) {
+        const match = /\(([^)]+)\)/.exec(line);
+        if (match) {
+          const inner = match[1];
+          const colonIndex = inner.indexOf(':');
+          if (colonIndex > 0) {
+            const cost = inner.substring(0, colonIndex).trim();
+            const sanitized = this.enrichService['sanitizeHtml'](
+              this.enrichService['replaceManaSymbolsAndHighlightTriggers'](cost));
+            abilities.push({ cost, sanitized });
+          }
         }
+        continue;
+      }
+
+      const colonIndex = line.indexOf(':');
+      if (colonIndex <= 0) continue;
+      const cost = line.substring(0, colonIndex).trim();
+      const sanitized = this.enrichService['sanitizeHtml'](
+        this.enrichService['replaceManaSymbolsAndHighlightTriggers'](cost));
+      abilities.push({ cost, sanitized });
     }
 
     return abilities;
